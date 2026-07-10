@@ -41,3 +41,6 @@ package/
 
 CLAUDE.md
 .git-backup/
+
+# 本地数据存储（dev模式）
+data/

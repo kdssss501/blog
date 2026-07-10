@@ -1,31 +1,15 @@
-name = "my-blog"
-compatibility_date = "2026-05-07" # 更为今日
-main = "src/worker.js"
+# Cloudflare Pages 配置
+# 生产环境使用 D1 数据库实现数据持久化
 
-[assets]
-directory = "./dist"
-binding = "ASSETS"
-# 与 Astro trailingSlash: "always" 对齐
-html_handling = "force-trailing-slash"
-# 未匹配路由时返回 dist/404.html（status 404）
-not_found_handling = "404-page"
+# D1 数据库绑定
+# 部署前需要先创建 D1 数据库：
+#   npx wrangler d1 create kdssss-blog-db
+# 然后将返回的 database_id 填入下方
 
-[vars]
-NODE_VERSION = "22"
-# 敏感信息请在 Cloudflare Dashboard → Workers & Pages →
-# 你的 Worker → Settings → Variables and Secrets 中添加 Secret：
-# AI_API_KEY
-# UMAMI_TOKEN
-# 可选变量：
-# ALLOWED_ORIGINS = "https://your-domain.example"
+[[d1_databases]]
+binding = "DB"
+database_name = "kdssss-blog-db"
+database_id = "YOUR_D1_DATABASE_ID_HERE"
 
-[[kv_namespaces]]
-binding = "VISITOR_KV"
-id = "2720087758cb476eb24fd8dd4efb3e4c"
-
-[[vectorize]]
-binding = "VECTORIZE"
-index_name = "blog-ai-search"
-
-[ai]
-binding = "AI"
+# D1 初始化 SQL（首次部署时执行）：
+#   npx wrangler d1 execute kdssss-blog-db --remote --file=./functions/_d1_init.sql

@@ -52,6 +52,25 @@ const title = "笔记本详情";
 		return text.length > 120 ? text.slice(0, 120) + "..." : text;
 	}
 
+	function hashString(str) {
+		var hash = 0;
+		for (var i = 0; i < str.length; i++) {
+			hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+		}
+		return Math.abs(hash);
+	}
+
+	function renderEntryCover(cover, title) {
+		if (cover && (cover.indexOf("data:") === 0 || cover.indexOf("http") === 0)) {
+			return '<div class="notebook-entry__cover"><img src="' + escapeText(cover) + '" alt="' + escapeText(title) + '"></div>';
+		}
+		if (cover && cover.indexOf("default-") === 0) {
+			return '<div class="notebook-entry__cover"><div class="notebook-entry__cover-gradient cover-grad-' + cover.replace("default-", "") + '"></div></div>';
+		}
+		var idx = (hashString(title || "n") % 8) + 1;
+		return '<div class="notebook-entry__cover"><div class="notebook-entry__cover-gradient cover-grad-' + idx + '"></div></div>';
+	}
+
 	function renderEntries(entries) {
 		const list = document.getElementById("notebook-entry-list");
 		if (!list) return;
@@ -64,6 +83,7 @@ const title = "笔记本详情";
 			.map((entry) => {
 				return `
 					<article class="notebook-entry" data-id="${escapeText(entry.id)}">
+						${renderEntryCover(entry.cover, entry.title)}
 						<div class="notebook-entry__header" role="button" tabindex="0" aria-expanded="false">
 							<span class="notebook-entry__date">${escapeText(entry.date)}</span>
 							<span class="notebook-entry__title">${escapeText(entry.title)}</span>

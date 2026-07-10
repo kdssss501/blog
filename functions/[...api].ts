@@ -1,4 +1,14 @@
+import {
+	getStorage,
+	storageGetJSON,
+	storageSetJSON,
+	storageGetList,
+	storageSetList,
+	type StorageAdapter,
+} from "./_storage";
+
 export interface Env {
+	DB?: any;
 	VISITOR_KV?: KVNamespace;
 }
 
@@ -32,82 +42,9 @@ interface NotebookEntry {
 	title: string;
 	date: string;
 	content: string;
+	cover: string;
 	createdAt: number;
 	updatedAt: number;
-}
-
-const MEMORY_STORAGE = new Map<string, string>();
-
-function getTreeholeList(): string[] {
-	const raw = MEMORY_STORAGE.get("treehole:list");
-	return raw ? JSON.parse(raw) : [];
-}
-
-function setTreeholeList(ids: string[]) {
-	MEMORY_STORAGE.set("treehole:list", JSON.stringify(ids));
-}
-
-function getTreeholeMessage(id: string): TreeholeMessage | null {
-	const raw = MEMORY_STORAGE.get(`treehole:msg:${id}`);
-	return raw ? JSON.parse(raw) : null;
-}
-
-function setTreeholeMessage(id: string, msg: TreeholeMessage) {
-	MEMORY_STORAGE.set(`treehole:msg:${id}`, JSON.stringify(msg));
-}
-
-function getTreeholeNextId(): string {
-	const counter = Number(MEMORY_STORAGE.get("treehole:counter") || "0") + 1;
-	MEMORY_STORAGE.set("treehole:counter", String(counter));
-	return `th_${String(counter).padStart(3, "0")}`;
-}
-
-function getGuestbookList(): string[] {
-	const raw = MEMORY_STORAGE.get("guestbook:list");
-	return raw ? JSON.parse(raw) : [];
-}
-
-function setGuestbookList(ids: string[]) {
-	MEMORY_STORAGE.set("guestbook:list", JSON.stringify(ids));
-}
-
-function getGuestbookMessage(id: string): GuestbookMessage | null {
-	const raw = MEMORY_STORAGE.get(`guestbook:msg:${id}`);
-	return raw ? JSON.parse(raw) : null;
-}
-
-function setGuestbookMessage(id: string, msg: GuestbookMessage) {
-	MEMORY_STORAGE.set(`guestbook:msg:${id}`, JSON.stringify(msg));
-}
-
-function getGuestbookNextId(): string {
-	const counter = Number(MEMORY_STORAGE.get("guestbook:counter") || "0") + 1;
-	MEMORY_STORAGE.set("guestbook:counter", String(counter));
-	return `msg_${String(counter).padStart(3, "0")}`;
-}
-
-function getNotebookList(): string[] {
-	const raw = MEMORY_STORAGE.get("notebook:list");
-	return raw ? JSON.parse(raw) : [];
-}
-
-function setNotebookList(ids: string[]) {
-	MEMORY_STORAGE.set("notebook:list", JSON.stringify(ids));
-}
-
-function getNotebookEntry(id: string): NotebookEntry | null {
-	const raw = MEMORY_STORAGE.get(`notebook:entry:${id}`);
-	return raw ? JSON.parse(raw) : null;
-}
-
-function setNotebookEntry(id: string, entry: NotebookEntry) {
-	MEMORY_STORAGE.set(`notebook:entry:${id}`, JSON.stringify(entry));
-}
-
-function getNotebookNextId(): string {
-	const counter = Number(MEMORY_STORAGE.get("notebook:counter") || "0") + 1;
-	MEMORY_STORAGE.set("notebook:counter", String(counter));
-	return `nb_${String(counter).padStart(3, "0")}`;
 }
 
 function escapeHtml(str: string): string {
@@ -119,47 +56,123 @@ function escapeHtml(str: string): string {
 		.replace(/'/g, "&#039;");
 }
 
+// ============ 存储辅助函数 ============
+
+async function getTreeholeList(s: StorageAdapter): Promise<string[]> {
+	return storageGetList(s, "treehole:list");
+}
+async function setTreeholeList(s: StorageAdapter, ids: string[]): Promise<void> {
+	await storageSetList(s, "treehole:list", ids);
+}
+async function getTreeholeMessage(s: StorageAdapter, id: string): Promise<TreeholeMessage | null> {
+	return storageGetJSON<TreeholeMessage>(s, `treehole:msg:${id}`);
+}
+async function setTreeholeMessage(s: StorageAdapter, id: string, msg: TreeholeMessage): Promise<void> {
+	await storageSetJSON(s, `treehole:msg:${id}`, msg);
+}
+async function getTreeholeNextId(s: StorageAdapter): Promise<string> {
+	const counter = Number((await s.get("treehole:counter")) || "0") + 1;
+	await s.set("treehole:counter", String(counter));
+	return `th_${String(counter).padStart(3, "0")}`;
+}
+
+async function getGuestbookList(s: StorageAdapter): Promise<string[]> {
+	return storageGetList(s, "guestbook:list");
+}
+async function setGuestbookList(s: StorageAdapter, ids: string[]): Promise<void> {
+	await storageSetList(s, "guestbook:list", ids);
+}
+async function getGuestbookMessage(s: StorageAdapter, id: string): Promise<GuestbookMessage | null> {
+	return storageGetJSON<GuestbookMessage>(s, `guestbook:msg:${id}`);
+}
+async function setGuestbookMessage(s: StorageAdapter, id: string, msg: GuestbookMessage): Promise<void> {
+	await storageSetJSON(s, `guestbook:msg:${id}`, msg);
+}
+async function getGuestbookNextId(s: StorageAdapter): Promise<string> {
+	const counter = Number((await s.get("guestbook:counter")) || "0") + 1;
+	await s.set("guestbook:counter", String(counter));
+	return `msg_${String(counter).padStart(3, "0")}`;
+}
+
+async function getNotebookList(s: StorageAdapter): Promise<string[]> {
+	return storageGetList(s, "notebook:list");
+}
+async function setNotebookList(s: StorageAdapter, ids: string[]): Promise<void> {
+	await storageSetList(s, "notebook:list", ids);
+}
+async function getNotebookEntry(s: StorageAdapter, id: string): Promise<NotebookEntry | null> {
+	return storageGetJSON<NotebookEntry>(s, `notebook:entry:${id}`);
+}
+async function setNotebookEntry(s: StorageAdapter, id: string, entry: NotebookEntry): Promise<void> {
+	await storageSetJSON(s, `notebook:entry:${id}`, entry);
+}
+async function getNotebookNextId(s: StorageAdapter): Promise<string> {
+	const counter = Number((await s.get("notebook:counter")) || "0") + 1;
+	await s.set("notebook:counter", String(counter));
+	return `nb_${String(counter).padStart(3, "0")}`;
+}
+
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		const url = new URL(request.url);
 		const pathname = url.pathname;
 		const method = request.method;
+		const storage = getStorage(env);
 
-		if (pathname.startsWith("/api/treehole")) {
-			return handleTreehole(request, url, pathname, method);
+		const corsHeaders = {
+			"Access-Control-Allow-Origin": "*",
+			"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+			"Access-Control-Allow-Headers": "Content-Type, Authorization",
+		};
+
+		if (method === "OPTIONS") {
+			return new Response(null, { headers: corsHeaders });
 		}
 
-		if (pathname.startsWith("/api/guestbook")) {
-			return handleGuestbook(request, url, pathname, method);
-		}
+		try {
+			if (pathname.startsWith("/api/treehole")) {
+				return await handleTreehole(storage, request, url, pathname, method);
+			}
 
-		if (pathname.startsWith("/api/notebook")) {
-			return handleNotebook(request, url, pathname, method);
-		}
+			if (pathname.startsWith("/api/guestbook")) {
+				return await handleGuestbook(storage, request, url, pathname, method);
+			}
 
-		return new Response("Not Found", { status: 404 });
+			if (pathname.startsWith("/api/notebook")) {
+				return await handleNotebook(storage, request, url, pathname, method);
+			}
+
+			return new Response("Not Found", { status: 404 });
+		} catch (err) {
+			console.error("[API Error]", err);
+			return new Response(JSON.stringify({ error: String(err) }), {
+				status: 500,
+				headers: { "Content-Type": "application/json", ...corsHeaders },
+			});
+		}
 	},
 };
 
-async function handleTreehole(request: Request, url: URL, pathname: string, method: string): Promise<Response> {
+async function handleTreehole(
+	storage: StorageAdapter,
+	request: Request,
+	url: URL,
+	pathname: string,
+	method: string
+): Promise<Response> {
 	const parts = pathname.split("/").filter(Boolean);
-
-	if (method === "OPTIONS") {
-		return new Response(null, {
-			headers: {
-				"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-				"Access-Control-Allow-Headers": "Content-Type, Authorization",
-			},
-		});
-	}
 
 	if (method === "GET") {
 		if (parts.length === 2) {
 			const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
 			const limit = Math.min(20, Math.max(1, Number(url.searchParams.get("limit")) || 10));
-			const ids = getTreeholeList();
+			const ids = await getTreeholeList(storage);
 			const pageIds = ids.slice(offset, offset + limit);
-			const messages = pageIds.map(getTreeholeMessage).filter(Boolean) as TreeholeMessage[];
+			const messages: TreeholeMessage[] = [];
+			for (const id of pageIds) {
+				const msg = await getTreeholeMessage(storage, id);
+				if (msg) messages.push(msg);
+			}
 			const visible = messages
 				.filter((m) => m.status === "approved")
 				.map((m) => ({
@@ -173,11 +186,13 @@ async function handleTreehole(request: Request, url: URL, pathname: string, meth
 
 		if (parts.length === 3) {
 			const id = parts[2];
-			const msg = getTreeholeMessage(id);
+			const msg = await getTreeholeMessage(storage, id);
 			if (!msg || msg.status !== "approved") {
 				return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 			}
-			return new Response(JSON.stringify(msg), { headers: { "Content-Type": "application/json" } });
+			return new Response(JSON.stringify(msg), {
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 	}
 
@@ -189,7 +204,7 @@ async function handleTreehole(request: Request, url: URL, pathname: string, meth
 				return new Response(JSON.stringify({ error: "content is required" }), { status: 400 });
 			}
 
-			const id = getTreeholeNextId();
+			const id = await getTreeholeNextId(storage);
 			const msg: TreeholeMessage = {
 				id,
 				content,
@@ -199,10 +214,10 @@ async function handleTreehole(request: Request, url: URL, pathname: string, meth
 				replies: [],
 			};
 
-			setTreeholeMessage(id, msg);
-			const ids = getTreeholeList();
+			await setTreeholeMessage(storage, id, msg);
+			const ids = await getTreeholeList(storage);
 			ids.unshift(id);
-			setTreeholeList(ids);
+			await setTreeholeList(storage, ids);
 
 			return new Response(JSON.stringify(msg), {
 				status: 201,
@@ -212,13 +227,13 @@ async function handleTreehole(request: Request, url: URL, pathname: string, meth
 
 		if (parts.length === 4 && parts[3] === "resonance") {
 			const id = parts[2];
-			const msg = getTreeholeMessage(id);
+			const msg = await getTreeholeMessage(storage, id);
 			if (!msg || msg.status !== "approved") {
 				return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 			}
 
 			msg.resonance = (msg.resonance || 0) + 1;
-			setTreeholeMessage(id, msg);
+			await setTreeholeMessage(storage, id, msg);
 
 			return new Response(JSON.stringify({ id, resonance: msg.resonance }), {
 				headers: { "Content-Type": "application/json" },
@@ -227,7 +242,7 @@ async function handleTreehole(request: Request, url: URL, pathname: string, meth
 
 		if (parts.length === 4 && parts[3] === "reply") {
 			const id = parts[2];
-			const msg = getTreeholeMessage(id);
+			const msg = await getTreeholeMessage(storage, id);
 			if (!msg || msg.status !== "approved") {
 				return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 			}
@@ -247,7 +262,7 @@ async function handleTreehole(request: Request, url: URL, pathname: string, meth
 				status: "approved",
 				resonance: 0,
 			});
-			setTreeholeMessage(id, msg);
+			await setTreeholeMessage(storage, id, msg);
 
 			return new Response(JSON.stringify({ id, content, hint: "回复成功" }), {
 				headers: { "Content-Type": "application/json" },
@@ -258,36 +273,39 @@ async function handleTreehole(request: Request, url: URL, pathname: string, meth
 	return new Response("Not Found", { status: 404 });
 }
 
-async function handleGuestbook(request: Request, url: URL, pathname: string, method: string): Promise<Response> {
+async function handleGuestbook(
+	storage: StorageAdapter,
+	request: Request,
+	url: URL,
+	pathname: string,
+	method: string
+): Promise<Response> {
 	const parts = pathname.split("/").filter(Boolean);
-
-	if (method === "OPTIONS") {
-		return new Response(null, {
-			headers: {
-				"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-				"Access-Control-Allow-Headers": "Content-Type",
-			},
-		});
-	}
 
 	if (method === "GET") {
 		if (parts.length === 2) {
 			const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
 			const limit = Math.min(20, Math.max(1, Number(url.searchParams.get("limit")) || 5));
-			const ids = getGuestbookList();
+			const ids = await getGuestbookList(storage);
 			const pageIds = ids.slice(offset, offset + limit);
-			const messages = pageIds.map(getGuestbookMessage).filter(Boolean) as GuestbookMessage[];
+			const messages: GuestbookMessage[] = [];
+			for (const id of pageIds) {
+				const msg = await getGuestbookMessage(storage, id);
+				if (msg) messages.push(msg);
+			}
 			return new Response(JSON.stringify({ messages, total: ids.length }), {
 				headers: { "Content-Type": "application/json" },
 			});
 		}
 
 		if (parts.length === 3) {
-			const msg = getGuestbookMessage(parts[2]);
+			const msg = await getGuestbookMessage(storage, parts[2]);
 			if (!msg) {
 				return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 			}
-			return new Response(JSON.stringify(msg), { headers: { "Content-Type": "application/json" } });
+			return new Response(JSON.stringify(msg), {
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 	}
 
@@ -298,12 +316,15 @@ async function handleGuestbook(request: Request, url: URL, pathname: string, met
 			const rawContent = (body.content || "").trim();
 
 			if (!rawAuthor || !rawContent) {
-				return new Response(JSON.stringify({ error: "author and content are required" }), { status: 400 });
+				return new Response(
+					JSON.stringify({ error: "author and content are required" }),
+					{ status: 400 }
+				);
 			}
 
 			const author = escapeHtml(rawAuthor);
 			const content = escapeHtml(rawContent);
-			const id = getGuestbookNextId();
+			const id = await getGuestbookNextId(storage);
 			const now = Date.now();
 			const message: GuestbookMessage = {
 				id,
@@ -314,11 +335,10 @@ async function handleGuestbook(request: Request, url: URL, pathname: string, met
 				votes: { agree: 0, disagree: 0, neutral: 0 },
 			};
 
-			setGuestbookMessage(id, message);
-
-			const ids = getGuestbookList();
+			await setGuestbookMessage(storage, id, message);
+			const ids = await getGuestbookList(storage);
 			ids.unshift(id);
-			setGuestbookList(ids);
+			await setGuestbookList(storage, ids);
 
 			return new Response(JSON.stringify(message), {
 				status: 201,
@@ -328,7 +348,7 @@ async function handleGuestbook(request: Request, url: URL, pathname: string, met
 
 		if (parts.length === 4 && parts[3] === "vote") {
 			const id = parts[2];
-			const msg = getGuestbookMessage(id);
+			const msg = await getGuestbookMessage(storage, id);
 			if (!msg) {
 				return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 			}
@@ -340,32 +360,35 @@ async function handleGuestbook(request: Request, url: URL, pathname: string, met
 			}
 
 			msg.votes[type] = (msg.votes[type] || 0) + 1;
-			setGuestbookMessage(id, msg);
+			await setGuestbookMessage(storage, id, msg);
 
-			return new Response(JSON.stringify(msg), { headers: { "Content-Type": "application/json" } });
+			return new Response(JSON.stringify(msg), {
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 	}
 
 	return new Response("Not Found", { status: 404 });
 }
 
-async function handleNotebook(request: Request, url: URL, pathname: string, method: string): Promise<Response> {
+async function handleNotebook(
+	storage: StorageAdapter,
+	request: Request,
+	url: URL,
+	pathname: string,
+	method: string
+): Promise<Response> {
 	const parts = pathname.split("/").filter(Boolean);
-
-	if (method === "OPTIONS") {
-		return new Response(null, {
-			headers: {
-				"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-				"Access-Control-Allow-Headers": "Content-Type, Authorization",
-			},
-		});
-	}
 
 	// GET /api/notebook/ - list all entries (optionally filtered by ?notebook=)
 	if (method === "GET" && parts.length === 2) {
 		const notebookFilter = url.searchParams.get("notebook");
-		const ids = getNotebookList();
-		let entries = ids.map(getNotebookEntry).filter(Boolean) as NotebookEntry[];
+		const ids = await getNotebookList(storage);
+		let entries: NotebookEntry[] = [];
+		for (const id of ids) {
+			const entry = await getNotebookEntry(storage, id);
+			if (entry) entries.push(entry);
+		}
 		if (notebookFilter) {
 			entries = entries.filter((e) => e.notebook === notebookFilter);
 		}
@@ -377,11 +400,13 @@ async function handleNotebook(request: Request, url: URL, pathname: string, meth
 
 	// GET /api/notebook/{id}/ - get single entry
 	if (method === "GET" && parts.length === 3) {
-		const entry = getNotebookEntry(parts[2]);
+		const entry = await getNotebookEntry(storage, parts[2]);
 		if (!entry) {
 			return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 		}
-		return new Response(JSON.stringify(entry), { headers: { "Content-Type": "application/json" } });
+		return new Response(JSON.stringify(entry), {
+			headers: { "Content-Type": "application/json" },
+		});
 	}
 
 	// POST /api/notebook/ - create new entry
@@ -391,12 +416,16 @@ async function handleNotebook(request: Request, url: URL, pathname: string, meth
 		const title = escapeHtml((body.title || "").trim());
 		const content = (body.content || "").trim();
 		const date = body.date || new Date().toISOString().slice(0, 10);
+		const cover = (body.cover || "").trim(); // base64 or URL or default image key
 
 		if (!notebook || !title || !content) {
-			return new Response(JSON.stringify({ error: "notebook, title, content are required" }), { status: 400 });
+			return new Response(
+				JSON.stringify({ error: "notebook, title, content are required" }),
+				{ status: 400 }
+			);
 		}
 
-		const id = getNotebookNextId();
+		const id = await getNotebookNextId(storage);
 		const now = Date.now();
 		const entry: NotebookEntry = {
 			id,
@@ -404,14 +433,15 @@ async function handleNotebook(request: Request, url: URL, pathname: string, meth
 			title,
 			date,
 			content,
+			cover,
 			createdAt: now,
 			updatedAt: now,
 		};
 
-		setNotebookEntry(id, entry);
-		const ids = getNotebookList();
+		await setNotebookEntry(storage, id, entry);
+		const ids = await getNotebookList(storage);
 		ids.unshift(id);
-		setNotebookList(ids);
+		await setNotebookList(storage, ids);
 
 		return new Response(JSON.stringify(entry), {
 			status: 201,
@@ -421,7 +451,7 @@ async function handleNotebook(request: Request, url: URL, pathname: string, meth
 
 	// PUT /api/notebook/{id}/ - update entry
 	if (method === "PUT" && parts.length === 3) {
-		const entry = getNotebookEntry(parts[2]);
+		const entry = await getNotebookEntry(storage, parts[2]);
 		if (!entry) {
 			return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 		}
@@ -431,25 +461,32 @@ async function handleNotebook(request: Request, url: URL, pathname: string, meth
 		if (body.title !== undefined) entry.title = escapeHtml(body.title.trim());
 		if (body.content !== undefined) entry.content = body.content;
 		if (body.date !== undefined) entry.date = body.date;
+		if (body.cover !== undefined) entry.cover = body.cover;
 		entry.updatedAt = Date.now();
 
-		setNotebookEntry(entry.id, entry);
-		return new Response(JSON.stringify(entry), { headers: { "Content-Type": "application/json" } });
+		await setNotebookEntry(storage, entry.id, entry);
+		return new Response(JSON.stringify(entry), {
+			headers: { "Content-Type": "application/json" },
+		});
 	}
 
 	// DELETE /api/notebook/{id}/ - delete entry
 	if (method === "DELETE" && parts.length === 3) {
 		const id = parts[2];
-		const entry = getNotebookEntry(id);
+		const entry = await getNotebookEntry(storage, id);
 		if (!entry) {
 			return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 		}
 
-		MEMORY_STORAGE.delete(`notebook:entry:${id}`);
-		const ids = getNotebookList().filter((existingId) => existingId !== id);
-		setNotebookList(ids);
+		await storage.delete(`notebook:entry:${id}`);
+		const ids = (await getNotebookList(storage)).filter(
+			(existingId) => existingId !== id
+		);
+		await setNotebookList(storage, ids);
 
-		return new Response(JSON.stringify({ success: true, id }), { headers: { "Content-Type": "application/json" } });
+		return new Response(JSON.stringify({ success: true, id }), {
+			headers: { "Content-Type": "application/json" },
+		});
 	}
 
 	return new Response("Not Found", { status: 404 });

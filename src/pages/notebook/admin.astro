@@ -60,6 +60,24 @@ const description = "创建、编辑和删除笔记本内容";
 								<label class="field-label" for="entry-title">标题</label>
 								<input id="entry-title" type="text" class="field-input" placeholder="笔记标题" maxlength="100" />
 							</div>
+
+							<div class="cover-selector">
+								<label class="field-label">笔记本封面</label>
+								<div class="cover-upload-area">
+									<label class="cover-upload-btn">
+										📁 上传自定义图片
+										<input type="file" id="cover-file-input" accept="image/*">
+									</label>
+									<div class="cover-preview" id="cover-preview">
+										<div class="cover-grad-preview cover-grad-1">?</div>
+									</div>
+									<button class="cover-clear-btn" id="cover-clear-btn">清除</button>
+								</div>
+								<div class="cover-gallery" id="cover-gallery">
+									<!-- 8个默认渐变选项，动态生成 -->
+								</div>
+							</div>
+
 							<div class="field-group">
 								<label class="field-label" for="entry-date">日期</label>
 								<input id="entry-date" type="date" class="field-input" />
@@ -105,6 +123,8 @@ const description = "创建、编辑和删除笔记本内容";
 	// 简单密码验证（前端哈希）
 	var ADMIN_PASSWORD_HASH = "kdssss2026";
 	var currentEntryId = null;
+	// 封面状态："" / "default-N" / "data:image/..."
+	var currentCover = "";
 
 	function initNotebookAdmin() {
 		var loginCard = document.getElementById('admin-login');
@@ -112,6 +132,9 @@ const description = "创建、编辑和删除笔记本内容";
 		var passwordInput = document.getElementById('admin-password');
 		var loginBtn = document.getElementById('admin-login-btn');
 		var loginError = document.getElementById('login-error');
+
+		// 初始化封面图库
+		initCoverGallery();
 
 		// 检查是否已登录
 		if (sessionStorage.getItem('notebook_admin') === 'true') {
@@ -141,6 +164,135 @@ const description = "创建、编辑和删除笔记本内容";
 			if (adminPanel) adminPanel.style.display = 'block';
 			loadNotebooks();
 			loadEntries();
+		}
+
+		// 封面图库初始化
+		function initCoverGallery() {
+			var gallery = document.getElementById('cover-gallery');
+			if (!gallery) return;
+			gallery.innerHTML = '';
+			for (var i = 1; i <= 8; i++) {
+				(function(index) {
+					var item = document.createElement('div');
+					item.className = 'cover-grad-preview cover-grad-' + index + ' cover-gallery-item';
+					item.setAttribute('data-cover', 'default-' + index);
+					item.textContent = index;
+					item.addEventListener('click', function() {
+						currentCover = 'default-' + index;
+						updateCoverPreview();
+					});
+					gallery.appendChild(item);
+				})(i);
+			}
+
+			// 上传按钮
+			var fileInput = document.getElementById('cover-file-input');
+			if (fileInput) {
+				fileInput.addEventListener('change', handleCoverFile);
+			}
+
+			// 清除按钮
+			var clearBtn = document.getElementById('cover-clear-btn');
+			if (clearBtn) {
+				clearBtn.addEventListener('click', function() {
+					currentCover = '';
+					if (fileInput) fileInput.value = '';
+					updateCoverPreview();
+				});
+			}
+		}
+
+		// 处理封面上传文件
+		function handleCoverFile(e) {
+			var file = e.target.files && e.target.files[0];
+			if (!file) return;
+			if (!file.type.startsWith('image/')) {
+				showMessage('请选择图片文件', 'error');
+				return;
+			}
+
+			var reader = new FileReader();
+			reader.onload = function(ev) {
+				var src = ev.target.result;
+				compressImage(src, 800, function(compressedDataUrl) {
+					currentCover = compressedDataUrl;
+					updateCoverPreview();
+
+					// 检查大小
+					var sizeKB = Math.round(compressedDataUrl.length * 0.75 / 1024);
+					if (sizeKB > 500) {
+						showMessage('封面图片较大（' + sizeKB + 'KB），可能影响加载速度', 'error');
+					}
+				});
+			};
+			reader.onerror = function() {
+				showMessage('读取文件失败', 'error');
+			};
+			reader.readAsDataURL(file);
+		}
+
+		// 压缩图片到最大宽度
+		function compressImage(src, maxWidth, callback) {
+			var img = new Image();
+			img.onload = function() {
+				var canvas = document.createElement('canvas');
+				var ctx = canvas.getContext('2d');
+				var width = img.width;
+				var height = img.height;
+
+				if (width > maxWidth) {
+					height = Math.round(height * (maxWidth / width));
+					width = maxWidth;
+				}
+
+				canvas.width = width;
+				canvas.height = height;
+				ctx.drawImage(img, 0, 0, width, height);
+
+				// 尝试输出 JPEG，质量 0.85；若失败则回退 PNG
+				var result;
+				try {
+					result = canvas.toDataURL('image/jpeg', 0.85);
+				} catch (err) {
+					result = canvas.toDataURL('image/png');
+				}
+				callback(result);
+			};
+			img.onerror = function() {
+				// 压缩失败，回退原图
+				callback(src);
+			};
+			img.src = src;
+		}
+
+		// 更新封面预览
+		function updateCoverPreview() {
+			var preview = document.getElementById('cover-preview');
+			if (!preview) return;
+
+			if (currentCover && currentCover.indexOf('data:image/') === 0) {
+				// base64 图片
+				preview.innerHTML = '<img src="' + currentCover + '" alt="封面预览" />';
+			} else if (currentCover && currentCover.indexOf('default-') === 0) {
+				// 默认渐变 N
+				var match = currentCover.match(/^default-(\d+)$/);
+				var n = match ? match[1] : '1';
+				preview.innerHTML = '<div class="cover-grad-preview cover-grad-' + n + '">✓</div>';
+			} else {
+				// 空
+				preview.innerHTML = '<div class="cover-grad-preview cover-grad-1">?</div>';
+			}
+
+			// 更新图库选中状态
+			var galleryItems = document.querySelectorAll('#cover-gallery .cover-gallery-item');
+			for (var i = 0; i < galleryItems.length; i++) {
+				var item = galleryItems[i];
+				if (item.getAttribute('data-cover') === currentCover) {
+					item.classList.add('is-selected');
+				} else {
+					item.classList.remove('is-selected');
+				}
+			}
 		}
 
 		// 笔记本管理
@@ -217,11 +369,15 @@ const description = "创建、编辑和删除笔记本内容";
 
 		function editEntry(entry) {
 			currentEntryId = entry.id;
+			currentCover = entry.cover || '';
 			document.getElementById('entry-title').value = entry.title;
 			document.getElementById('entry-date').value = entry.date;
 			document.getElementById('entry-notebook').value = entry.notebook;
 			document.getElementById('entry-content').value = entry.content;
 			document.getElementById('delete-entry-btn').style.display = 'inline-flex';
+			var fileInput = document.getElementById('cover-file-input');
+			if (fileInput) fileInput.value = '';
+			updateCoverPreview();
 			updatePreview();
 			var editorArea = document.getElementById('editor-area');
 			window.scrollTo({ top: editorArea.offsetTop - 100, behavior: 'smooth' });
@@ -229,12 +385,16 @@ const description = "创建、编辑和删除笔记本内容";
 
 		function newEntry() {
 			currentEntryId = null;
+			currentCover = '';
 			document.getElementById('entry-title').value = '';
 			document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
 			var nbInput = document.getElementById('entry-notebook');
 			if (!nbInput.value) nbInput.value = '每日总结';
 			document.getElementById('entry-content').value = '';
 			document.getElementById('delete-entry-btn').style.display = 'none';
+			var fileInput = document.getElementById('cover-file-input');
+			if (fileInput) fileInput.value = '';
+			updateCoverPreview();
 			updatePreview();
 		}
 
@@ -278,7 +438,13 @@ const description = "创建、编辑和删除笔记本内容";
 			fetch(url, {
 				method: method,
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title: title, date: date, notebook: notebook, content: content }),
+				body: JSON.stringify({
+					title: title,
+					date: date,
+					notebook: notebook,
+					content: content,
+					cover: currentCover
+				}),
 			})
 				.then(function(res) {
 					if (!res.ok) {
@@ -601,6 +767,140 @@ const description = "创建、编辑和删除笔记本内容";
 		color: var(--content-meta);
 		opacity: 0.5;
 	}
+
+	/* 封面选择器 */
+	.cover-selector {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border: 2px solid var(--line-divider);
+		border-radius: var(--radius-large);
+	}
+
+	.cover-upload-area {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.cover-upload-btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.5rem 0.875rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: var(--deep-text);
+		font-size: 0.85rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.cover-upload-btn:hover {
+		background: var(--deep-text);
+		color: var(--page-bg);
+	}
+
+	.cover-upload-btn input[type="file"] {
+		display: none;
+	}
+
+	.cover-preview {
+		width: 64px;
+		height: 64px;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		overflow: hidden;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.cover-preview img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.cover-clear-btn {
+		padding: 0.4rem 0.75rem;
+		border: 2px solid var(--line-divider);
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: var(--content-meta);
+		font-size: 0.8rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.cover-clear-btn:hover {
+		border-color: var(--deep-text);
+		color: var(--deep-text);
+	}
+
+	.cover-gallery {
+		display: grid;
+		grid-template-columns: repeat(8, 1fr);
+		gap: 0.4rem;
+	}
+
+	@media (max-width: 768px) {
+		.cover-gallery {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	.cover-grad-preview {
+		width: 100%;
+		aspect-ratio: 1 / 1;
+		border-radius: var(--radius-large);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		font-weight: 800;
+		font-size: 0.9rem;
+		cursor: pointer;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+		user-select: none;
+	}
+
+	.cover-gallery .cover-grad-preview {
+		border: 2px solid transparent;
+	}
+
+	.cover-gallery .cover-grad-preview:hover {
+		transform: translateY(-2px);
+		box-shadow: 3px 3px 0px var(--deep-text);
+	}
+
+	.cover-gallery .cover-grad-preview.is-selected {
+		border: 2px solid var(--deep-text);
+		box-shadow: 3px 3px 0px var(--deep-text);
+		transform: translateY(-2px);
+	}
+
+	/* 预览区内的渐变块（非图库）不响应点击 */
+	#cover-preview .cover-grad-preview {
+		cursor: default;
+		width: 100%;
+		height: 100%;
+	}
+
+	/* 8 个默认渐变 */
+	.cover-grad-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+	.cover-grad-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+	.cover-grad-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+	.cover-grad-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+	.cover-grad-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+	.cover-grad-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+	.cover-grad-7 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+	.cover-grad-8 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333; }
 
 	/* 编辑器底部 */
 	.editor-footer {
