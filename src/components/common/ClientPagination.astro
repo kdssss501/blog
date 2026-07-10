@@ -1,0 +1,319 @@
+---
+import Icon from "@components/common/Icon.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+interface Props {
+	totalItems: number;
+	itemsPerPage: number;
+	currentPage: number;
+	sectionId: string;
+}
+
+const { totalItems, itemsPerPage, currentPage, sectionId } = Astro.props;
+const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+// 生成智能分页页码数组
+function generatePageNumbers(current: number, total: number) {
+	const delta = 2; // 当前页左右显示的页码数量
+	const range: number[] = [];
+	const rangeWithDots: (number | string)[] = [];
+
+	// 如果总页数小于等于7，显示所有页码
+	if (total <= 7) {
+		for (let i = 1; i <= total; i++) {
+			range.push(i);
+		}
+		return range;
+	}
+
+	// 计算显示范围
+	const left = Math.max(2, current - delta);
+	const right = Math.min(total - 1, current + delta);
+
+	// 始终显示第一页
+	rangeWithDots.push(1);
+
+	// 如果左边界大于2，添加省略号
+	if (left > 2) {
+		rangeWithDots.push("...");
+	}
+
+	// 添加中间页码
+	for (let i = left; i <= right; i++) {
+		rangeWithDots.push(i);
+	}
+
+	// 如果右边界小于最后一页-1，添加省略号
+	if (right < total - 1) {
+		rangeWithDots.push("...");
+	}
+
+	// 始终显示最后一页（如果总页数大于1）
+	if (total > 1) {
+		rangeWithDots.push(total);
+	}
+
+	return rangeWithDots;
+}
+
+const pageNumbers = generatePageNumbers(currentPage, totalPages);
+---
+
+{totalPages > 1 && (
+  <div class="responsive-pagination flex justify-center items-center mt-8" data-pagination-section={sectionId}>
+    <!-- 移动端简化版分页 -->
+    <div class="mobile-pagination items-center gap-3">
+      <button
+        type="button"
+        class="btn-card overflow-hidden rounded-lg text-(--primary) w-11 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
+        data-page="prev"
+        data-section={sectionId}
+        disabled={currentPage === 1}
+        aria-label={i18n(I18nKey.bangumiPrevPage)}
+      >
+        <Icon name="material-symbols:chevron-left-rounded" class="text-[1.75rem]" />
+      </button>
+
+      <!-- 移动端页码信息 -->
+      <div class="bg-(--card-bg) flex items-center rounded-lg px-4 h-11 gap-1.5">
+        <span class="mobile-current-page text-base font-bold text-(--primary)">{currentPage}</span>
+        <span class="text-sm text-neutral-500 dark:text-neutral-500">/</span>
+        <span class="mobile-total-pages text-base font-bold text-neutral-700 dark:text-neutral-300">{totalPages}</span>
+      </div>
+
+      <button
+        type="button"
+        class="btn-card overflow-hidden rounded-lg text-(--primary) w-11 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
+        data-page="next"
+        data-section={sectionId}
+        disabled={currentPage === totalPages}
+        aria-label={i18n(I18nKey.bangumiNextPage)}
+      >
+        <Icon name="material-symbols:chevron-right-rounded" class="text-[1.75rem]" />
+      </button>
+    </div>
+
+    <!-- 桌面端完整版分页 -->
+    <div class="desktop-pagination items-center gap-3">
+      <button
+        type="button"
+        class="btn-card overflow-hidden rounded-lg text-(--primary) w-11 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
+        data-page="prev"
+        data-section={sectionId}
+        disabled={currentPage === 1}
+        aria-label={i18n(I18nKey.bangumiPrevPage)}
+      >
+        <Icon name="material-symbols:chevron-left-rounded" class="text-[1.75rem]" />
+      </button>
+
+      <div class="bg-(--card-bg) flex flex-row rounded-lg items-center text-neutral-700 dark:text-neutral-300 font-bold" data-page-numbers={sectionId}>
+        {pageNumbers.map((pageItem) => (
+          pageItem === '...' ? (
+            <Icon name="material-symbols:more-horiz" class="mx-1" />
+          ) : (
+            <button
+              type="button"
+              class:list={[
+                "rounded-lg overflow-hidden w-11 h-11 flex items-center justify-center font-bold",
+                {
+                  "bg-(--primary) text-white dark:text-black/70": pageItem === currentPage,
+                  "btn-card active:scale-[0.85]": pageItem !== currentPage
+                }
+              ]}
+              data-page={pageItem}
+              data-section={sectionId}
+              aria-label={`${pageItem}`}
+              aria-current={pageItem === currentPage ? "page" : undefined}
+            >
+              {pageItem}
+            </button>
+          )
+        ))}
+      </div>
+
+      <button
+        type="button"
+        class="btn-card overflow-hidden rounded-lg text-(--primary) w-11 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
+        data-page="next"
+        data-section={sectionId}
+        disabled={currentPage === totalPages}
+        aria-label={i18n(I18nKey.bangumiNextPage)}
+      >
+        <Icon name="material-symbols:chevron-right-rounded" class="text-[1.75rem]" />
+      </button>
+    </div>
+  </div>
+)}
+
+<script is:inline define:vars={{ itemsPerPage, sectionId }}>
+  (function() {
+    function initPagination() {
+      var currentPage = 1;
+
+      var pagination = document.querySelector('[data-pagination-section="' + sectionId + '"]');
+      if (!pagination) return;
+
+      function updateMobileDisplay() {
+        var mobileCurrentPage = pagination.querySelector('.mobile-current-page');
+        if (mobileCurrentPage) {
+          mobileCurrentPage.textContent = currentPage.toString();
+        }
+      }
+
+      var pageButtons = pagination.querySelectorAll('[data-page]');
+
+      pageButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+          var page = this.dataset.page;
+
+          if (page === 'prev') {
+            currentPage = Math.max(1, currentPage - 1);
+          } else if (page === 'next') {
+            var items = document.querySelectorAll('[data-item-section="' + sectionId + '"]:not(.hidden)');
+            var totalPages = Math.ceil(items.length / itemsPerPage);
+            currentPage = Math.min(totalPages, currentPage + 1);
+          } else {
+            currentPage = parseInt(page);
+          }
+
+          updatePage();
+          updateMobileDisplay();
+        });
+      });
+
+      pagination.addEventListener('updatePagination', function() {
+        currentPage = 1;
+        updatePage();
+        updateMobileDisplay();
+      });
+
+      function updatePage() {
+        var items = document.querySelectorAll('[data-item-section="' + sectionId + '"]:not(.hidden)');
+        var totalPages = Math.ceil(items.length / itemsPerPage);
+        var sectionElement = document.querySelector('[data-section="' + sectionId + '"]');
+        var shouldHydrateImages = sectionElement && !sectionElement.classList.contains('hidden');
+
+        for (var i = 0; i < items.length; i++) {
+          items[i].style.display = 'none';
+        }
+
+        var startIndex = (currentPage - 1) * itemsPerPage;
+        var endIndex = startIndex + itemsPerPage;
+        for (var i = startIndex; i < endIndex && i < items.length; i++) {
+          items[i].style.display = 'block';
+          if (shouldHydrateImages) {
+            var image = items[i].querySelector('img[data-src]');
+            if (image) {
+              var deferredSrc = image.getAttribute('data-src');
+              if (deferredSrc) {
+                image.setAttribute('src', deferredSrc);
+                image.removeAttribute('data-src');
+              }
+            }
+          }
+        }
+
+        updatePaginationButtons(totalPages);
+      }
+
+      function generatePageNumbers(current, total) {
+        var delta = 2;
+        var rangeWithDots = [];
+
+        if (total <= 7) {
+          for (var i = 1; i <= total; i++) rangeWithDots.push(i);
+          return rangeWithDots;
+        }
+
+        var left = Math.max(2, current - delta);
+        var right = Math.min(total - 1, current + delta);
+
+        rangeWithDots.push(1);
+        if (left > 2) rangeWithDots.push('...');
+        for (var i = left; i <= right; i++) rangeWithDots.push(i);
+        if (right < total - 1) rangeWithDots.push('...');
+        if (total > 1) rangeWithDots.push(total);
+
+        return rangeWithDots;
+      }
+
+      function updatePaginationButtons(totalPages) {
+        var prevButtons = pagination.querySelectorAll('[data-page="prev"]');
+        var nextButtons = pagination.querySelectorAll('[data-page="next"]');
+        var pageNumbersContainer = pagination.querySelector('[data-page-numbers="' + sectionId + '"]');
+
+        prevButtons.forEach(function(btn) { btn.disabled = currentPage === 1; });
+        nextButtons.forEach(function(btn) { btn.disabled = currentPage === totalPages; });
+
+        if (!pageNumbersContainer) return;
+
+        var pageNumbers = generatePageNumbers(currentPage, totalPages);
+        var children = pageNumbersContainer.children;
+        var childIdx = 0;
+
+        pageNumbers.forEach(function(pageItem) {
+          if (pageItem === '...') {
+            var existing = children[childIdx];
+            if (existing && existing.tagName === 'svg') {
+              childIdx++;
+            } else {
+              var span = document.createElement('span');
+              span.innerHTML = '<svg class="mx-1" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>';
+              pageNumbersContainer.insertBefore(span.firstChild, children[childIdx]);
+            }
+            return;
+          }
+
+          var isActive = pageItem === currentPage;
+          var btn = children[childIdx];
+
+          if (btn && btn.tagName === 'button' && btn.dataset.page === pageItem.toString()) {
+            btn.className = isActive
+              ? 'rounded-lg overflow-hidden w-11 h-11 flex items-center justify-center font-bold bg-(--primary) text-white dark:text-black/70'
+              : 'rounded-lg overflow-hidden w-11 h-11 flex items-center justify-center font-bold btn-card active:scale-[0.85]';
+            btn.ariaCurrent = isActive ? 'page' : null;
+            childIdx++;
+          } else {
+            while (children[childIdx] && children[childIdx].tagName !== 'button') {
+              children[childIdx].remove();
+            }
+            btn = document.createElement('button');
+            btn.className = isActive
+              ? 'rounded-lg overflow-hidden w-11 h-11 flex items-center justify-center font-bold bg-(--primary) text-white dark:text-black/70'
+              : 'rounded-lg overflow-hidden w-11 h-11 flex items-center justify-center font-bold btn-card active:scale-[0.85]';
+            btn.dataset.page = pageItem.toString();
+            btn.dataset.section = sectionId;
+            btn.textContent = pageItem.toString();
+            btn.addEventListener('click', (function(p) {
+              return function() { currentPage = p; updatePage(); updateMobileDisplay(); };
+            })(pageItem));
+            pageNumbersContainer.insertBefore(btn, children[childIdx]);
+            childIdx++;
+          }
+        });
+
+        while (children.length > childIdx) {
+          children[childIdx].remove();
+        }
+      }
+
+      updatePage();
+    }
+
+    // Guard against multiple executions (e.g. DOMContentLoaded + astro:page-load)
+    var guardKey = '__paginationInitialized_' + sectionId;
+    if (window[guardKey]) return;
+    window[guardKey] = true;
+
+    // Swup 兼容：页面加载和导航后都初始化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPagination);
+    } else {
+      initPagination();
+    }
+    document.addEventListener('astro:page-load', initPagination);
+  })();
+</script>
+
+<!-- 样式已迁移至 src/styles/components/pagination.css -->

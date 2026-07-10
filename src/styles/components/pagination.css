@@ -1,0 +1,88 @@
+/* ============================================
+   分页 — 来自 Pagination.astro + ClientPagination.astro
+   ============================================ */
+
+/* --- Pagination.astro --- */
+.pagination-disabled {
+	pointer-events: none;
+	color: oklch(0 0 0 / 0.1);
+}
+:root.dark .pagination-disabled {
+	color: oklch(1 0 0 / 0.1);
+}
+
+/* --- ClientPagination.astro --- */
+.responsive-pagination {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.mobile-pagination {
+	display: flex;
+	padding: 0 1rem;
+}
+
+.desktop-pagination {
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.mobile-pagination {
+		display: none;
+	}
+	.desktop-pagination {
+		display: flex;
+	}
+}
+
+@media (max-width: 640px) {
+	.mobile-pagination {
+		padding: 0 0.5rem;
+	}
+	.mobile-pagination button {
+		padding: 0.25rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.mobile-pagination {
+		padding: 0 0.25rem;
+	}
+}
+
+.responsive-pagination button {
+	transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+@media (prefers-contrast: high) {
+	.responsive-pagination button {
+		border: 1px solid currentColor;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.responsive-pagination button {
+		transition: none;
+	}
+}
+
+@media (hover: none) and (pointer: coarse) {
+	.responsive-pagination button {
+		min-height: 44px;
+		min-width: 44px;
+	}
+	.mobile-pagination button {
+		min-height: 40px;
+		min-width: 40px;
+	}
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+	.mobile-pagination {
+		padding: 0 0.5rem;
+	}
+	.mobile-pagination button {
+		padding: 0.25rem;
+	}
+}

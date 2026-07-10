@@ -1,0 +1,137 @@
+/* ============================================
+   下拉菜单 — 来自 DropdownMenu.astro
+   桌面端导航下拉面板
+   ============================================ */
+
+.dropdown-container {
+	position: relative;
+	z-index: 10;
+}
+
+.dropdown-container > a,
+.dropdown-container > button {
+	border: 1.5px solid transparent;
+	border-radius: 9999px;
+	transition: border-color 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	background-color: transparent !important;
+}
+
+.dropdown-container > a::before,
+.dropdown-container > button::before,
+.dropdown-container:hover > a::before,
+.dropdown-container:hover > button::before,
+.dropdown-container:focus-within > a::before,
+.dropdown-container:focus-within > button::before {
+	background-color: transparent !important;
+	scale: 0.85;
+}
+
+.dropdown-container:hover > a,
+.dropdown-container:hover > button,
+.dropdown-container:focus-within > a,
+.dropdown-container:focus-within > button {
+	border-color: transparent;
+	background-color: transparent !important;
+}
+
+:root.dark .dropdown-container:hover > a,
+:root.dark .dropdown-container:hover > button,
+:root.dark .dropdown-container:focus-within > a,
+:root.dark .dropdown-container:focus-within > button {
+	border-color: transparent;
+}
+
+.dropdown-container.nav-item-active > a,
+.dropdown-container.nav-item-active > button {
+	border-color: transparent;
+}
+
+:root.dark .dropdown-container.nav-item-active > a,
+:root.dark .dropdown-container.nav-item-active > button {
+	border-color: transparent;
+}
+
+/* ── 一级导航触发器图标：默认不渲染，选中时显示 ──
+   不用占位；选中后由 JS 重新计算 hover slider 实现完全覆盖 */
+.navbar-trigger-icon {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	margin-right: 0;
+	transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar-trigger-icon svg {
+	width: 0.9rem;
+	height: 0.9rem;
+}
+
+/* 选中时图标显示 */
+.dropdown-container.nav-item-active > a .navbar-trigger-icon,
+.dropdown-container.nav-item-active > button .navbar-trigger-icon {
+	display: inline-flex;
+	margin-right: 0.375rem;
+	opacity: 1;
+}
+
+.dropdown-menu {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	padding-top: 0.75rem;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.2s ease-out, visibility 0.2s ease-out, transform 0.2s ease-out;
+	transform: translateY(-8px);
+	z-index: 50;
+}
+
+.dropdown-container:hover .dropdown-menu,
+.dropdown-container:focus-within .dropdown-menu,
+.dropdown-container.is-dropdown-open .dropdown-menu {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transform: translateY(0);
+}
+
+.dropdown-container:hover .dropdown-arrow,
+.dropdown-container:focus-within .dropdown-arrow,
+.dropdown-container.is-dropdown-open .dropdown-arrow {
+	rotate: 180deg;
+}
+
+.dropdown-content-wrapper {
+	min-width: 12rem;
+	border-radius: 0.75rem;
+	padding: 0.5rem;
+	background: color-mix(in oklch, var(--float-panel-bg) 85%, transparent);
+	backdrop-filter: blur(16px) saturate(180%);
+	-webkit-backdrop-filter: blur(16px) saturate(180%);
+	border: 1px solid var(--line-divider);
+}
+
+/* 禁用 dropdown item 的 expand-animation 背景，只保留边框效果 */
+.dropdown-content-wrapper .dropdown-item::before,
+.dropdown-content-wrapper .dropdown-item:hover::before,
+.dropdown-content-wrapper .dropdown-item:active::before {
+	background-color: transparent !important;
+}
+
+.dropdown-content-wrapper .dropdown-item:active {
+	background-color: transparent !important;
+}
+
+/* action 按钮：禁用 expand-animation 背景 */
+.action-item::before,
+.action-item:hover::before,
+.action-item:active::before {
+	background-color: transparent !important;
+}
+
+@media (max-width: 768px) {
+	.dropdown-container {
+		display: none;
+	}
+}

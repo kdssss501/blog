@@ -1,0 +1,12 @@
+---
+import MusicVisualizer from "@components/features/music-visualizer/MusicVisualizer.svelte";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+---
+
+<MainGridLayout title={i18n(I18nKey.music) + " - 3D可视化"} description="音乐地形可视化，沉浸式音乐体验">
+	<div class="music-visualizer-page">
+		<MusicVisualizer client:only="svelte" />
+	</div>
+</MainGridLayout>

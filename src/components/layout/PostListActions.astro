@@ -1,0 +1,30 @@
+---
+import BubbleMenu from "@/components/features/BubbleMenu.svelte";
+import CategoryBubbleMenu from "@/components/features/CategoryBubbleMenu.svelte";
+
+interface LinkItem {
+	name: string;
+	icon: string;
+	url: string;
+	showName?: boolean;
+}
+
+interface CategoryItem {
+	name: string;
+	count: number;
+	url: string;
+}
+
+interface Props {
+	links: LinkItem[];
+	categories: CategoryItem[];
+	class?: string;
+}
+
+const { links, categories, class: className } = Astro.props;
+---
+
+<div class:list={["post-list-actions", className]} aria-label="快捷操作">
+	<BubbleMenu links={links} client:load />
+	<CategoryBubbleMenu categories={categories} client:load />
+</div>

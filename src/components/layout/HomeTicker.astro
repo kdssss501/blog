@@ -1,0 +1,54 @@
+---
+import { announcementConfig } from "@/config";
+
+const items = [...announcementConfig.items].sort((a, b) => b.sort - a.sort);
+
+// 构建单条展示文本：仅标签 + 内容
+const tickerTexts = items.map((item) => `[${item.tag}] ${item.content}`);
+
+// 多条时合并为一条长文本，用 × 分隔
+const tickerContent = tickerTexts.join(" × ");
+---
+
+{
+	items.length > 0 && (
+		<section class="home-ticker" aria-label="公告跑马灯" id="home-ticker">
+			<div class="home-ticker__inner">
+				<div class="home-ticker__track" id="home-ticker-track">
+					{Array.from({ length: 8 }).map((_, i) => (
+						<>
+							<span class="home-ticker__text">{tickerContent}</span>
+							{i < 7 && (
+								<span class="home-ticker__sep" aria-hidden="true">
+									×
+								</span>
+							)}
+						</>
+					))}
+				</div>
+			</div>
+		</section>
+	)
+}
+
+<script>
+	function initHomeTicker() {
+		const track = document.getElementById("home-ticker-track") as HTMLElement | null;
+		if (!track) return;
+
+		// 固定滚动速率：100 像素/秒
+		const SPEED = 100;
+
+		// 测量轨道总宽度，计算移动 50% 所需时间
+		const trackWidth = track.scrollWidth;
+		const distance = trackWidth / 2;
+		const duration = distance / SPEED;
+
+		// 设置动画时长，保证无论内容多长，肉眼速度恒定
+		track.style.animationDuration = `${Math.max(duration, 4)}s`;
+	}
+
+	// 首次加载 + Swup 每次导航后
+	initHomeTicker();
+	document.addEventListener("astro:page-load", initHomeTicker);
+</script>

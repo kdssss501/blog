@@ -1,0 +1,672 @@
+---
+import { homeConfig } from "@/config";
+import { normalizeShutterPanels } from "@/utils/home-portfolio-shutter.js";
+
+const shutterConfig = homeConfig.portfolioShutter;
+const panels = normalizeShutterPanels(shutterConfig.panels);
+const interlude = shutterConfig.interlude;
+const transparentPixel =
+	"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+---
+
+<section
+	class="home-portfolio-shutter"
+	id="home-portfolio-shutter"
+	aria-labelledby="home-portfolio-shutter-title"
+	data-home-shutter
+	data-shutter-enabled={shutterConfig.enabled ? "true" : "false"}
+	data-scroll-distance={String(shutterConfig.scrollDistance)}
+>
+	<div class="home-portfolio-shutter__viewport" data-shutter-viewport>
+		<img
+			class="home-portfolio-shutter__final-image"
+			data-shutter-final-image
+			data-src={shutterConfig.finalImage.midgroundImage}
+			src={transparentPixel}
+			alt={shutterConfig.finalImage.alt}
+			loading="eager"
+			decoding="async"
+		/>
+
+		<div class="home-portfolio-shutter__mask" data-shutter-mask></div>
+
+		<div class="home-portfolio-shutter__rail" aria-hidden="true">
+			{panels.map((panel) => (
+				<article
+					class="home-portfolio-shutter__panel"
+					data-shutter-panel
+					data-direction={panel.direction}
+					style={`--panel-index: ${panel.index};`}
+				>
+					<img
+						class="home-portfolio-shutter__panel-image"
+						data-shutter-image
+						data-src={panel.image}
+						src={transparentPixel}
+						alt=""
+						loading="lazy"
+						decoding="async"
+					/>
+					<div
+						class="home-portfolio-shutter__panel-copy"
+						data-shutter-panel-copy
+						style={`--panel-image: url(${panel.image})`}
+					>
+						<div class="home-portfolio-shutter__panel-title-bar">
+							<span class="home-portfolio-shutter__panel-label">{panel.english}</span>
+							<strong>{panel.title}</strong>
+							<span class="home-portfolio-shutter__panel-description">{panel.description}</span>
+						</div>
+					</div>
+				</article>
+			))}
+		</div>
+
+		<div class="home-portfolio-shutter__interlude" data-shutter-interlude aria-hidden="true">
+			<div class="home-portfolio-shutter__interlude-bg" data-shutter-interlude-bg></div>
+
+			<div class="home-portfolio-shutter__interlude-strips">
+				<img
+					class="home-portfolio-shutter__interlude-strip home-portfolio-shutter__interlude-strip--left"
+					data-shutter-interlude-strip-left
+					data-src={interlude.stripLeft}
+					src={transparentPixel}
+					alt=""
+					loading="lazy"
+					decoding="async"
+				/>
+				<img
+					class="home-portfolio-shutter__interlude-strip home-portfolio-shutter__interlude-strip--right"
+					data-shutter-interlude-strip-right
+					data-src={interlude.stripRight}
+					src={transparentPixel}
+					alt=""
+					loading="lazy"
+					decoding="async"
+				/>
+			</div>
+
+			<div class="home-portfolio-shutter__interlude-copy" data-shutter-interlude-copy>
+				<span class="home-portfolio-shutter__interlude-copy-text home-portfolio-shutter__interlude-copy-text--left">
+					{interlude.copyLeft}
+				</span>
+				<span class="home-portfolio-shutter__interlude-copy-text home-portfolio-shutter__interlude-copy-text--right">
+					{interlude.copyRight}
+				</span>
+			</div>
+
+			<img
+				class="home-portfolio-shutter__interlude-fg"
+				data-shutter-interlude-fg
+				data-src={interlude.foreground}
+				src={transparentPixel}
+				alt=""
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
+
+		<div class="home-portfolio-shutter__final-copy" data-shutter-final-copy>
+			<p>{shutterConfig.kicker}</p>
+			<h2 id="home-portfolio-shutter-title">{shutterConfig.title}</h2>
+			<span>{shutterConfig.description}</span>
+		</div>
+	</div>
+</section>
+
+<script>
+	import {
+		DESKTOP_MEDIA_QUERY,
+		SHUTTER_PANEL_STEP,
+		getShutterMergeStart,
+		getShutterPinEndDistance,
+	} from "@/utils/home-portfolio-shutter.js";
+
+	type Cleanup = () => void;
+
+	const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+	const TRANSPARENT_PIXEL =
+		"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+	const IMAGE_DECODE_TIMEOUT = 3000;
+
+	// ===== 时间轴阶段常量（单位：秒，对应 GSAP timeline） =====
+	// Phase 1: Panels — 5 张长条图依次滑入（0 → panelsEnd）
+	// Phase 2: Interlude — 三层插入动画（panelsEnd → interludeEnd）
+	// Phase 3: Merge — 渐变滑入大图（interludeEnd → end）
+
+	// Interlude 阶段内部时序
+	const INTERLUDE_FG_START = 0.1; // b-1.png 前景渐入开始
+	const INTERLUDE_FG_DURATION = 0.5;
+	const INTERLUDE_BG_START = 0.6; // 背景渐变黑色开始（前景渐入后）
+	const INTERLUDE_BG_DURATION = 0.4;
+	const INTERLUDE_STRIPS_START = 1.0; // 两条长条反向水平滑入开始（背景黑后）
+	const INTERLUDE_STRIPS_DURATION = 1.0;
+	const INTERLUDE_COPY_START = 1.5; // 文字渐入开始（长条滑到一半）
+	const INTERLUDE_COPY_DURATION = 0.4;
+	const INTERLUDE_TOTAL = 2.4; // Interlude 阶段总时长
+
+	// Merge 阶段内部时序
+	const MERGE_FINAL_IMAGE_OFFSET = 0.02;
+	const MERGE_FINAL_IMAGE_DURATION = 1.2;
+	const MERGE_FINAL_COPY_GAP = 0.12;
+	const MERGE_FINAL_COPY_AT = `merge+=${(
+		MERGE_FINAL_IMAGE_OFFSET +
+		MERGE_FINAL_IMAGE_DURATION +
+		MERGE_FINAL_COPY_GAP
+	).toFixed(2)}`;
+
+	let activeCleanup: Cleanup | null = null;
+	let mediaCleanup: Cleanup | null = null;
+	let initToken = 0;
+
+	function matchesDesktop() {
+		return window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+	}
+
+	function prefersReducedMotion() {
+		return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+	}
+
+	function getRoot() {
+		return document.getElementById("home-portfolio-shutter");
+	}
+
+	function scrollHashTargetToShutterStart(root: HTMLElement) {
+		if (window.location.hash !== `#${root.id}`) return;
+		const rootTop = root.getBoundingClientRect().top;
+		if (Math.abs(rootTop) < 1) return;
+		window.scrollTo({
+			top: window.scrollY + rootTop,
+			behavior: "auto",
+		});
+	}
+
+	function getLazyImages(root: HTMLElement) {
+		return Array.from(
+			root.querySelectorAll<HTMLImageElement>(
+				"img[data-shutter-image], img[data-shutter-final-image], img[data-shutter-interlude-fg], img[data-shutter-interlude-strip-left], img[data-shutter-interlude-strip-right]",
+			),
+		);
+	}
+
+	function resetLazyImages(root: HTMLElement) {
+		getLazyImages(root).forEach((image) => {
+			image.setAttribute("src", TRANSPARENT_PIXEL);
+		});
+	}
+
+	function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+		return Promise.race([
+			promise,
+			new Promise<T>((_, reject) => {
+				window.setTimeout(() => reject(new Error("Shutter image decode timeout")), ms);
+			}),
+		]);
+	}
+
+	async function hydrateLazyImages(root: HTMLElement) {
+		const images = getLazyImages(root);
+		const decodeQueue = images.map(async (image) => {
+			const src = image.dataset.src;
+			if (src && image.getAttribute("src") !== src) {
+				image.setAttribute("src", src);
+			}
+			await image.decode?.().catch(() => undefined);
+		});
+
+		return withTimeout(Promise.allSettled(decodeQueue), IMAGE_DECODE_TIMEOUT).catch(() => {
+			console.warn("[home-portfolio-shutter] image decode timeout, proceeding with fallback");
+			return Promise.allSettled([]);
+		});
+	}
+
+	/**
+	 * #content-wrapper 的 .onload-animation 带有 transform: translateY()，
+	 * 该 transform 创建 containing block，导致 position: fixed 的 pin 元素
+	 * 被困在 #content-wrapper 内部而非相对浏览器视口定位。
+	 *
+	 * 必须在 GSAP pin 之前完全消除：
+	 * 1. 等 animationend 确保动画结束
+	 * 2. 移除 onload-animation 类
+	 * 3. 强制清除 transform 残留
+	 */
+	function ensureNoContentWrapperContainingBlock(): Promise<void> {
+		return new Promise((resolve) => {
+			const wrapper = document.getElementById("content-wrapper");
+			if (!wrapper) return resolve();
+
+			// 已经没有这个类 → 直接通过
+			if (!wrapper.classList.contains("onload-animation")) {
+				wrapper.style.removeProperty("transform");
+				return resolve();
+			}
+
+			// 设 animationend 监听（最可靠的时机信号）
+			let resolved = false;
+			const done = () => {
+				if (resolved) return;
+				resolved = true;
+				wrapper.classList.remove("onload-animation");
+				// 强制清除任何 transform 残留，确保不创建 containing block
+				wrapper.style.removeProperty("transform");
+				resolve();
+			};
+
+			wrapper.addEventListener("animationend", done, { once: true });
+
+			// 安全兜底：如果 animationend 没有在合理时间内触发
+			setTimeout(done, 1200);
+		});
+	}
+
+	function teardownShutter() {
+		initToken += 1;
+		if (activeCleanup) {
+			activeCleanup();
+			activeCleanup = null;
+		}
+		const root = getRoot();
+		if (!root) return;
+		root.removeAttribute("data-shutter-ready");
+		if (!matchesDesktop()) resetLazyImages(root);
+	}
+
+	function syncTitleBarClipPaths(root: HTMLElement) {
+		const copies = Array.from(
+			root.querySelectorAll<HTMLElement>("[data-shutter-panel-copy]"),
+		);
+		for (const copy of copies) {
+			const titleBar = copy.querySelector<HTMLElement>(
+				".home-portfolio-shutter__panel-title-bar",
+			);
+			if (!titleBar) continue;
+			const top = titleBar.offsetTop;
+			const bottom = copy.clientHeight - top - titleBar.offsetHeight;
+			copy.style.setProperty("--title-bar-clip-top", `${top}px`);
+			copy.style.setProperty("--title-bar-clip-bottom", `${bottom}px`);
+		}
+	}
+
+	async function initHomePortfolioShutter() {
+		const token = ++initToken;
+		if (activeCleanup) {
+			activeCleanup();
+			activeCleanup = null;
+		}
+
+		const root = getRoot();
+		if (!root) return;
+
+		if (
+			root.dataset.shutterEnabled !== "true" ||
+			!matchesDesktop() ||
+			prefersReducedMotion()
+		) {
+			root.dataset.shutterReady = "disabled";
+			resetLazyImages(root);
+			return;
+		}
+
+		root.dataset.shutterReady = "loading";
+
+		// 等 onload-animation 完全结束，消除 containing block
+		await ensureNoContentWrapperContainingBlock();
+
+		if (token !== initToken || !document.contains(root) || !matchesDesktop()) return;
+
+		// 图片 decode 完成后再创建 ScrollTrigger，避免未解码图片进入 pin 动画段
+		await hydrateLazyImages(root);
+
+		if (token !== initToken || !document.contains(root) || !matchesDesktop()) return;
+
+		const [{ gsap }, { ScrollTrigger }] = await Promise.all([
+			import("gsap"),
+			import("gsap/ScrollTrigger"),
+		]);
+
+		if (token !== initToken || !document.contains(root) || !matchesDesktop()) return;
+
+		gsap.registerPlugin(ScrollTrigger);
+
+		const viewport = root.querySelector<HTMLElement>("[data-shutter-viewport]");
+		const finalImage = root.querySelector<HTMLElement>("[data-shutter-final-image]");
+		const finalCopy = root.querySelector<HTMLElement>("[data-shutter-final-copy]");
+		// underlayPin 指向展示层：百叶窗 pin 期间展示层（柱子扩全屏状态）保持原位
+		const underlay = root
+			.closest<HTMLElement>(".home-data-stack")
+			?.querySelector<HTMLElement>("#home-display-layer");
+		const rail = root.querySelector<HTMLElement>(".home-portfolio-shutter__rail");
+		const mask = root.querySelector<HTMLElement>("[data-shutter-mask]");
+		const panels = Array.from(
+			root.querySelectorAll<HTMLElement>("[data-shutter-panel]"),
+		);
+		const panelCopies = Array.from(
+			root.querySelectorAll<HTMLElement>("[data-shutter-panel-copy]"),
+		);
+
+		// Interlude 元素：三层布局（背景长条 / 中景文字 / 前景大图）
+		const interlude = root.querySelector<HTMLElement>("[data-shutter-interlude]");
+		const interludeBg = root.querySelector<HTMLElement>("[data-shutter-interlude-bg]");
+		const interludeFg = root.querySelector<HTMLElement>("[data-shutter-interlude-fg]");
+		const interludeCopy = root.querySelector<HTMLElement>("[data-shutter-interlude-copy]");
+		const interludeCopyLeft = root.querySelector<HTMLElement>(
+			".home-portfolio-shutter__interlude-copy-text--left",
+		);
+		const interludeCopyRight = root.querySelector<HTMLElement>(
+			".home-portfolio-shutter__interlude-copy-text--right",
+		);
+		const stripLeft = root.querySelector<HTMLElement>("[data-shutter-interlude-strip-left]");
+		const stripRight = root.querySelector<HTMLElement>("[data-shutter-interlude-strip-right]");
+
+		if (
+			!viewport ||
+			!finalImage ||
+			!finalCopy ||
+			!rail ||
+			!mask ||
+			!interlude ||
+			!interludeBg ||
+			!interludeFg ||
+			!interludeCopy ||
+			!interludeCopyLeft ||
+			!interludeCopyRight ||
+			!stripLeft ||
+			!stripRight ||
+			panels.length !== 5
+		) {
+			return;
+		}
+
+		root.dataset.shutterReady = "ready";
+		scrollHashTargetToShutterStart(root);
+
+		const getPinEnd = () => {
+			const distance = getShutterPinEndDistance(
+				root.dataset.scrollDistance,
+				window.innerHeight,
+			);
+			return `+=${distance}`;
+		};
+
+		// ===== 初始状态 =====
+		if (underlay) gsap.set(underlay, { zIndex: 0 });
+		gsap.set(rail, { autoAlpha: 1 });
+		gsap.set(mask, { scaleY: 0, transformOrigin: "50% 100%" });
+		gsap.set(finalImage, { autoAlpha: 0, yPercent: -35, scale: 1.06 });
+		gsap.set(finalCopy, { autoAlpha: 0, y: 80 });
+		gsap.set(panelCopies, { autoAlpha: 0, y: 48 });
+
+		panels.forEach((panel) => {
+			const direction = panel.dataset.direction === "down" ? "down" : "up";
+			const image = panel.querySelector<HTMLElement>("[data-shutter-image]");
+			const fromY = direction === "up" ? 150 : -150;
+
+			gsap.set(panel, { autoAlpha: 1, yPercent: fromY });
+			if (image) gsap.set(image, { yPercent: 0, scale: 1.02 });
+		});
+
+		// Interlude 初始状态
+		gsap.set(interlude, { autoAlpha: 1 });
+		gsap.set(interludeBg, { autoAlpha: 0 });
+		gsap.set(interludeFg, { autoAlpha: 0, yPercent: 8, scale: 1.04 });
+		gsap.set([interludeCopyLeft, interludeCopyRight], { autoAlpha: 0 });
+		gsap.set(stripLeft, { xPercent: -100 });
+		gsap.set(stripRight, { xPercent: 100 });
+
+		const underlayPin = underlay
+			? ScrollTrigger.create({
+					id: "home-portfolio-shutter-underlay-pin",
+					trigger: root,
+					start: "top top",
+					end: getPinEnd,
+					pin: underlay,
+					pinSpacing: false,
+					invalidateOnRefresh: true,
+				})
+			: null;
+
+		const timeline = gsap.timeline({
+			defaults: { ease: "none" },
+			scrollTrigger: {
+				id: "home-portfolio-shutter-pin",
+				trigger: root,
+				start: "top top",
+				end: getPinEnd,
+				pin: viewport,
+				pinSpacing: true,
+				scrub: true,
+				invalidateOnRefresh: true,
+				anticipatePin: 1,
+			},
+		});
+
+		// ===== Phase 1: Panels — 5 张长条图依次滑入 =====
+		timeline.addLabel("panels", 0);
+		panels.forEach((panel, index) => {
+			const image = panel.querySelector<HTMLElement>("[data-shutter-image]");
+			const copy = panel.querySelector<HTMLElement>("[data-shutter-panel-copy]");
+			const at = index * SHUTTER_PANEL_STEP;
+
+			timeline.to(
+				panel,
+				{
+					yPercent: 0,
+					duration: 0.48,
+					ease: "power3.out",
+				},
+				`panels+=${at}`,
+			);
+
+			if (image) {
+				timeline.to(
+					image,
+					{
+						yPercent: 0,
+						scale: 1.02,
+						duration: 0.58,
+						ease: "power2.out",
+					},
+					`panels+=${at}`,
+				);
+			}
+
+			if (copy) {
+				timeline.to(
+					copy,
+					{
+						autoAlpha: 1,
+						y: 0,
+						duration: 0.18,
+						ease: "power2.out",
+					},
+					`panels+=${at + 0.3}`,
+				);
+			}
+		});
+
+		// ===== Phase 2: Interlude — 三层插入动画 =====
+		// 顺序：前景 b-1.png 渐入 → 背景渐黑 → 两条长条反向滑入 → 中景文字渐入
+		timeline.addLabel("interlude", getShutterMergeStart(panels.length));
+
+		// 2a: 面板文字淡出（为 interlude 让位）
+		timeline.to(
+			panelCopies,
+			{
+				autoAlpha: 0,
+				y: -36,
+				duration: 0.28,
+				stagger: 0.02,
+				ease: "power2.out",
+			},
+			"interlude",
+		);
+
+		// 2b: 前景 b-1.png 渐入（仅显示上半部分，由 CSS clip-path 控制）
+		timeline.to(
+			interludeFg,
+			{
+				autoAlpha: 1,
+				yPercent: 0,
+				scale: 1,
+				duration: INTERLUDE_FG_DURATION,
+				ease: "power3.out",
+			},
+			`interlude+=${INTERLUDE_FG_START}`,
+		);
+
+		// 2c: 背景渐变黑色（前景渐入后）
+		timeline.to(
+			interludeBg,
+			{
+				autoAlpha: 1,
+				duration: INTERLUDE_BG_DURATION,
+				ease: "power2.inOut",
+			},
+			`interlude+=${INTERLUDE_BG_START}`,
+		);
+
+		// 2d: 两条长条反向水平滑入（背景黑后）
+		timeline.to(
+			stripLeft,
+			{
+				xPercent: 0,
+				duration: INTERLUDE_STRIPS_DURATION,
+				ease: "power3.inOut",
+			},
+			`interlude+=${INTERLUDE_STRIPS_START}`,
+		);
+		timeline.to(
+			stripRight,
+			{
+				xPercent: 0,
+				duration: INTERLUDE_STRIPS_DURATION,
+				ease: "power3.inOut",
+			},
+			`interlude+=${INTERLUDE_STRIPS_START}`,
+		);
+
+		// 2e: 中景文字渐入（长条滑到一半时）
+		timeline.to(
+			[interludeCopyLeft, interludeCopyRight],
+			{
+				autoAlpha: 1,
+				duration: INTERLUDE_COPY_DURATION,
+				ease: "power2.out",
+				stagger: 0.08,
+			},
+			`interlude+=${INTERLUDE_COPY_START}`,
+		);
+
+		// ===== Phase 3: Merge — 从下往上遮罩 + 最终大图从上往下渐入滑入 =====
+		timeline.addLabel("merge", `interlude+=${INTERLUDE_TOTAL}`);
+
+		// 3a: 黑色遮罩从底部向上展开
+		timeline.to(
+			mask,
+			{
+				scaleY: 1,
+				duration: 0.9,
+				ease: "power3.inOut",
+			},
+			"merge",
+		);
+
+		// 3b: 最终大图从上方渐入滑入
+		timeline.to(
+			finalImage,
+			{
+				autoAlpha: 1,
+				yPercent: 0,
+				scale: 1,
+				duration: MERGE_FINAL_IMAGE_DURATION,
+				ease: "power3.inOut",
+			},
+			`merge+=${MERGE_FINAL_IMAGE_OFFSET}`,
+		);
+
+		// 3c: 最终文字渐入
+		timeline.to(
+			finalCopy,
+			{
+				autoAlpha: 1,
+				y: 0,
+				duration: 0.46,
+				ease: "power3.inOut",
+			},
+			MERGE_FINAL_COPY_AT,
+		);
+
+		// 3d: 保持
+		timeline.to({ hold: 0 }, { hold: 1, duration: 1.0, ease: "none" });
+
+		ScrollTrigger.refresh();
+		syncTitleBarClipPaths(root);
+
+		activeCleanup = () => {
+			underlayPin?.kill();
+			timeline.scrollTrigger?.kill();
+			timeline.kill();
+			gsap.set(
+				[
+					root,
+					viewport,
+					rail,
+					mask,
+					...(underlay ? [underlay] : []),
+					finalImage,
+					finalCopy,
+					interlude,
+					interludeBg,
+					interludeFg,
+					interludeCopy,
+					interludeCopyLeft,
+					interludeCopyRight,
+					stripLeft,
+					stripRight,
+					...panels,
+					...panelCopies,
+				],
+				{ clearProps: "all" },
+			);
+		};
+	}
+
+	function setupMediaWatchers() {
+		if (mediaCleanup) return;
+		const desktopQuery = window.matchMedia(DESKTOP_MEDIA_QUERY);
+		const reduceMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+		const handleChange = () => {
+			void initHomePortfolioShutter();
+		};
+
+		let resizeTimeout: number | undefined;
+		const handleResize = () => {
+			window.clearTimeout(resizeTimeout);
+			resizeTimeout = window.setTimeout(() => {
+				const root = getRoot();
+				if (root && root.dataset.shutterReady === "ready") {
+					syncTitleBarClipPaths(root);
+				}
+			}, 150);
+		};
+
+		desktopQuery.addEventListener("change", handleChange);
+		reduceMotionQuery.addEventListener("change", handleChange);
+		window.addEventListener("resize", handleResize);
+		mediaCleanup = () => {
+			desktopQuery.removeEventListener("change", handleChange);
+			reduceMotionQuery.removeEventListener("change", handleChange);
+			window.removeEventListener("resize", handleResize);
+			window.clearTimeout(resizeTimeout);
+		};
+	}
+
+	function bootHomePortfolioShutter() {
+		setupMediaWatchers();
+		void initHomePortfolioShutter();
+	}
+
+	bootHomePortfolioShutter();
+	document.addEventListener("astro:page-load", bootHomePortfolioShutter);
+	document.addEventListener("swup:willReplaceContent", teardownShutter);
+</script>

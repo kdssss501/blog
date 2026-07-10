@@ -1,0 +1,149 @@
+<script lang="ts">
+import { onDestroy, onMount, tick } from "svelte";
+
+interface LyricLine {
+	time: number;
+	text: string;
+}
+
+type LyricStatus = "loading" | "loaded" | "none" | "failed";
+
+let containerEl: HTMLDivElement;
+let trackEl: HTMLDivElement;
+let lyrics: LyricLine[] = $state([]);
+let currentIndex = $state(-1);
+let lyricsStatus = $state<LyricStatus>("loading");
+let offsetY = $state(0);
+let statusLabels = $state({
+	loading: "正在加载歌词",
+	none: "暂无歌词",
+	failed: "歌词加载失败",
+});
+
+const statusText = $derived(
+	lyricsStatus === "failed"
+		? statusLabels.failed
+		: lyricsStatus === "none"
+			? statusLabels.none
+			: statusLabels.loading,
+);
+const hasLyrics = $derived(lyrics.length > 0);
+
+// 将文本拆分为单个字符（保留空格），用于逐字发光
+function splitChars(text: string): string[] {
+	return Array.from(text);
+}
+
+// 根据当前行的播放时长计算逐字扫词的步进延迟，使扫词节奏与旋律同步
+function charStep(text: string): number {
+	const count = Array.from(text).length;
+	if (count <= 0) return 0.05;
+	if (currentIndex < 0 || !lyrics[currentIndex]) return 0.05;
+	const current = lyrics[currentIndex];
+	const next = lyrics[currentIndex + 1];
+	const dur = next && next.time > current.time ? next.time - current.time : 2.4;
+	const step = dur / (count + 2);
+	return Math.min(Math.max(step, 0.03), 0.1);
+}
+
+function syncLyricOffset() {
+	if (!containerEl || !trackEl || lyrics.length === 0) {
+		offsetY = 0;
+		return;
+	}
+
+	const nextIndex = currentIndex >= 0 ? currentIndex : 0;
+	const activeEl = trackEl.querySelector<HTMLElement>(
+		`[data-lyric-index="${nextIndex}"]`,
+	);
+	if (!activeEl) return;
+
+	const lyricCenter = activeEl.offsetTop + activeEl.offsetHeight / 2;
+	const targetCenter =
+		containerEl.clientHeight * (currentIndex >= 0 ? 0.5 : 0.58);
+	offsetY = targetCenter - lyricCenter;
+}
+
+async function queueLyricOffset() {
+	await tick();
+	syncLyricOffset();
+}
+
+function onLyrics(e: CustomEvent) {
+	lyrics = e.detail.lyrics || [];
+	lyricsStatus = e.detail.status || (lyrics.length > 0 ? "loaded" : "none");
+	currentIndex = -1;
+	void queueLyricOffset();
+}
+
+function onLrcIndex(e: CustomEvent) {
+	currentIndex = e.detail.index;
+	void queueLyricOffset();
+}
+
+onMount(() => {
+	const mgr = window.__fireflyMusic;
+	if (mgr) {
+		const state = mgr.getState();
+		lyrics = state.lyrics || [];
+		currentIndex = state.currentLrcIndex;
+		statusLabels = {
+			loading: state.config?.i18n?.loadingLyrics || statusLabels.loading,
+			none: state.config?.i18n?.noLyrics || statusLabels.none,
+			failed: state.config?.i18n?.failedLyrics || statusLabels.failed,
+		};
+		lyricsStatus =
+			state.lyricsStatus || (lyrics.length > 0 ? "loaded" : "loading");
+	}
+	void queueLyricOffset();
+
+	window.addEventListener("fm:lyrics", onLyrics as EventListener);
+	window.addEventListener("fm:lrc-index", onLrcIndex as EventListener);
+});
+
+onDestroy(() => {
+	window.removeEventListener("fm:lyrics", onLyrics as EventListener);
+	window.removeEventListener("fm:lrc-index", onLrcIndex as EventListener);
+});
+</script>
+
+<div bind:this={containerEl} class="music-visualizer__lyrics">
+	<div class="music-visualizer__lyrics-stage">
+		<div class="music-visualizer__lyrics-timeline"></div>
+		{#if hasLyrics}
+		<div
+			bind:this={trackEl}
+			class="music-visualizer__lyrics-inner"
+			style={`transform: translateY(${offsetY}px)`}
+		>
+			{#each lyrics as line, i}
+			<div
+				class="music-visualizer__lyric-line"
+				class:music-visualizer__lyric-line--active={i === currentIndex}
+				class:music-visualizer__lyric-line--past={i < currentIndex}
+				data-lyric-index={i}
+			>
+				<span class="music-visualizer__lyric-marker"></span>
+				{#if i === currentIndex}
+					<span class="music-visualizer__lyric-text music-visualizer__lyric-text--ktv">
+						{#each splitChars(line.text) as char, j}
+							<span
+								class="music-visualizer__lyric-char"
+								style={`animation-delay: ${(j * charStep(line.text)).toFixed(3)}s`}
+							>{char}</span>
+						{/each}
+					</span>
+				{:else}
+					<span class="music-visualizer__lyric-text">{line.text}</span>
+				{/if}
+			</div>
+		{/each}
+		</div>
+		{:else}
+			<div class="music-visualizer__lyrics-empty" aria-live="polite">
+				<span class="music-visualizer__lyric-marker music-visualizer__lyric-marker--empty"></span>
+				<span>{statusText}</span>
+			</div>
+		{/if}
+	</div>
+</div>

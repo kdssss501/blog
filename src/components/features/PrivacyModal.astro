@@ -1,0 +1,93 @@
+---
+import { getEntry, render } from "astro:content";
+import Markdown from "@components/common/Markdown.astro";
+
+const privacyPost = await getEntry("spec", "privacy");
+let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
+if (privacyPost) {
+	const rendered = await render(privacyPost);
+	Content = rendered.Content;
+}
+---
+
+<dialog id="privacy-modal" class="privacy-modal">
+	<div class="privacy-overlay" data-close-privacy></div>
+	<div class="privacy-panel">
+		<div class="privacy-header">
+			<h2 class="privacy-title">隐私政策</h2>
+			<button class="privacy-close" data-close-privacy aria-label="关闭">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="18" y1="6" x2="6" y2="18"/>
+					<line x1="6" y1="6" x2="18" y2="18"/>
+				</svg>
+			</button>
+		</div>
+		<div class="privacy-body">
+			{Content && (
+				<Markdown class="">
+					<Content />
+				</Markdown>
+			)}
+		</div>
+		<div class="privacy-footer">
+			<button class="privacy-confirm-btn" data-close-privacy>我知道了</button>
+		</div>
+	</div>
+</dialog>
+
+<script>
+	let privacyController: AbortController | null = null;
+
+	function initPrivacyModal() {
+		const modal = document.getElementById('privacy-modal') as HTMLDialogElement | null;
+		if (!modal) return;
+
+		// Abort previous listeners to prevent accumulation
+		if (privacyController) privacyController.abort();
+		privacyController = new AbortController();
+		const signal = privacyController.signal;
+
+		function openModal() {
+			modal!.showModal();
+			document.body.style.overflow = 'hidden';
+		}
+
+		function closeModal() {
+			modal!.close();
+			document.body.style.overflow = '';
+		}
+
+		modal.querySelectorAll('[data-close-privacy]').forEach(el => {
+			el.addEventListener('click', closeModal, { signal });
+		});
+
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) closeModal();
+		}, { signal });
+
+		modal.addEventListener('close', () => {
+			document.body.style.overflow = '';
+		}, { signal });
+
+		modal.addEventListener('cancel', (e) => {
+			e.preventDefault();
+			closeModal();
+		}, { signal });
+
+		window.addEventListener('privacy:open', () => {
+			openModal();
+		}, { signal });
+
+		(window as any).openPrivacyModal = openModal;
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initPrivacyModal);
+	} else {
+		initPrivacyModal();
+	}
+	document.addEventListener('astro:page-load', initPrivacyModal);
+	document.addEventListener('astro:after-swap', initPrivacyModal);
+</script>
+
+<!-- 样式已迁移至 src/styles/components/privacy-modal.css -->

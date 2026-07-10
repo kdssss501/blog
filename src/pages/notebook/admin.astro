@@ -1,0 +1,760 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+
+const title = "笔记本管理";
+const description = "创建、编辑和删除笔记本内容";
+---
+
+<MainGridLayout title={title} description={description}>
+	<section class="notebook-admin-page">
+		<header class="notebook-admin-header">
+			<PageTitle title={title} eyebrow="Notebook Admin" />
+		</header>
+
+		<div class="notebook-admin-container">
+			<!-- 登录区域 -->
+			<div id="admin-login" class="admin-login-card">
+				<div class="login-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+						<path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+					</svg>
+				</div>
+				<h2 class="login-title">管理登录</h2>
+				<p class="login-desc">输入管理密码以访问笔记本管理功能</p>
+				<input
+					id="admin-password"
+					type="password"
+					class="login-input"
+					placeholder="管理密码"
+					maxlength="50"
+				/>
+				<button id="admin-login-btn" class="login-btn">登录 >></button>
+				<div id="login-error" class="login-error" style="display:none;"></div>
+			</div>
+
+			<!-- 管理面板（登录后显示） -->
+			<div id="admin-panel" class="admin-panel" style="display:none;">
+				<!-- 笔记本选择 -->
+				<div class="admin-section">
+					<div class="section-header">
+						<h3 class="section-title">选择笔记本</h3>
+						<button id="new-notebook-btn" class="action-btn">+ 新建笔记本</button>
+					</div>
+					<div id="notebook-selector" class="notebook-selector"></div>
+				</div>
+
+				<!-- 编辑器 -->
+				<div class="admin-section">
+					<div class="section-header">
+						<h3 class="section-title">编辑笔记</h3>
+						<div class="editor-actions">
+							<button id="new-entry-btn" class="action-btn">+ 新建笔记</button>
+						</div>
+					</div>
+
+					<div id="editor-area" class="editor-area">
+						<div class="editor-fields">
+							<div class="field-group">
+								<label class="field-label" for="entry-title">标题</label>
+								<input id="entry-title" type="text" class="field-input" placeholder="笔记标题" maxlength="100" />
+							</div>
+							<div class="field-group">
+								<label class="field-label" for="entry-date">日期</label>
+								<input id="entry-date" type="date" class="field-input" />
+							</div>
+							<div class="field-group">
+								<label class="field-label" for="entry-notebook">笔记本</label>
+								<input id="entry-notebook" type="text" class="field-input" placeholder="笔记本名称" maxlength="30" />
+							</div>
+							<div class="field-group">
+								<label class="field-label" for="entry-content">内容（支持 Markdown）</label>
+								<textarea id="entry-content" class="field-textarea" placeholder="写下你的笔记内容..." rows="12"></textarea>
+							</div>
+						</div>
+
+						<div class="editor-preview">
+							<h4 class="preview-title">预览</h4>
+							<div id="entry-preview" class="preview-content"></div>
+						</div>
+					</div>
+
+					<div class="editor-footer">
+						<button id="save-entry-btn" class="save-btn">保存笔记 >></button>
+						<button id="delete-entry-btn" class="delete-btn" style="display:none;">删除</button>
+						<button id="cancel-btn" class="cancel-btn">取消</button>
+					</div>
+
+					<div id="editor-message" class="editor-message" style="display:none;"></div>
+				</div>
+
+				<!-- 笔记列表 -->
+				<div class="admin-section">
+					<div class="section-header">
+						<h3 class="section-title">已有笔记</h3>
+					</div>
+					<div id="entries-list" class="entries-list"></div>
+				</div>
+			</div>
+		</div>
+	</section>
+</MainGridLayout>
+
+<script>
+	// 简单密码验证（前端哈希）
+	const ADMIN_PASSWORD_HASH = "kdssss2026";
+
+	function initNotebookAdmin() {
+		const loginCard = document.getElementById('admin-login');
+		const adminPanel = document.getElementById('admin-panel');
+		const passwordInput = document.getElementById('admin-password') as HTMLInputElement;
+		const loginBtn = document.getElementById('admin-login-btn') as HTMLButtonElement;
+		const loginError = document.getElementById('login-error');
+
+		// 检查是否已登录
+		if (sessionStorage.getItem('notebook_admin') === 'true') {
+			showAdminPanel();
+		}
+
+		loginBtn.addEventListener('click', () => {
+			const password = passwordInput.value.trim();
+			if (password === ADMIN_PASSWORD_HASH) {
+				sessionStorage.setItem('notebook_admin', 'true');
+				showAdminPanel();
+			} else {
+				if (loginError) {
+					loginError.textContent = '密码错误，请重试';
+					loginError.style.display = 'block';
+				}
+				passwordInput.value = '';
+			}
+		});
+
+		passwordInput.addEventListener('keypress', (e) => {
+			if (e.key === 'Enter') loginBtn.click();
+		});
+
+		function showAdminPanel() {
+			if (loginCard) loginCard.style.display = 'none';
+			if (adminPanel) adminPanel.style.display = 'block';
+			loadNotebooks();
+			loadEntries();
+		}
+
+		// 笔记本管理
+		let currentEntryId: string | null = null;
+
+		async function loadNotebooks() {
+			try {
+				const res = await fetch('/api/notebook/');
+				const data = await res.json();
+				const selector = document.getElementById('notebook-selector');
+				if (!selector) return;
+
+				const notebooks = new Map<string, number>();
+				(data.entries || []).forEach((entry: any) => {
+					notebooks.set(entry.notebook, (notebooks.get(entry.notebook) || 0) + 1);
+				});
+
+				if (notebooks.size === 0) {
+					selector.innerHTML = '<div class="empty-hint">暂无笔记本，点击上方按钮创建</div>';
+					return;
+				}
+
+				selector.innerHTML = '';
+				notebooks.forEach((count, name) => {
+					const card = document.createElement('div');
+					card.className = 'notebook-select-card';
+					card.innerHTML = `
+						<span class="nb-name">${name}</span>
+						<span class="nb-count">${count} 篇</span>
+					`;
+					card.addEventListener('click', () => {
+						(document.getElementById('entry-notebook') as HTMLInputElement).value = name;
+						loadEntries(name);
+					});
+					selector.appendChild(card);
+				});
+			} catch (err) {
+				console.error('Failed to load notebooks:', err);
+			}
+		}
+
+		async function loadEntries(notebookName?: string) {
+			try {
+				const url = notebookName
+					? `/api/notebook/?notebook=${encodeURIComponent(notebookName)}`
+					: '/api/notebook/';
+				const res = await fetch(url);
+				const data = await res.json();
+				const list = document.getElementById('entries-list');
+				if (!list) return;
+
+				const entries = data.entries || [];
+				if (entries.length === 0) {
+					list.innerHTML = '<div class="empty-hint">暂无笔记，点击上方按钮创建</div>';
+					return;
+				}
+
+				entries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+				list.innerHTML = '';
+				entries.forEach((entry: any) => {
+					const card = document.createElement('div');
+					card.className = 'entry-list-item';
+					card.innerHTML = `
+						<div class="entry-item-header">
+							<span class="entry-item-title">${entry.title}</span>
+							<span class="entry-item-date">${entry.date}</span>
+						</div>
+						<div class="entry-item-meta">
+							<span class="entry-item-nb">${entry.notebook}</span>
+						</div>
+						<div class="entry-item-preview">${entry.content.substring(0, 80)}...</div>
+					`;
+					card.addEventListener('click', () => {
+						editEntry(entry);
+					});
+					list.appendChild(card);
+				});
+			} catch (err) {
+				console.error('Failed to load entries:', err);
+			}
+		}
+
+		function editEntry(entry: any) {
+			currentEntryId = entry.id;
+			(document.getElementById('entry-title') as HTMLInputElement).value = entry.title;
+			(document.getElementById('entry-date') as HTMLInputElement).value = entry.date;
+			(document.getElementById('entry-notebook') as HTMLInputElement).value = entry.notebook;
+			(document.getElementById('entry-content') as HTMLTextAreaElement).value = entry.content;
+			(document.getElementById('delete-entry-btn') as HTMLButtonElement).style.display = 'inline-flex';
+			updatePreview();
+			window.scrollTo({ top: (document.getElementById('editor-area') as HTMLElement).offsetTop - 100, behavior: 'smooth' });
+		}
+
+		function newEntry() {
+			currentEntryId = null;
+			(document.getElementById('entry-title') as HTMLInputElement).value = '';
+			(document.getElementById('entry-date') as HTMLInputElement).value = new Date().toISOString().split('T')[0];
+			const nbInput = document.getElementById('entry-notebook') as HTMLInputElement;
+			if (!nbInput.value) nbInput.value = '每日总结';
+			(document.getElementById('entry-content') as HTMLTextAreaElement).value = '';
+			(document.getElementById('delete-entry-btn') as HTMLButtonElement).style.display = 'none';
+			updatePreview();
+		}
+
+		// 预览
+		function updatePreview() {
+			const content = (document.getElementById('entry-content') as HTMLTextAreaElement).value;
+			const preview = document.getElementById('entry-preview');
+			if (preview) {
+				// 简单 Markdown 预览
+				let html = content
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+					.replace(/^## (.+)$/gm, '<h2>$1</h2>')
+					.replace(/^# (.+)$/gm, '<h1>$1</h1>')
+					.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+					.replace(/\*(.+?)\*/g, '<em>$1</em>')
+					.replace(/\n/g, '<br>');
+				preview.innerHTML = html || '<span class="preview-empty">预览区域</span>';
+			}
+		}
+
+		// 保存
+		async function saveEntry() {
+			const title = (document.getElementById('entry-title') as HTMLInputElement).value.trim();
+			const date = (document.getElementById('entry-date') as HTMLInputElement).value;
+			const notebook = (document.getElementById('entry-notebook') as HTMLInputElement).value.trim();
+			const content = (document.getElementById('entry-content') as HTMLTextAreaElement).value.trim();
+
+			if (!title || !date || !notebook || !content) {
+				showMessage('请填写所有必填字段', 'error');
+				return;
+			}
+
+			const saveBtn = document.getElementById('save-entry-btn') as HTMLButtonElement;
+			saveBtn.textContent = '保存中...';
+			saveBtn.disabled = true;
+
+			try {
+				const method = currentEntryId ? 'PUT' : 'POST';
+				const url = currentEntryId ? `/api/notebook/${currentEntryId}/` : '/api/notebook/';
+				const res = await fetch(url, {
+					method,
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ title, date, notebook, content }),
+				});
+
+				if (!res.ok) {
+					const err = await res.json().catch(() => ({}));
+					throw new Error(err.error || `保存失败: ${res.status}`);
+				}
+
+				showMessage(currentEntryId ? '更新成功！' : '创建成功！', 'success');
+				newEntry();
+				loadNotebooks();
+				loadEntries();
+			} catch (err) {
+				showMessage((err as Error).message, 'error');
+			} finally {
+				saveBtn.textContent = '保存笔记 >>';
+				saveBtn.disabled = false;
+			}
+		}
+
+		// 删除
+		async function deleteEntry() {
+			if (!currentEntryId) return;
+			if (!confirm('确定要删除这条笔记吗？')) return;
+
+			try {
+				const res = await fetch(`/api/notebook/${currentEntryId}/`, { method: 'DELETE' });
+				if (!res.ok) throw new Error(`删除失败: ${res.status}`);
+
+				showMessage('删除成功！', 'success');
+				newEntry();
+				loadNotebooks();
+				loadEntries();
+			} catch (err) {
+				showMessage((err as Error).message, 'error');
+			}
+		}
+
+		function showMessage(msg: string, type: 'success' | 'error') {
+			const el = document.getElementById('editor-message');
+			if (!el) return;
+			el.textContent = msg;
+			el.className = `editor-message ${type}`;
+			el.style.display = 'block';
+			setTimeout(() => { el.style.display = 'none'; }, 3000);
+		}
+
+		// 事件绑定
+		(document.getElementById('save-entry-btn') as HTMLButtonElement).addEventListener('click', saveEntry);
+		(document.getElementById('delete-entry-btn') as HTMLButtonElement).addEventListener('click', deleteEntry);
+		(document.getElementById('cancel-btn') as HTMLButtonElement).addEventListener('click', newEntry);
+		(document.getElementById('new-entry-btn') as HTMLButtonElement).addEventListener('click', newEntry);
+		(document.getElementById('new-notebook-btn') as HTMLButtonElement).addEventListener('click', () => {
+			newEntry();
+			(document.getElementById('entry-notebook') as HTMLInputElement).focus();
+		});
+		(document.getElementById('entry-content') as HTMLTextAreaElement).addEventListener('input', updatePreview);
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initNotebookAdmin);
+	} else {
+		initNotebookAdmin();
+	}
+	document.addEventListener('astro:page-load', initNotebookAdmin);
+</script>
+
+<style>
+	.notebook-admin-page {
+		width: 100%;
+		padding-top: 0.5rem;
+	}
+
+	.notebook-admin-header {
+		margin-bottom: 1.5rem;
+	}
+
+	.notebook-admin-container {
+		max-width: 900px;
+		margin: 0 auto;
+	}
+
+	/* 登录区域 */
+	.admin-login-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		padding: 3rem 2rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: transparent;
+		max-width: 400px;
+		margin: 4rem auto;
+	}
+
+	.login-icon {
+		color: var(--deep-text);
+		opacity: 0.6;
+	}
+
+	.login-title {
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: var(--deep-text);
+	}
+
+	.login-desc {
+		font-size: 0.9rem;
+		color: var(--content-meta);
+		text-align: center;
+	}
+
+	.login-input {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: var(--deep-text);
+		font-size: 1rem;
+		outline: none;
+		transition: box-shadow 0.2s ease;
+	}
+
+	.login-input:focus {
+		box-shadow: 4px 4px 0px var(--deep-text);
+	}
+
+	.login-btn {
+		width: 100%;
+		padding: 0.75rem 1.5rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: var(--deep-text);
+		color: var(--page-bg);
+		font-size: 1rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: transform 0.2s ease;
+	}
+
+	.login-btn:hover {
+		transform: translateY(-2px);
+	}
+
+	.login-error {
+		color: #e53e3e;
+		font-size: 0.9rem;
+		font-weight: 700;
+	}
+
+	/* 管理面板 */
+	.admin-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.admin-section {
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		padding: 1.5rem;
+		background: transparent;
+	}
+
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.section-title {
+		font-size: 1.25rem;
+		font-weight: 800;
+		color: var(--deep-text);
+	}
+
+	.action-btn {
+		padding: 0.5rem 1rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: var(--deep-text);
+		font-size: 0.9rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.action-btn:hover {
+		background: var(--deep-text);
+		color: var(--page-bg);
+	}
+
+	/* 笔记本选择器 */
+	.notebook-selector {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.notebook-select-card {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.75rem 1rem;
+		border: 2px solid var(--line-divider);
+		border-radius: var(--radius-large);
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.notebook-select-card:hover {
+		border-color: var(--deep-text);
+		transform: translateY(-2px);
+		box-shadow: 4px 4px 0px var(--deep-text);
+	}
+
+	.nb-name {
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+
+	.nb-count {
+		font-size: 0.85rem;
+		color: var(--content-meta);
+		font-weight: 700;
+	}
+
+	/* 编辑器 */
+	.editor-area {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.editor-area {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.editor-fields {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.field-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.field-label {
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--content-meta);
+	}
+
+	.field-input {
+		padding: 0.625rem 0.75rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: var(--deep-text);
+		font-size: 0.95rem;
+		outline: none;
+		transition: box-shadow 0.2s ease;
+	}
+
+	.field-input:focus {
+		box-shadow: 3px 3px 0px var(--deep-text);
+	}
+
+	.field-textarea {
+		padding: 0.75rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: var(--deep-text);
+		font-size: 0.95rem;
+		font-family: ui-monospace, monospace;
+		resize: vertical;
+		min-height: 200px;
+		outline: none;
+		transition: box-shadow 0.2s ease;
+	}
+
+	.field-textarea:focus {
+		box-shadow: 3px 3px 0px var(--deep-text);
+	}
+
+	.editor-preview {
+		border: 2px solid var(--line-divider);
+		border-radius: var(--radius-large);
+		padding: 1rem;
+		min-height: 200px;
+		overflow: auto;
+	}
+
+	.preview-title {
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--content-meta);
+		margin-bottom: 0.5rem;
+	}
+
+	.preview-content {
+		font-size: 0.95rem;
+		line-height: 1.6;
+		color: var(--deep-text);
+	}
+
+	.preview-empty {
+		color: var(--content-meta);
+		opacity: 0.5;
+	}
+
+	/* 编辑器底部 */
+	.editor-footer {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.save-btn {
+		padding: 0.625rem 1.5rem;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		background: var(--deep-text);
+		color: var(--page-bg);
+		font-weight: 700;
+		cursor: pointer;
+		transition: transform 0.2s ease;
+	}
+
+	.save-btn:hover:not(:disabled) {
+		transform: translateY(-2px);
+	}
+
+	.save-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.delete-btn {
+		padding: 0.625rem 1.5rem;
+		border: 2px solid #e53e3e;
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: #e53e3e;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.delete-btn:hover {
+		background: #e53e3e;
+		color: var(--page-bg);
+	}
+
+	.cancel-btn {
+		padding: 0.625rem 1.5rem;
+		border: 2px solid var(--line-divider);
+		border-radius: var(--radius-large);
+		background: transparent;
+		color: var(--content-meta);
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.cancel-btn:hover {
+		border-color: var(--deep-text);
+		color: var(--deep-text);
+	}
+
+	.editor-message {
+		margin-top: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: var(--radius-large);
+		font-weight: 700;
+		font-size: 0.9rem;
+	}
+
+	.editor-message.success {
+		background: rgba(34, 197, 94, 0.1);
+		color: #22c55e;
+		border: 1px solid #22c55e;
+	}
+
+	.editor-message.error {
+		background: rgba(229, 62, 62, 0.1);
+		color: #e53e3e;
+		border: 1px solid #e53e3e;
+	}
+
+	/* 笔记列表 */
+	.entries-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.entry-list-item {
+		padding: 0.75rem 1rem;
+		border: 2px solid var(--line-divider);
+		border-radius: var(--radius-large);
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.entry-list-item:hover {
+		border-color: var(--deep-text);
+		transform: translateY(-1px);
+		box-shadow: 3px 3px 0px var(--deep-text);
+	}
+
+	.entry-item-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.25rem;
+	}
+
+	.entry-item-title {
+		font-weight: 800;
+		color: var(--deep-text);
+		font-size: 1rem;
+	}
+
+	.entry-item-date {
+		font-size: 0.85rem;
+		color: var(--content-meta);
+		font-family: ui-monospace, monospace;
+	}
+
+	.entry-item-meta {
+		margin-bottom: 0.25rem;
+	}
+
+	.entry-item-nb {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--content-meta);
+		padding: 0.1rem 0.4rem;
+		border: 1px solid var(--line-divider);
+		border-radius: 0.25rem;
+	}
+
+	.entry-item-preview {
+		font-size: 0.85rem;
+		color: var(--content-meta);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.empty-hint {
+		text-align: center;
+		padding: 2rem;
+		color: var(--content-meta);
+		font-size: 0.9rem;
+	}
+</style>

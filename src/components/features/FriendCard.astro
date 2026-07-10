@@ -1,0 +1,56 @@
+---
+export interface Props {
+	title: string;
+	href: string;
+	imgurl: string;
+	desc: string;
+	tags?: string[];
+}
+
+const { title, href, imgurl, desc, tags = [] } = Astro.props;
+
+// 类型标签：标明是文档还是博客
+const tagLabels: Record<string, string> = {
+	Blog: "博客",
+	Docs: "文档",
+};
+
+const primaryTag = tags[0] || "Blog";
+const tagLabel = tagLabels[primaryTag] || primaryTag;
+
+// 头像加载失败 / 骨架占位使用的首字
+const initial = title.trim().slice(0, 1);
+---
+
+<a
+  class="friend-card-link"
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer"
+  title={desc}
+>
+  <!-- 顶部标签：标明是文档还是博客 -->
+  <span class="friend-card-tab">{tagLabel}</span>
+
+  <!-- 第一层：头像（未加载/失败时显示手绘涂鸦头像，加载成功后淡入替换） -->
+  <!-- 真实地址存于 data-src，由 friends.astro 的分页逻辑在卡片可见时注入 src，
+       避免 loading=lazy + display:none 在 Swup 导航后不触发加载的问题 -->
+  <div class="friend-card-avatar" data-initial={initial}>
+    <span class="friend-card-avatar__face" aria-hidden="true"></span>
+    <img
+      alt={title}
+      class="friend-card-avatar__img"
+      data-src={imgurl}
+    />
+  </div>
+
+  <!-- 第二层：名字 -->
+  <h3 class="friend-card-name">{title}</h3>
+
+  <!-- 第三层：介绍框（默认一行，悬停向下扩展显示更多，超出截断） -->
+  <div class="friend-card-intro">
+    <p class="friend-card-intro__text">{desc}</p>
+  </div>
+</a>
+
+<!-- 样式已迁移至 src/styles/components/friend-card.css -->

@@ -1,0 +1,249 @@
+/* ============================================
+   友链卡片 — 来自 FriendCard.astro
+   灰阶手绘风：顶部标签 + 三层结构（头像 / 名字 / 介绍）
+   头像加载时灰阶骨架圆，成功后淡入替换
+   介绍框默认一行，悬停向下扩展显示更多，超出截断
+   ============================================ */
+
+.friend-card-link {
+	/* 手绘风局部映射，全部来自主题变量，禁止硬编码 */
+	--fc-ink: var(--deep-text);
+	--fc-surface: var(--float-panel-bg);
+	--fc-line: var(--line-color);
+
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.75rem;
+	width: 100%;
+	padding: 1.75rem 1.25rem 1.25rem;
+	text-decoration: none;
+	/* 稿纸横线背景：底色 + 每 1.65rem 一条细横线 */
+	background-color: var(--fc-surface);
+	background-image: repeating-linear-gradient(
+		to bottom,
+		transparent 0,
+		transparent 1.65rem,
+		var(--fc-line) 1.65rem,
+		var(--fc-line) calc(1.65rem + 1px)
+	);
+	background-position: 0 1.4rem;
+	border: 2px solid var(--fc-ink);
+	/* 手绘感不规则圆角（方形纸张） */
+	border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px;
+	box-shadow: 4px 4px 0 var(--fc-ink);
+	transition:
+		box-shadow 400ms ease,
+		border-radius 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.friend-card-link:hover {
+	/* 手绘感圆角翻转：方形纸张 → 长条纸张 */
+	box-shadow: 6px 8px 0 var(--fc-ink);
+	border-radius: 14px 255px 14px 225px / 255px 14px 225px 14px;
+}
+
+.friend-card-link:focus-visible {
+	outline: 2px dashed var(--fc-ink);
+	outline-offset: 4px;
+}
+
+/* --- 顶部标签：胶带样式，半透明能透出纸张 --- */
+.friend-card-tab {
+	position: absolute;
+	top: -0.7rem;
+	left: 50%;
+	transform: translateX(-50%) rotate(-4deg);
+	padding: 0.22rem 1.1rem;
+	font-size: 0.6875rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	color: var(--deep-text);
+	/* 半透明胶带：透出下面的纸张纹理 */
+	background: color-mix(in oklch, var(--fc-ink) 14%, transparent);
+	border: 1px solid color-mix(in oklch, var(--fc-ink) 22%, transparent);
+	border-radius: 2px 5px 2px 6px;
+	box-shadow: 1px 1px 2px color-mix(in oklch, var(--fc-ink) 18%, transparent);
+	backdrop-filter: blur(1px);
+	z-index: 3;
+	white-space: nowrap;
+	transition: transform 400ms ease;
+}
+
+.friend-card-link:hover .friend-card-tab {
+	transform: translateX(-50%) rotate(-1.5deg);
+}
+
+/* --- 第一层：头像（默认手绘涂鸦头像，加载成功后真实头像淡入覆盖） --- */
+.friend-card-avatar {
+	/* 手绘头像局部灰阶配色，全部来自主题变量 */
+	--fc-skin: var(--inline-code-bg);
+	--fc-hair: var(--meta-divider);
+	--fc-blush: color-mix(in oklch, var(--deep-text) 16%, transparent);
+
+	position: relative;
+	width: 4.5rem;
+	height: 4.5rem;
+	flex-shrink: 0;
+	border-radius: 50%;
+	border: 2px solid var(--fc-ink);
+	box-shadow: 3px 3px 0 var(--fc-ink);
+	overflow: hidden;
+	background: var(--fc-surface);
+}
+
+/* 手绘涂鸦脸：头发 + 肤色底（默认隐藏，仅加载失败/超时时显示） */
+.friend-card-avatar__face {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	background:
+		radial-gradient(circle at 25% 12%, var(--fc-hair) 15%, transparent 16%),
+		radial-gradient(circle at 50% 6%, var(--fc-hair) 18%, transparent 19%),
+		radial-gradient(circle at 75% 12%, var(--fc-hair) 15%, transparent 16%),
+		radial-gradient(ellipse at 50% 22%, var(--fc-hair) 45%, transparent 46%),
+		var(--fc-skin);
+}
+
+/* 仅加载失败/超时才显示涂鸦头像 */
+.friend-card-avatar.is-error .friend-card-avatar__face {
+	opacity: 1;
+}
+
+/* 眼睛 + 腮红 */
+.friend-card-avatar__face::before {
+	content: "";
+	position: absolute;
+	top: 35px;
+	left: 20px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--fc-ink);
+	box-shadow:
+		25px 0 0 var(--fc-ink),
+		-4px 10px 3px var(--fc-blush),
+		30px 10px 3px var(--fc-blush);
+}
+
+/* 仅涂鸦头像显示时眨眼 */
+.friend-card-avatar.is-error .friend-card-avatar__face::before {
+	animation: friendAvatarBlink 5s infinite;
+}
+
+/* 微笑 */
+.friend-card-avatar__face::after {
+	content: "";
+	position: absolute;
+	top: 24px;
+	left: 26px;
+	width: 15px;
+	height: 13px;
+	border: 2px solid transparent;
+	border-bottom-color: var(--fc-ink);
+	border-radius: 50%;
+}
+
+.friend-card-avatar__img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	opacity: 0;
+	z-index: 1;
+	transition: opacity 400ms ease;
+}
+
+/* 加载成功：真实头像淡入覆盖涂鸦脸 */
+.friend-card-avatar.is-loaded .friend-card-avatar__img {
+	opacity: 1;
+}
+
+/* 加载失败/超时：隐藏图片，保留涂鸦脸 */
+.friend-card-avatar.is-error .friend-card-avatar__img {
+	display: none;
+}
+
+/* --- 第二层：名字 --- */
+.friend-card-name {
+	margin: 0;
+	max-width: 100%;
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--deep-text);
+	text-align: center;
+	line-height: 1.3;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* --- 第三层：介绍框（默认一行，悬停向下扩展固定高度，所有卡片一致） --- */
+.friend-card-intro {
+	width: 100%;
+	padding: 0.45rem 0.7rem;
+	background: var(--inline-code-bg);
+	border: 2px solid var(--fc-ink);
+	border-radius: 10px 6px 12px 6px;
+	/* 手绘偏移硬阴影，同参考稿徽章 */
+	box-shadow: 2px 2px 0 var(--fc-ink);
+	overflow: hidden;
+	/* 默认一行高度，固定值确保每张卡片扩展量一致 */
+	height: 2.2rem;
+	transition:
+		height 400ms cubic-bezier(0.4, 0, 0.2, 1),
+		box-shadow 300ms ease;
+}
+
+.friend-card-link:hover .friend-card-intro {
+	/* 悬停统一扩展为固定长条高度 */
+	height: 7.5rem;
+	box-shadow: 3px 3px 0 var(--fc-ink);
+}
+
+.friend-card-intro__text {
+	margin: 0;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	color: var(--content-meta);
+	text-align: center;
+	/* 默认只显示一行 */
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 1;
+	line-clamp: 1;
+	overflow: hidden;
+}
+
+/* 悬停显示更多行，超出仍截断 */
+.friend-card-link:hover .friend-card-intro__text {
+	-webkit-line-clamp: 6;
+	line-clamp: 6;
+}
+
+@keyframes friendAvatarBlink {
+	0%,
+	4%,
+	10%,
+	100% {
+		transform: scaleY(1);
+	}
+	5%,
+	8% {
+		transform: scaleY(0.1);
+	}
+}
+
+/* 尊重减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+	.friend-card-avatar__face::before {
+		animation: none;
+	}
+	.friend-card-link,
+	.friend-card-intro,
+	.friend-card-avatar__img {
+		transition: none;
+	}
+}

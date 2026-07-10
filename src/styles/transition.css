@@ -1,0 +1,167 @@
+/* ==========================================================================
+   Page Transition Animations (Swup) & Global Animations
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Keyframes
+   -------------------------------------------------------------------------- */
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   2. Swup Page Transition — Blur Fade
+   -------------------------------------------------------------------------- */
+
+/* 离开动画：模糊 + 淡出 + 上移 */
+@keyframes blur-fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-6px);
+        filter: blur(6px);
+    }
+}
+
+/* 进入动画：从模糊 + 淡入 + 下移到清晰 */
+@keyframes blur-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+        filter: blur(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* Swup 离开阶段：is-leaving 在 animatePageOut 时添加，content:replace 时移除 */
+html.is-leaving .transition-swup-leaving,
+html.is-leaving .transition-swup-main {
+    animation: blur-fade-out 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Swup 进入阶段：is-rendering 在 content:replace 后添加，animatePageIn 完成时移除 */
+html.is-rendering .transition-swup-leaving,
+html.is-rendering .transition-swup-main {
+    animation: blur-fade-in 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 无障碍：减少动画 */
+@media (prefers-reduced-motion: reduce) {
+    html.is-leaving .transition-swup-leaving,
+    html.is-leaving .transition-swup-main,
+    html.is-rendering .transition-swup-leaving,
+    html.is-rendering .transition-swup-main {
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   3. Onload Animations
+   -------------------------------------------------------------------------- */
+
+.onload-animation {
+    opacity: 0;
+    animation: fade-in-up 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 渐进式动画延迟 */
+.onload-animation:nth-child(1) { animation-delay: 50ms; }
+.onload-animation:nth-child(2) { animation-delay: 100ms; }
+.onload-animation:nth-child(3) { animation-delay: 150ms; }
+.onload-animation:nth-child(4) { animation-delay: 200ms; }
+.onload-animation:nth-child(5) { animation-delay: 250ms; }
+
+/* --------------------------------------------------------------------------
+   4. Navigation Progress Bar
+   -------------------------------------------------------------------------- */
+
+#progress-bar {
+    --progress-height: 3px;
+    --progress-duration: 8s;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--progress-height);
+    z-index: 9999;
+    pointer-events: none;
+    background: var(--primary);
+    box-shadow: 0 0 8px color-mix(in oklch, var(--primary) 60%, transparent);
+    opacity: 0;
+    transform-origin: left center;
+    transform: scaleX(0);
+}
+
+@keyframes progress-loading {
+    0% { transform: scaleX(0); }
+    100% { transform: scaleX(0.95); }
+}
+
+#progress-bar.loading {
+    opacity: 1;
+    transform: scaleX(0);
+    animation: progress-loading var(--progress-duration) cubic-bezier(0.1, 0.05, 0.1, 1) forwards;
+}
+
+#progress-bar.finishing {
+    animation: none;
+    transform: scaleX(1);
+    opacity: 1;
+    transition: transform 200ms ease-out;
+}
+
+#progress-bar.done {
+    transform: scaleX(1);
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+}
+
+/* --------------------------------------------------------------------------
+   5. Reduced Motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .onload-animation {
+        opacity: 1;
+        animation: none;
+    }
+
+    #progress-bar.loading {
+        animation: none;
+        transform: scaleX(0.95);
+    }
+
+    #progress-bar.finishing,
+    #progress-bar.done {
+        transition: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   6. Mobile: disable all entrance animations
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .onload-animation {
+        opacity: 1;
+        animation: none;
+    }
+}
+

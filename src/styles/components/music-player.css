@@ -1,0 +1,12 @@
+/* ============================================
+   音乐播放器 — 来自 MusicPlayer.astro
+   封面旋转动画
+   ============================================ */
+
+@keyframes spin-slow {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+	animation: spin-slow 10s linear infinite;
+}

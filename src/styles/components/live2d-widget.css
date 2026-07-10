@@ -1,0 +1,290 @@
+/* ============================================
+   Live2D 模型 — 来自 Live2DWidget.astro
+   定位、动画、工具栏、触发器
+   ============================================ */
+
+.live2d-widget {
+	position: fixed;
+	z-index: 999;
+	pointer-events: auto;
+	cursor: grab;
+}
+
+.live2d-widget.live2d-initial {
+	opacity: 0;
+	transform: translateY(120%);
+	pointer-events: none;
+}
+
+.live2d-widget.live2d-entering {
+	animation: live2d-slide-in 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.live2d-widget.live2d-ready {
+	opacity: 1;
+	transform: translateY(0);
+	transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+@keyframes live2d-slide-in {
+	from { opacity: 0; transform: translateY(120%); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.live2d-widget.live2d-falling {
+	animation: live2d-fall 300ms cubic-bezier(0.55, 0, 1, 1) forwards;
+}
+
+@keyframes live2d-fall {
+	from { transform: translateY(0); }
+	to { transform: translateY(var(--fall-distance, 100px)); }
+}
+
+.live2d-widget.live2d-exiting {
+	animation: live2d-slide-out 400ms cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes live2d-slide-out {
+	from { opacity: 1; transform: translateY(var(--fall-distance, 0)); }
+	to { opacity: 0; transform: translateY(var(--fall-distance, 0)) translateY(100%); }
+}
+
+#live2d-canvas {
+	pointer-events: auto;
+	cursor: pointer;
+	transition: opacity 0.3s ease;
+	width: 100%;
+	height: 100%;
+}
+
+.live2d-widget:hover #live2d-canvas {
+	opacity: 1;
+}
+
+.live2d-widget:active {
+	cursor: grabbing;
+}
+
+.live2d-toolbar {
+	position: absolute;
+	right: -2.5rem;
+	top: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	opacity: 0;
+	transition: opacity 0.25s ease;
+	pointer-events: none;
+	z-index: 1000;
+}
+
+.live2d-widget::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: -2.75rem;
+	width: 3rem;
+	height: 100%;
+	z-index: 999;
+}
+
+.live2d-widget:hover .live2d-toolbar {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.live2d-toolbar-btn {
+	width: 2.125rem;
+	height: 2.125rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #fff;
+	border: 2px solid #000;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+	color: #000;
+	backdrop-filter: blur(4px);
+}
+
+:root.dark .live2d-toolbar-btn {
+	background: #000;
+	border-color: #fff;
+	color: #fff;
+}
+
+.live2d-toolbar-btn:hover {
+	background: #000;
+	color: #fff;
+	border-color: #fff;
+}
+
+:root.dark .live2d-toolbar-btn:hover {
+	background: #fff;
+	color: #000;
+	border-color: #000;
+}
+
+.live2d-toolbar-btn.active {
+	background: #000;
+	color: #fff;
+}
+
+:root.dark .live2d-toolbar-btn.active {
+	background: #fff;
+	color: #000;
+}
+
+.live2d-author {
+	position: absolute;
+	top: -28px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1;
+	color: oklch(0.3 0 0);
+	opacity: 0;
+	transform: translateY(10px);
+	pointer-events: none;
+	white-space: nowrap;
+	text-shadow: 0 1px 3px oklch(1 0 0 / 0.6);
+	letter-spacing: 0.02em;
+	transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.live2d-author.visible {
+	opacity: 1;
+	transform: translateY(0);
+	pointer-events: auto;
+}
+
+.live2d-author a {
+	color: oklch(0.25 0 0);
+	text-decoration: none;
+	border-bottom: 2px solid oklch(0.25 0 0);
+	padding-bottom: 1px;
+	transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.live2d-author a:hover {
+	color: oklch(0.1 0 0);
+	border-color: oklch(0.1 0 0);
+}
+
+:root.dark .live2d-author {
+	color: oklch(0.85 0 0);
+	text-shadow: 0 1px 3px oklch(0 0 0 / 0.6);
+}
+
+:root.dark .live2d-author a {
+	color: oklch(0.95 0 0);
+	border-bottom-color: oklch(0.95 0 0);
+}
+
+:root.dark .live2d-author a:hover {
+	color: oklch(1 0 0);
+	border-color: oklch(1 0 0);
+}
+
+.live2d-group-indicator {
+	position: absolute;
+	top: -20px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 11px;
+	padding: 2px 8px;
+	background: oklch(0.2 0 0 / 0.7);
+	color: oklch(0.95 0 0);
+	border-radius: 3px;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
+	white-space: nowrap;
+	backdrop-filter: blur(4px);
+}
+
+:root.dark .live2d-group-indicator {
+	background: oklch(0.9 0 0 / 0.7);
+	color: oklch(0.1 0 0);
+}
+
+.live2d-group-indicator.show {
+	opacity: 1;
+}
+
+.live2d-trigger {
+	position: fixed;
+	left: 0;
+	bottom: 60px;
+	transform: translateX(-100%);
+	z-index: 998;
+	pointer-events: auto;
+	cursor: pointer;
+	transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.live2d-trigger.visible {
+	transform: translateX(calc(-100% + 12px));
+}
+
+.live2d-trigger.visible:hover {
+	transform: translateX(0);
+}
+
+.live2d-trigger-inner {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 10px 8px;
+	background: oklch(0.1 0 0 / 0.9);
+	border: 1px solid oklch(0.3 0 0);
+	border-left: none;
+	border-radius: 0 8px 8px 0;
+	color: oklch(0.95 0 0);
+	font-size: 13px;
+	font-weight: 500;
+	backdrop-filter: blur(8px);
+	box-shadow: 2px 0 12px oklch(0 0 0 / 0.2);
+	transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.live2d-trigger:hover .live2d-trigger-inner {
+	background: oklch(0.15 0 0 / 0.95);
+	box-shadow: 2px 0 16px oklch(0 0 0 / 0.3);
+}
+
+.live2d-trigger-text {
+	writing-mode: vertical-rl;
+	text-orientation: upright;
+	letter-spacing: -0.1em;
+	opacity: 0.8;
+	transition: opacity 0.2s ease;
+}
+
+.live2d-trigger:hover .live2d-trigger-text {
+	opacity: 1;
+}
+
+:root.dark .live2d-trigger-inner {
+	background: oklch(0.95 0 0 / 0.9);
+	border-color: oklch(0.7 0 0);
+	color: oklch(0.15 0 0);
+	box-shadow: 2px 0 12px oklch(0 0 0 / 0.15);
+}
+
+:root.dark .live2d-trigger:hover .live2d-trigger-inner {
+	background: oklch(0.9 0 0 / 0.95);
+	box-shadow: 2px 0 16px oklch(0 0 0 / 0.2);
+}
+
+@media (max-width: 768px) {
+	/* 移动端不加载 Live2D，直接隐藏 widget 和 trigger */
+	.live2d-widget,
+	.live2d-trigger {
+		display: none !important;
+	}
+}

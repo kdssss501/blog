@@ -1,0 +1,194 @@
+---
+import Icon from "@components/common/Icon.astro";
+import { friendsPageConfig } from "@/config";
+
+interface Props {
+	applyLink?: string;
+}
+
+const { applyLink = friendsPageConfig.applyLink } = Astro.props;
+const site = friendsPageConfig.siteInfo;
+const notes = friendsPageConfig.notes;
+---
+
+<dialog id="friend-rules-modal" class="fr-modal">
+  <div class="fr-overlay" data-close-modal></div>
+  <div class="fr-panel">
+    <!-- 头部 -->
+    <div class="fr-header">
+      <h2 class="fr-title">友链申请指南</h2>
+      <button class="fr-close" data-close-modal aria-label="关闭">
+        <Icon name="material-symbols:close-rounded" class="text-xl" />
+      </button>
+    </div>
+
+    <!-- 内容 -->
+    <div class="fr-body">
+      <!-- 本站信息 -->
+      {site && (
+        <section class="fr-section">
+          <div class="fr-section-head">
+            <div class="fr-section-icon">
+              <Icon name="material-symbols:info-outline-rounded" />
+            </div>
+            <h3>本站信息</h3>
+          </div>
+          <div class="fr-info-grid">
+            {[
+              { label: "站点名称", value: site.name },
+              { label: "站点描述", value: site.desc },
+              { label: "站点链接", value: site.url },
+              { label: "头像链接", value: site.avatar },
+            ].map((item) => (
+              <div class="fr-info-row">
+                <div class="fr-info-text">
+                  <span class="fr-info-label">{item.label}</span>
+                  <span class="fr-info-value">{item.value}</span>
+                </div>
+                <button
+                  class="fr-copy-btn"
+                  onclick={`navigator.clipboard.writeText('${item.value.replace(/'/g, "\\'")}');this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1500)`}
+                  aria-label={`复制${item.label}`}
+                >
+                  <Icon name="material-symbols:content-copy-outline-rounded" class="fr-copy-icon" />
+                  <Icon name="material-symbols:check-rounded" class="fr-check-icon" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- 申请流程 -->
+      <section class="fr-section">
+        <div class="fr-section-head">
+          <div class="fr-section-icon">
+            <Icon name="material-symbols:list-alt-outline-rounded" />
+          </div>
+          <h3>申请流程</h3>
+        </div>
+        <div class="fr-steps">
+          <div class="fr-step">
+            <div class="fr-step-num">1</div>
+            <div class="fr-step-line"></div>
+            <div class="fr-step-content">
+              <p class="fr-step-title">添加本站友链</p>
+              <p class="fr-step-desc">请先在您的网站友链页面添加本站信息，可直接复制上方各字段</p>
+            </div>
+          </div>
+          <div class="fr-step">
+            <div class="fr-step-num">2</div>
+            <div class="fr-step-line"></div>
+            <div class="fr-step-content">
+              <p class="fr-step-title">
+                发送申请邮件至：<code class="fr-code">{site?.email}</code>
+              </p>
+              <p class="fr-step-desc">将下方模板内容复制修改后发送</p>
+              <div class="fr-template">
+                <button
+                  class="fr-copy-btn fr-template-copy"
+                  onclick={`navigator.clipboard.writeText('站点名称：您的站点名称\\n站点描述：您的站点描述\\n站点链接：您的站点链接\\n头像链接：您的站点头像');this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1500)`}
+                  aria-label="复制模板"
+                >
+                  <Icon name="material-symbols:content-copy-outline-rounded" class="fr-copy-icon" />
+                  <Icon name="material-symbols:check-rounded" class="fr-check-icon" />
+                </button>
+                <pre class="fr-template-text">{`站点名称：您的站点名称\n站点描述：您的站点描述\n站点链接：您的站点链接\n头像链接：您的站点头像`}</pre>
+              </div>
+            </div>
+          </div>
+          <div class="fr-step">
+            <div class="fr-step-num">3</div>
+            <div class="fr-step-content">
+              <p class="fr-step-title">等待审核</p>
+              <p class="fr-step-desc">确认信息无误后会尽快添加您的友链</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 注意事项 -->
+      {notes && (
+        <section class="fr-section">
+          <div class="fr-section-head">
+            <div class="fr-section-icon">
+              <Icon name="material-symbols:info-outline-rounded" />
+            </div>
+            <h3>注意事项</h3>
+          </div>
+          <div class="fr-notes">
+            {notes.map((item) => (
+              <div class="fr-note">
+                <span class="fr-note-dot"></span>
+                <p><strong>{item.title}</strong>：{item.content}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="fr-footer">
+      {applyLink && (
+        <a
+          href={applyLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="fr-btn fr-btn-primary"
+        >
+          <Icon name="material-symbols:edit-square-outline" class="text-base" />
+          自助申请友链（推荐）
+        </a>
+      )}
+      <button class="fr-btn fr-btn-secondary" data-close-modal>
+        <Icon name="material-symbols:mail-outline-rounded" class="text-base" />
+        手动申请友链
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 样式已迁移至 src/styles/components/friend-rules-modal.css -->
+
+<script>
+  function initFriendRulesModal() {
+    const modal = document.getElementById('friend-rules-modal') as HTMLDialogElement | null;
+    if (!modal) return;
+
+    const openBtns = document.querySelectorAll('[data-open-friend-rules]');
+    openBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.showModal();
+        document.body.style.overflow = 'hidden';
+      });
+    });
+
+    modal.querySelectorAll('[data-close-modal]').forEach(el => {
+      el.addEventListener('click', () => {
+        modal.close();
+        document.body.style.overflow = '';
+      });
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.close();
+        document.body.style.overflow = '';
+      }
+    });
+
+    modal.addEventListener('close', () => {
+      document.body.style.overflow = '';
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFriendRulesModal);
+  } else {
+    initFriendRulesModal();
+  }
+  document.addEventListener('astro:page-load', initFriendRulesModal);
+  document.addEventListener('astro:after-swap', initFriendRulesModal);
+</script>

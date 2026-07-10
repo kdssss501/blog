@@ -1,0 +1,31 @@
+---
+import CategoryRose from "@components/widget/CategoryRose.astro";
+import TagGraph from "@components/widget/TagGraph.astro";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+import { getCategoryList, getTagGraphData } from "@/utils/content-utils";
+
+const categories = await getCategoryList();
+const tagGraph = await getTagGraphData();
+const title = "分类标签";
+---
+
+<MainGridLayout title={title}>
+  <div class="categories-page card-base z-10 px-4 py-6 md:px-9 relative w-full">
+    <!-- 统一大标题 -->
+    <div class="categories-page__header mb-6">
+      <PageTitle
+        title={title}
+        eyebrow="Taxonomy"
+        variant="stacked"
+      />
+    </div>
+
+    <!-- 分类：左图右列表 + 玫瑰图 -->
+    <CategoryRose categories={categories} />
+
+    <!-- 标签关系图谱 -->
+    <div class="categories-page__divider"></div>
+    <TagGraph graph={tagGraph} />
+  </div>
+</MainGridLayout>

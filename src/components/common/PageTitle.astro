@@ -1,0 +1,31 @@
+---
+import Icon from "@/components/common/Icon.astro";
+
+interface Props {
+	title: string;
+	icon?: string;
+	eyebrow?: string;
+	variant?: "compact" | "stacked";
+	class?: string;
+}
+
+const {
+	title,
+	icon,
+	eyebrow,
+	variant = "compact",
+	class: className,
+} = Astro.props;
+---
+
+<div class:list={["page-title", `page-title--${variant}`, className]}>
+	{variant === "compact" && icon && (
+		<span class="page-title__icon" aria-hidden="true">
+			<Icon name={icon} />
+		</span>
+	)}
+	<div class="page-title__body">
+		{eyebrow && <span class="page-title__eyebrow">{eyebrow}</span>}
+		<h1 class="page-title__text">{title}</h1>
+	</div>
+</div>

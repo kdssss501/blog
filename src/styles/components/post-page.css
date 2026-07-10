@@ -1,0 +1,175 @@
+/* ============================================
+   文章列表页 — 来自 PostPage.astro
+   包含布局切换、卡片动画、网格/列表模式
+   ============================================ */
+
+/* --- Global styles (原 is:global 块) --- */
+
+.post-grid-auto {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(var(--post-card-min-width, 320px), 1fr));
+	gap: 1rem;
+}
+
+/* 列表模式 - 卡片间分隔线 */
+.list-mode .post-card-item {
+	border-bottom: 2px solid #000 !important;
+	padding-bottom: 1.5rem !important;
+	margin-bottom: 0 !important;
+}
+:root.dark .list-mode .post-card-item {
+	border-bottom-color: #fff !important;
+}
+
+/* 移动端列表模式下缩小元数据 */
+@media (max-width: 767px) {
+	.list-mode .post-meta-root {
+		transform: scale(0.72) !important;
+		transform-origin: top left !important;
+		margin-bottom: 0.25rem !important;
+		width: 139% !important;
+	}
+	.list-mode .post-meta {
+		margin-bottom: 0.25rem !important;
+		gap: 0.25rem !important;
+	}
+}
+
+/* --- Scoped styles (原 scoped 块，转为全局) --- */
+
+/* 布局切换工具栏 */
+#post-list-toolbar {
+	opacity: 0;
+	animation: fadeInDown 0.4s ease-out forwards;
+	animation-delay: calc(var(--content-delay) + 0ms);
+}
+@keyframes fadeInDown {
+	from { opacity: 0; transform: translateY(-8px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.layout-toggle-group {
+	box-shadow: 0 1px 3px oklch(0.5 0 0 / 0.08);
+	transition: box-shadow 0.2s ease;
+}
+:root.dark .layout-toggle-group {
+	box-shadow: 0 1px 3px oklch(0 0 0 / 0.2);
+}
+
+/* 布局切换动画 */
+#post-list-container {
+	transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+#post-list-container.layout-switching {
+	opacity: 0;
+	transform: translateY(10px);
+}
+
+/* 文章卡片的过渡动画 */
+#post-list-container > * {
+	transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+				transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 卡片悬停切换动效 */
+#post-list-container > .post-card-item {
+	transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#post-list-container > .post-card-item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+				0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+:root.dark #post-list-container > .post-card-item:hover {
+	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3),
+				0 8px 10px -6px rgba(0, 0, 0, 0.2);
+}
+
+/* 布局切换时卡片的交错动画 */
+#post-list-container > .post-card-item {
+	opacity: 0;
+	animation: cardFadeIn 0.5s ease-out forwards;
+}
+
+#post-list-container > .post-card-item:nth-child(1) { animation-delay: 0.05s; }
+#post-list-container > .post-card-item:nth-child(2) { animation-delay: 0.1s; }
+#post-list-container > .post-card-item:nth-child(3) { animation-delay: 0.15s; }
+#post-list-container > .post-card-item:nth-child(4) { animation-delay: 0.2s; }
+#post-list-container > .post-card-item:nth-child(5) { animation-delay: 0.25s; }
+#post-list-container > .post-card-item:nth-child(6) { animation-delay: 0.3s; }
+#post-list-container > .post-card-item:nth-child(7) { animation-delay: 0.35s; }
+#post-list-container > .post-card-item:nth-child(8) { animation-delay: 0.4s; }
+#post-list-container > .post-card-item:nth-child(9) { animation-delay: 0.45s; }
+#post-list-container > .post-card-item:nth-child(10) { animation-delay: 0.5s; }
+
+@keyframes cardFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Grid Mode Customization */
+#post-list-container.grid-mode .post-card-wrapper {
+	flex-direction: column-reverse !important;
+}
+
+#post-list-container.grid-mode .post-card-image {
+	width: 100% !important;
+	position: relative !important;
+	top: auto !important;
+	right: auto !important;
+	bottom: auto !important;
+	border-radius: var(--radius-large) var(--radius-large) 0 0 !important;
+}
+
+#post-list-container.grid-mode .post-card-content {
+	width: 100% !important;
+	padding: 1rem !important;
+}
+
+#post-list-container.grid-mode .no-cover .post-card-content {
+	padding-right: 4.5rem !important;
+}
+
+#post-list-container.grid-mode .post-card-title {
+	font-size: 1.35rem !important;
+	line-height: 1.75rem !important;
+	margin-bottom: 0.5rem !important;
+}
+
+#post-list-container.grid-mode .post-card-title::before {
+	display: none !important;
+}
+
+#post-list-container.grid-mode .post-meta {
+	margin-bottom: 0.5rem !important;
+	gap: 0.5rem !important;
+}
+
+#post-list-container.grid-mode .post-meta .text-xl {
+	font-size: 1rem !important;
+	line-height: 1.25rem !important;
+}
+
+#post-list-container.grid-mode .meta-icon {
+	width: 1.5rem !important;
+	height: 1.5rem !important;
+	margin-right: 0.25rem !important;
+}
+
+#post-list-container.grid-mode .post-meta .text-sm {
+	font-size: 0.75rem !important;
+	line-height: 1rem !important;
+}
+
+#post-list-container.grid-mode .post-meta .pinned-btn {
+	padding: 0.25rem 0.375rem !important;
+}

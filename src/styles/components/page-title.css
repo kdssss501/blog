@@ -1,0 +1,91 @@
+.page-title {
+	display: flex;
+	align-items: center;
+	gap: 0.875rem;
+	min-width: 0;
+}
+
+.page-title__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 3rem;
+	height: 3rem;
+	flex-shrink: 0;
+	border: 2px solid var(--deep-text);
+	border-radius: var(--radius-large);
+	color: var(--deep-text);
+	background: var(--page-bg);
+	transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+
+.page-title__icon svg {
+	width: 1.65rem;
+	height: 1.65rem;
+}
+
+.page-title__body {
+	min-width: 0;
+}
+
+.page-title__eyebrow {
+	display: block;
+	margin-bottom: 0.125rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--content-meta);
+}
+
+.page-title__text {
+	margin: 0;
+	color: var(--deep-text);
+	font-size: clamp(1.85rem, 4vw, 2.5rem);
+	font-weight: 800;
+	line-height: 1.1;
+	letter-spacing: 0;
+	overflow-wrap: anywhere;
+}
+
+.page-title--stacked {
+	display: block;
+}
+
+.page-title--stacked .page-title__eyebrow {
+	margin-bottom: 0.35rem;
+	font-size: clamp(0.78rem, 1.5vw, 0.95rem);
+	font-weight: 800;
+	letter-spacing: 0;
+}
+
+.page-title--stacked .page-title__text {
+	font-size: clamp(2rem, 4vw, 2.85rem);
+	font-weight: 900;
+	line-height: 1;
+}
+
+@media (max-width: 768px) {
+	.page-title {
+		gap: 0.625rem;
+	}
+
+	.page-title__icon {
+		width: 2.65rem;
+		height: 2.65rem;
+	}
+
+	.page-title__text {
+		font-size: 1.85rem;
+	}
+
+	.page-title__eyebrow {
+		font-size: 0.75rem;
+	}
+
+	.page-title--stacked .page-title__text {
+		font-size: clamp(1.85rem, 9vw, 2.45rem);
+		line-height: 1;
+	}
+}

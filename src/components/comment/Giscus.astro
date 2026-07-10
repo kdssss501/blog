@@ -1,0 +1,73 @@
+---
+import { commentConfig } from "@/config";
+
+if (!commentConfig?.giscus) {
+	throw new Error("Giscus comments are not configured");
+}
+
+const giscus = commentConfig.giscus;
+---
+
+<!-- Giscus 评论容器 -->
+<div class="giscus"></div>
+
+<script is:inline define:vars={{ giscus }}>
+  function getGiscusTheme() {
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  }
+
+  function syncGiscusTheme() {
+    var iframe = document.querySelector('iframe.giscus-frame');
+    if (!iframe) return;
+    iframe.contentWindow.postMessage({ giscus: { setConfig: { theme: getGiscusTheme() } } }, 'https://giscus.app');
+  }
+
+  function loadGiscus() {
+    var container = document.querySelector('.giscus');
+    if (!container) return;
+    container.innerHTML = '';
+
+    var s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    s.setAttribute('data-repo', giscus.repo);
+    s.setAttribute('data-repo-id', giscus.repoId);
+    s.setAttribute('data-category', giscus.category);
+    s.setAttribute('data-category-id', giscus.categoryId);
+    s.setAttribute('data-mapping', giscus.mapping);
+    s.setAttribute('data-strict', giscus.strict);
+    s.setAttribute('data-reactions-enabled', giscus.reactionsEnabled);
+    s.setAttribute('data-emit-metadata', giscus.emitMetadata);
+    s.setAttribute('data-input-position', giscus.inputPosition);
+    s.setAttribute('data-theme', getGiscusTheme());
+    s.setAttribute('data-lang', giscus.lang);
+    s.setAttribute('data-loading', giscus.loading);
+    s.crossOrigin = 'anonymous';
+    s.async = true;
+    container.appendChild(s);
+  }
+
+  loadGiscus();
+
+  // 防止 swup 重复执行脚本导致监听器累积
+  if (!window.__giscus_listeners_done) {
+    window.__giscus_listeners_done = true;
+
+    // 站点主题切换时同步 Giscus 主题
+    window.addEventListener('theme-change', syncGiscusTheme);
+
+    // Swup 页面切换后重新加载
+    if (window.swup && window.swup.hooks) {
+      window.swup.hooks.on('content:replace', function () {
+        setTimeout(loadGiscus, 200);
+      });
+    } else {
+      document.addEventListener('swup:enable', function () {
+        if (window.swup && window.swup.hooks) {
+          window.swup.hooks.on('content:replace', function () {
+            setTimeout(loadGiscus, 200);
+          });
+        }
+      });
+    }
+  }
+</script>

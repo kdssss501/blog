@@ -1,0 +1,10 @@
+.post-list-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.625rem;
+}
+
+.post-list-actions .bubble-menu-wrapper,
+.post-list-actions .category-bubble-menu-wrapper {
+	flex-shrink: 0;
+}

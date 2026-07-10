@@ -1,0 +1,373 @@
+---
+import Icon from "@components/common/Icon.astro";
+/**
+ * 极简悬浮坞 — 替代原 FloatingControls。
+ * 所有重组件（Theme / DisplaySettings / Music / Live2D / Spine / Calendar / TOC / BackToTop / BackToHome / BackToComment / Tags）
+ * 全部以图标按钮 + 抽屉/浮层形式集中在右下角。
+ */
+import MusicPlayer from "@/components/features/MusicPlayer.astro";
+import { announcementConfig, spineModelConfig } from "@/config";
+import { musicPlayerConfig } from "@/config/musicConfig";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { getTagList } from "@/utils/content-utils";
+import { getTagUrl } from "@/utils/url-utils";
+
+const tags = await getTagList();
+---
+
+<div class="floating-dock" id="floating-dock">
+	<button class="dock-btn dock-btn-ai-search" id="dock-ai-search-btn" aria-label="AI 搜索" type="button" data-tooltip="AI 搜索">
+		<span class="dock-btn-icon"><Icon name="ri:ai" class="text-3xl" /></span>
+		<span class="dock-btn-label">AI 搜索</span>
+	</button>
+
+	{musicPlayerConfig.showInNavbar !== false && (
+		<button class="dock-btn dock-btn-music" id="dock-music-btn" aria-label={i18n(I18nKey.music)} type="button" data-tooltip={i18n(I18nKey.music)}>
+			<span class="dock-btn-icon"><Icon name="material-symbols:music-note-rounded" class="text-3xl" /></span>
+			<span class="dock-btn-label">{i18n(I18nKey.music)}</span>
+		</button>
+	)}
+
+	<div class="dock-stack" id="dock-stack" data-expanded="false">
+		<div class="dock-buttons">
+			{announcementConfig.items.length > 0 && (
+				<button class="dock-btn" id="dock-announcement-btn" aria-label="Announcement" type="button" data-tooltip="公告">
+					<span class="dock-btn-icon"><Icon name="material-symbols:notifications-outline-rounded" class="text-3xl" /></span>
+					<span class="dock-btn-label">公告</span>
+				</button>
+			)}
+
+			<button class="dock-btn" id="dock-theme-btn" aria-label="Theme" type="button" data-tooltip="切换暗色" data-theme-state="light">
+				<span class="dock-btn-icon">
+					<Icon name="material-symbols:wb-sunny-outline-rounded" class="text-3xl dock-theme-icon-light" />
+					<Icon name="material-symbols:dark-mode-outline-rounded" class="text-3xl dock-theme-icon-dark hidden" />
+				</span>
+				<span class="dock-btn-label dock-theme-label-light">切换暗色</span>
+				<span class="dock-btn-label dock-theme-label-dark hidden">切换亮色</span>
+			</button>
+
+			<button class="dock-btn" id="dock-tags-btn" aria-label={i18n(I18nKey.tags)} type="button" data-tooltip={i18n(I18nKey.tags)}>
+				<span class="dock-btn-icon"><Icon name="material-symbols:label-outline" class="text-3xl" /></span>
+				<span class="dock-btn-label">{i18n(I18nKey.tags)}</span>
+			</button>
+
+			{spineModelConfig?.enable && (
+				<button class="dock-btn" id="dock-spine-btn" aria-label="Spine" type="button" data-active="true" data-tooltip="Spine 模型">
+					<span class="dock-btn-icon"><Icon name="material-symbols:image-outline" class="text-3xl" /></span>
+					<span class="dock-btn-label">Spine</span>
+				</button>
+			)}
+
+			<button class="dock-btn dock-btn-toc hide" id="dock-toc-btn" aria-label="Table of Contents" type="button" data-tooltip="目录">
+				<span class="dock-btn-icon"><Icon name="material-symbols:format-list-bulleted" class="text-3xl" /></span>
+				<span class="dock-btn-label">目录</span>
+			</button>
+
+			<button class="dock-btn dock-btn-comment hide" id="dock-comment-btn" aria-label="Comments" type="button" data-tooltip="跳到评论">
+				<span class="dock-btn-icon"><Icon name="mingcute:comment-line" class="text-3xl" /></span>
+				<span class="dock-btn-label">评论</span>
+			</button>
+
+			<button class="dock-btn dock-btn-home hide" id="dock-home-btn" aria-label={i18n(I18nKey.home)} type="button" data-tooltip={i18n(I18nKey.home)}>
+				<span class="dock-btn-icon"><Icon name="material-symbols:home-outline-rounded" class="text-3xl" /></span>
+				<span class="dock-btn-label">{i18n(I18nKey.home)}</span>
+			</button>
+
+		</div>
+
+		<button class="dock-btn dock-toggle" id="dock-toggle-btn" aria-label="Toggle dock" type="button" data-tooltip="工具坞">
+			<span class="dock-btn-icon">
+				<Icon name="material-symbols:more-horiz" class="text-3xl dock-icon-collapsed" />
+				<Icon name="material-symbols:close" class="text-3xl dock-icon-expanded hidden" />
+			</span>
+			<span class="dock-btn-label dock-toggle-label-collapsed">展开</span>
+			<span class="dock-btn-label dock-toggle-label-expanded hidden">收起</span>
+		</button>
+	</div>
+
+	<button class="dock-btn dock-btn-top hide" id="dock-top-btn" aria-label="Back to Top" type="button" data-tooltip="回到顶部">
+		<span class="dock-btn-icon"><Icon name="material-symbols:keyboard-arrow-up-rounded" class="text-3xl" /></span>
+		<span class="dock-btn-label">顶部</span>
+	</button>
+</div>
+
+{/* 抽屉容器（独立于 dock-stack） */}
+
+{announcementConfig.items.length > 0 && (
+	<div class="dock-drawer dock-drawer-closed" id="dock-drawer-announcement">
+		<div class="dock-drawer-title">
+			<Icon name="material-symbols:notifications-outline-rounded" class="dock-drawer-title-icon" />
+			<span>{announcementConfig.title || "公告"}</span>
+		</div>
+		<div class="dock-announcement-list">
+			{announcementConfig.items
+				.slice()
+				.sort((a, b) => b.sort - a.sort)
+				.map((item) => (
+					<div class="dock-announcement-card">
+						<div class="dock-announcement-card__header">
+							<span class="dock-announcement-card__tag">{item.tag}</span>
+							<span class="dock-announcement-card__title">{item.title}</span>
+						</div>
+						<time class="dock-announcement-card__time">{item.time}</time>
+						<p class="dock-announcement-card__content">{item.content}</p>
+						{item.link && (
+							<a href={item.link} class="dock-announcement-card__link btn-line text-sm">
+								查看详情
+								<Icon name="fa7-solid:arrow-right" class="ml-2 text-xs" />
+							</a>
+						)}
+					</div>
+				))}
+		</div>
+	</div>
+)}
+
+{musicPlayerConfig.showInNavbar !== false && (
+	<div class="dock-drawer dock-drawer-closed" id="dock-drawer-music">
+		<div class="dock-drawer-title">
+			<Icon name="material-symbols:music-note-rounded" class="dock-drawer-title-icon" />
+			<span>{i18n(I18nKey.music)}</span>
+		</div>
+		<MusicPlayer lazy />
+	</div>
+)}
+
+<div class="dock-drawer dock-drawer-closed" id="dock-drawer-tags">
+	<div class="dock-drawer-title">
+		<Icon name="material-symbols:label-outline" class="dock-drawer-title-icon" />
+		<span>{i18n(I18nKey.tags)}</span>
+	</div>
+	<div class="dock-tags-list">
+		{tags.map((t) => (
+			<a href={getTagUrl(t.name)} class="dock-tag-item">
+				<span class="dock-tag-name"># {t.name.trim()}</span>
+				<span class="dock-tag-count">{t.count}</span>
+			</a>
+		))}
+	</div>
+</div>
+
+<div class="dock-drawer dock-drawer-closed" id="dock-drawer-toc">
+	<div class="dock-drawer-title">
+		<Icon name="material-symbols:format-list-bulleted" class="dock-drawer-title-icon" />
+		<span>{i18n(I18nKey.tableOfContents)}</span>
+	</div>
+	<div id="dock-toc-content" class="text-sm leading-relaxed"></div>
+</div>
+
+<!-- 样式已迁移至 src/styles/components/floating-dock.css -->
+
+<script>
+	(function initFloatingDock() {
+		const dockAbortController = new AbortController();
+		const dockSignal = dockAbortController.signal;
+
+		const stack = document.getElementById("dock-stack");
+		const toggleBtn = document.getElementById("dock-toggle-btn");
+		const collapsedIcon = toggleBtn?.querySelector(".dock-icon-collapsed");
+		const expandedIcon = toggleBtn?.querySelector(".dock-icon-expanded");
+		const collapsedLabel = toggleBtn?.querySelector(".dock-toggle-label-collapsed");
+		const expandedLabel = toggleBtn?.querySelector(".dock-toggle-label-expanded");
+
+		if (!stack || !toggleBtn) return;
+
+		toggleBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			const expanded = stack.getAttribute("data-expanded") === "true";
+			stack.setAttribute("data-expanded", expanded ? "false" : "true");
+			collapsedIcon?.classList.toggle("hidden", !expanded);
+			expandedIcon?.classList.toggle("hidden", expanded);
+			collapsedLabel?.classList.toggle("hidden", !expanded);
+			expandedLabel?.classList.toggle("hidden", expanded);
+		});
+
+		const drawers: Record<string, string> = {
+			"dock-music-btn": "dock-drawer-music",
+			"dock-toc-btn": "dock-drawer-toc",
+			"dock-announcement-btn": "dock-drawer-announcement",
+			"dock-tags-btn": "dock-drawer-tags",
+		};
+
+		function closeAllDrawers() {
+			document.querySelectorAll(".dock-drawer").forEach((d) => d.classList.add("dock-drawer-closed"));
+		}
+
+		Object.entries(drawers).forEach(([btnId, drawerId]) => {
+			const btn = document.getElementById(btnId);
+			const drawer = document.getElementById(drawerId);
+			if (!btn || !drawer) return;
+			btn.addEventListener("click", (e) => {
+				e.stopPropagation();
+				const isOpen = !drawer.classList.contains("dock-drawer-closed");
+				closeAllDrawers();
+				if (!isOpen) drawer.classList.remove("dock-drawer-closed");
+			});
+		});
+
+		function collapseDock() {
+			stack?.setAttribute("data-expanded", "false");
+			collapsedIcon?.classList.remove("hidden");
+			expandedIcon?.classList.add("hidden");
+		}
+
+		document.addEventListener("click", (e) => {
+			const target = e.target as Node;
+			if (!target) return;
+			const isInDrawer = document.querySelector(".dock-drawer:not(.dock-drawer-closed)")?.contains(target);
+			const isInDock = document.getElementById("floating-dock")?.contains(target);
+			if (!isInDrawer && !isInDock) {
+				closeAllDrawers();
+				collapseDock();
+			}
+		}, { signal: dockSignal });
+
+		// 音乐按钮播放旋转
+		const musicBtn = document.getElementById("dock-music-btn");
+		function updateMusicIconSpin() {
+			if (!musicBtn) return;
+			const mgr = window.__fireflyMusic;
+			const isPlaying = mgr?.getState().isPlaying ?? false;
+			musicBtn.classList.toggle("is-playing", isPlaying);
+		}
+		updateMusicIconSpin();
+		window.addEventListener("fm:play-state", updateMusicIconSpin, { signal: dockSignal });
+
+		// 音乐抽屉懒加载：首次打开时触发 MusicManager 初始化
+		const musicDrawerBtn = musicBtn;
+		const musicDrawerEl = document.getElementById("dock-drawer-music");
+		if (musicDrawerBtn && musicDrawerEl) {
+			musicDrawerBtn.addEventListener("click", () => {
+				const mgr = window.__fireflyMusic;
+				if (mgr && !mgr.getState().initialized) {
+					const widget = musicDrawerEl.querySelector(".music-player-widget");
+					const loadingEl = widget?.querySelector(".music-loading");
+					if (loadingEl) {
+						loadingEl.classList.remove("opacity-0", "pointer-events-none");
+					}
+					mgr.init();
+				}
+			});
+		}
+
+		// Spine 显隐切换（简单切换，保持原有行为）
+		function bindSpineToggle(btnId: string, targetId: string, storageKey: string) {
+			const btn = document.getElementById(btnId);
+			const target = document.getElementById(targetId);
+			if (!btn || !target) return;
+
+			const savedHidden = localStorage.getItem(storageKey) === "true";
+			if (savedHidden) {
+				(target as HTMLElement).style.display = "none";
+				btn.setAttribute("data-active", "false");
+			}
+
+			btn.addEventListener("click", (e) => {
+				e.stopPropagation();
+				const isHidden = (target as HTMLElement).style.display === "none";
+				(target as HTMLElement).style.display = isHidden ? "" : "none";
+				btn.setAttribute("data-active", String(isHidden));
+				localStorage.setItem(storageKey, String(!isHidden));
+			});
+		}
+		bindSpineToggle("dock-spine-btn", "spine-model-container", "spine-hidden");
+
+		// 主题切换：点击直接切换亮/暗
+		const themeBtnEl = document.getElementById("dock-theme-btn");
+		if (themeBtnEl) {
+			const themeBtn = themeBtnEl;
+			const lightIcon = themeBtn.querySelector(".dock-theme-icon-light");
+			const darkIcon = themeBtn.querySelector(".dock-theme-icon-dark");
+
+			const lightLabel = themeBtn.querySelector(".dock-theme-label-light");
+			const darkLabel = themeBtn.querySelector(".dock-theme-label-dark");
+
+			function updateThemeIcon() {
+				const isDark = document.documentElement.classList.contains("dark");
+				lightIcon?.classList.toggle("hidden", isDark);
+				darkIcon?.classList.toggle("hidden", !isDark);
+				lightLabel?.classList.toggle("hidden", isDark);
+				darkLabel?.classList.toggle("hidden", !isDark);
+				themeBtn.setAttribute("data-tooltip", isDark ? "切换亮色" : "切换暗色");
+			}
+
+			themeBtn.addEventListener("click", (e) => {
+				e.stopPropagation();
+				import("@/utils/setting-utils").then(({ setTheme, getStoredTheme }) => {
+					const current = getStoredTheme();
+					const resolved = current === "system"
+						? (document.documentElement.classList.contains("dark") ? "dark" : "light")
+						: current;
+					const next = resolved === "light" ? "dark" : "light";
+					setTheme(next as any);
+					updateThemeIcon();
+				});
+			});
+
+			updateThemeIcon();
+			window.addEventListener("theme-change", updateThemeIcon, { signal: dockSignal });
+		}
+
+		// Back to Top / Home / Comment
+		document.getElementById("dock-top-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			window.scroll({ top: 0, behavior: "smooth" });
+		});
+		document.getElementById("dock-home-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			window.navigateToPage("/");
+		});
+		document.getElementById("dock-comment-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			document.getElementById("post-comments")?.scrollIntoView({ behavior: "smooth", block: "start" });
+		});
+
+		// AI 搜索
+		document.getElementById("dock-ai-search-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			window.dispatchEvent(new CustomEvent("toggle-ai-search"));
+			closeAllDrawers();
+			collapseDock();
+		});
+
+		function updateScrollDependent() {
+			const scrolled = window.scrollY > 200;
+			document.getElementById("dock-top-btn")?.classList.toggle("hide", !scrolled);
+		}
+		function updatePathDependent() {
+			const isHome = window.location.pathname === "/" || window.location.pathname === "";
+			document.getElementById("dock-home-btn")?.classList.toggle("hide", isHome);
+			const isPost = /\/posts?\//.test(window.location.pathname);
+			document.getElementById("dock-toc-btn")?.classList.toggle("hide", !isPost);
+			const hasComment = !!document.getElementById("post-comments");
+			document.getElementById("dock-comment-btn")?.classList.toggle("hide", !isPost || !hasComment);
+		}
+		updateScrollDependent();
+		updatePathDependent();
+		window.addEventListener("scroll", updateScrollDependent, { passive: true, signal: dockSignal });
+		document.addEventListener("astro:page-load", () => {
+			closeAllDrawers();
+			collapseDock();
+			updatePathDependent();
+			updateScrollDependent();
+		}, { signal: dockSignal });
+
+		// TOC
+		const tocBtn = document.getElementById("dock-toc-btn");
+		tocBtn?.addEventListener("click", () => {
+			import("@/utils/toc-utils").then(({ TOCManager }) => {
+				try {
+					const mgr = new (TOCManager as any)({
+						contentId: "dock-toc-content",
+						maxLevel: 3,
+						scrollOffset: 80,
+					});
+					mgr.init();
+				} catch (err) {
+					console.error("TOC init failed:", err);
+				}
+			});
+		});
+	})();
+</script>

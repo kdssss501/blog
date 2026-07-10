@@ -1,0 +1,138 @@
+---
+import "@fancyapps/ui/dist/fancybox/fancybox.css";
+import "@/styles/fancybox-custom.css";
+// Fancybox 管理器组件
+---
+
+<script>
+  let Fancybox: any;
+
+  async function setup() {
+    const selectors = [
+      ".custom-md img, #post-cover img, .moment-images img",
+      ".moment-images a[data-fancybox]",
+      "[data-fancybox]:not(.moment-images a)"
+    ];
+
+    // 检查页面是否存在需要 Fancybox 的元素
+    const hasElements = selectors.some(selector => document.querySelector(selector));
+
+    if (!hasElements) return;
+
+    // 动态导入资源
+    if (!Fancybox) {
+      const mod = await import("@fancyapps/ui");
+      Fancybox = mod.Fancybox;
+    }
+
+    // 通用配置
+    const commonOptions = {
+      Thumbs: {
+        autoStart: true,
+        showOnStart: "yes",
+      },
+      Toolbar: {
+        display: {
+          left: ["infobar"],
+          middle: [
+            "zoomIn",
+            "zoomOut",
+            "toggle1to1",
+            "rotateCCW",
+            "rotateCW",
+            "flipX",
+            "flipY",
+          ],
+          right: ["slideshow", "thumbs", "close"],
+        },
+      },
+      animated: true,
+      dragToClose: true,
+      keyboard: {
+        Escape: "close",
+        Delete: "close",
+        Backspace: "close",
+        PageUp: "next",
+        PageDown: "prev",
+        ArrowUp: "next",
+        ArrowDown: "prev",
+        ArrowRight: "next",
+        ArrowLeft: "prev",
+      },
+      fitToView: true,
+      preload: 3,
+      infinite: true,
+      Panzoom: {
+        maxScale: 3,
+        minScale: 1,
+      },
+      caption: false,
+    };
+
+    // 绑定图片
+    Fancybox.bind(".custom-md img, #post-cover img, .moment-images img", {
+      ...commonOptions,
+      groupAll: true,
+      Carousel: {
+        transition: "slide",
+        preload: 2,
+      },
+    });
+
+    // 绑定链接
+    Fancybox.bind(".moment-images a[data-fancybox]", {
+      ...commonOptions,
+      source: (el: any) => el.getAttribute("data-src") || el.getAttribute("href"),
+    });
+
+    // 绑定其他
+    Fancybox.bind("[data-fancybox]:not(.moment-images a)", commonOptions);
+  }
+
+  function cleanupFancybox() {
+    if (Fancybox) {
+      Fancybox.close();
+      Fancybox.unbind(document.body);
+    }
+  }
+
+  // 监听 data-fancybox 元素动态出现（如 client:visible 懒水合的 Svelte 组件）
+  let observer: MutationObserver | null = null;
+  let observerTimer: ReturnType<typeof setTimeout> | null = null;
+  function stopObserving() {
+    if (observer) { observer.disconnect(); observer = null; }
+    if (observerTimer) { clearTimeout(observerTimer); observerTimer = null; }
+  }
+  function observeFancyboxElements() {
+    stopObserving();
+    observer = new MutationObserver(() => {
+      if (document.querySelector("[data-fancybox]")) {
+        setup();
+        stopObserving();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    // 兜底：若一段时间内没有出现 fancybox 元素，停止全页监听，避免长期占用；
+    // 下次 Swup 导航（content:replace）会重新 arm。
+    observerTimer = setTimeout(stopObserving, 5000);
+  }
+
+  // 初始化
+  setup();
+  observeFancyboxElements();
+
+  // Swup 生命周期整合
+  document.addEventListener("swup:visit:start", () => {
+    cleanupFancybox();
+    stopObserving();
+  });
+  document.addEventListener("swup:content:replace", () => {
+    setup();
+    observeFancyboxElements();
+  });
+
+  // 加密文章解密后重新绑定灯箱
+  document.addEventListener("password:decrypted", () => {
+    setTimeout(setup, 200);
+  });
+</script>

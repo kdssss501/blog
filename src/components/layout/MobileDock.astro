@@ -1,0 +1,320 @@
+---
+import Icon from "@components/common/Icon.astro";
+/**
+ * 移动端底部悬浮 Dock — 仅 ≤768px 显示
+ * 5 栏位单浮岛 + 中间凸出搜索按钮 + 工具栏底部 sheet
+ * 桌面端保持现有 FloatingDock 与顶部 Navbar 不变
+ */
+import { announcementConfig, spineModelConfig } from "@/config";
+import { musicPlayerConfig } from "@/config/musicConfig";
+
+// 工具栏 sheet 内按钮显隐条件预计算
+const showMusic = musicPlayerConfig.showInNavbar !== false;
+const showAnnouncement = announcementConfig.items.length > 0;
+const showSpine = !!spineModelConfig?.enable;
+---
+
+<div class="mobile-dock" id="mobile-dock">
+	<!-- 左1: 首页 -->
+	<button class="mobile-dock__btn" id="mobile-dock-home-btn" aria-label="首页" type="button">
+		<span class="mobile-dock__icon"><Icon name="material-symbols:home-outline-rounded" is:inline /></span>
+		<span class="mobile-dock__label">首页</span>
+	</button>
+
+	<!-- 左2: 主题切换 -->
+	<button class="mobile-dock__btn" id="mobile-dock-theme-btn" aria-label="主题" type="button">
+		<span class="mobile-dock__icon">
+			<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="mobile-dock-theme-icon-light" />
+			<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="mobile-dock-theme-icon-dark" style="display:none" />
+		</span>
+		<span class="mobile-dock__label">主题</span>
+	</button>
+
+	<!-- 中: 搜索（凸出） -->
+	<button class="mobile-dock__btn mobile-dock__btn--center" id="mobile-dock-search-btn" aria-label="搜索" type="button">
+		<span class="mobile-dock__icon"><Icon name="material-symbols:search-rounded" is:inline /></span>
+	</button>
+
+	<!-- 右2: 工具栏 -->
+	<button class="mobile-dock__btn" id="mobile-dock-tools-btn" aria-label="工具栏" type="button">
+		<span class="mobile-dock__icon">
+			<Icon name="material-symbols:more-horiz" is:inline class="mobile-dock-tools-icon-collapsed" />
+			<Icon name="material-symbols:close-rounded" is:inline class="mobile-dock-tools-icon-open" style="display:none" />
+		</span>
+		<span class="mobile-dock__label">工具</span>
+	</button>
+
+	<!-- 右1: 菜单 -->
+	<button class="mobile-dock__btn" id="mobile-dock-menu-btn" aria-label="菜单" type="button">
+		<span class="mobile-dock__icon">
+			<Icon name="material-symbols:menu-rounded" is:inline class="mobile-dock-menu-icon-collapsed" />
+			<Icon name="material-symbols:close-rounded" is:inline class="mobile-dock-menu-icon-open" style="display:none" />
+		</span>
+		<span class="mobile-dock__label">菜单</span>
+	</button>
+</div>
+
+<!-- 遮罩（工具栏 sheet 打开时） -->
+<div class="mobile-dock__overlay" id="mobile-dock-overlay" aria-hidden="true"></div>
+
+<!-- 工具栏底部 Sheet -->
+<div class="mobile-dock__sheet" id="mobile-dock-sheet">
+	<div class="mobile-dock__sheet-title">工具</div>
+	<div class="mobile-dock__sheet-grid">
+		<button class="mobile-dock__sheet-item" id="md-ai-search-btn" aria-label="AI 搜索" type="button">
+			<span class="mobile-dock__sheet-item-icon"><Icon name="ri:ai" is:inline /></span>
+			<span class="mobile-dock__sheet-item-label">AI 搜索</span>
+		</button>
+		{showMusic && (
+			<button class="mobile-dock__sheet-item" id="md-music-btn" aria-label="音乐" type="button">
+				<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:music-note-rounded" is:inline /></span>
+				<span class="mobile-dock__sheet-item-label">音乐</span>
+			</button>
+		)}
+		{showAnnouncement && (
+			<button class="mobile-dock__sheet-item" id="md-announcement-btn" aria-label="公告" type="button">
+				<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:notifications-outline-rounded" is:inline /></span>
+				<span class="mobile-dock__sheet-item-label">公告</span>
+			</button>
+		)}
+		<button class="mobile-dock__sheet-item" id="md-tags-btn" aria-label="标签" type="button">
+			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:label-outline" is:inline /></span>
+			<span class="mobile-dock__sheet-item-label">标签</span>
+		</button>
+		<button class="mobile-dock__sheet-item hide" id="md-toc-btn" aria-label="目录" type="button">
+			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:format-list-bulleted" is:inline /></span>
+			<span class="mobile-dock__sheet-item-label">目录</span>
+		</button>
+		<button class="mobile-dock__sheet-item hide" id="md-comment-btn" aria-label="评论" type="button">
+			<span class="mobile-dock__sheet-item-icon"><Icon name="mingcute:comment-line" is:inline /></span>
+			<span class="mobile-dock__sheet-item-label">评论</span>
+		</button>
+		<button class="mobile-dock__sheet-item hide" id="md-top-btn" aria-label="回到顶部" type="button">
+			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline /></span>
+			<span class="mobile-dock__sheet-item-label">顶部</span>
+		</button>
+		{showSpine && (
+			<button class="mobile-dock__sheet-item" id="md-spine-btn" aria-label="Spine" type="button">
+				<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:image-outline" is:inline /></span>
+				<span class="mobile-dock__sheet-item-label">Spine</span>
+			</button>
+		)}
+	</div>
+</div>
+
+<!-- 样式已迁移至 src/styles/components/mobile-dock.css -->
+
+<script>
+	import { requestSearchModalToggle } from "@/utils/search-modal-controller";
+
+	(function initMobileDock() {
+		const dockEl = document.getElementById("mobile-dock");
+		const overlayEl = document.getElementById("mobile-dock-overlay");
+		const sheetEl = document.getElementById("mobile-dock-sheet");
+		if (!dockEl || !overlayEl || !sheetEl) return;
+
+		// 显式标注非 null 类型，确保闭包内类型安全
+		const dock: HTMLElement = dockEl;
+		const overlay: HTMLElement = overlayEl;
+		const sheet: HTMLElement = sheetEl;
+
+		// ── 滚动隐藏逻辑 ──
+		let lastScrollY = window.scrollY;
+		let isOverlayOpen = false; // sheet 或菜单抽屉打开时锁定
+
+		function onScroll() {
+			if (isOverlayOpen) return;
+			const y = window.scrollY;
+			// 向下滚动超过 100px：隐藏；向上滚动：显示
+			if (y > lastScrollY + 8 && y > 100) {
+				dock.classList.add("is-hidden");
+			} else if (y < lastScrollY - 8) {
+				dock.classList.remove("is-hidden");
+			}
+			lastScrollY = y;
+
+			// 更新回顶部按钮显隐
+			const scrolled = y > 200;
+			document.getElementById("md-top-btn")?.classList.toggle("hide", !scrolled);
+		}
+
+		window.addEventListener("scroll", onScroll, { passive: true } as AddEventListenerOptions);
+
+		// ── 主题切换 ──
+		const themeBtn = document.getElementById("mobile-dock-theme-btn");
+		const themeLightIcon = themeBtn?.querySelector(".mobile-dock-theme-icon-light");
+		const themeDarkIcon = themeBtn?.querySelector(".mobile-dock-theme-icon-dark");
+
+		function updateThemeIcon() {
+			const isDark = document.documentElement.classList.contains("dark");
+			if (themeLightIcon) (themeLightIcon as HTMLElement).style.display = isDark ? "none" : "";
+			if (themeDarkIcon) (themeDarkIcon as HTMLElement).style.display = isDark ? "" : "none";
+		}
+
+		themeBtn?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			import("@/utils/setting-utils").then(({ setTheme, getStoredTheme }) => {
+				const current = getStoredTheme();
+				const resolved = current === "system"
+					? (document.documentElement.classList.contains("dark") ? "dark" : "light")
+					: current;
+				const next = resolved === "light" ? "dark" : "light";
+				setTheme(next as "light" | "dark");
+				updateThemeIcon();
+			});
+		});
+
+		updateThemeIcon();
+		window.addEventListener("theme-change", updateThemeIcon);
+
+		// ── 首页导航 ──
+		document.getElementById("mobile-dock-home-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			const isHome = window.location.pathname === "/" || window.location.pathname === "";
+			if (!isHome) {
+				window.navigateToPage("/");
+			}
+		});
+
+		// ── 搜索：走全局 SearchModal 控制器，不依赖被移动端 CSS 隐藏的 Navbar ──
+		document.getElementById("mobile-dock-search-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			requestSearchModalToggle();
+		});
+
+		// ── 菜单（触发隐藏的 Navbar 汉堡按钮） ──
+		const menuBtn = document.getElementById("mobile-dock-menu-btn");
+		const menuCollapsedIcon = menuBtn?.querySelector(".mobile-dock-menu-icon-collapsed");
+		const menuOpenIcon = menuBtn?.querySelector(".mobile-dock-menu-icon-open");
+
+		function setMenuOpenState(open: boolean) {
+			if (menuCollapsedIcon) (menuCollapsedIcon as HTMLElement).style.display = open ? "none" : "";
+			if (menuOpenIcon) (menuOpenIcon as HTMLElement).style.display = open ? "" : "none";
+		}
+
+		menuBtn?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			document.getElementById("nav-menu-switch")?.click();
+		});
+
+		// 监听 NavMenuPanel 抽屉状态同步菜单图标
+		const navDrawer = document.getElementById("nav-menu-panel");
+		if (navDrawer) {
+			new MutationObserver(() => {
+				const isOpen = navDrawer.classList.contains("is-open");
+				setMenuOpenState(isOpen);
+				isOverlayOpen = isOpen;
+			}).observe(navDrawer, { attributes: true, attributeFilter: ["class"] });
+		}
+
+		// ── 工具栏 sheet 开关 ──
+		const toolsBtn = document.getElementById("mobile-dock-tools-btn");
+		const toolsCollapsedIcon = toolsBtn?.querySelector(".mobile-dock-tools-icon-collapsed");
+		const toolsOpenIcon = toolsBtn?.querySelector(".mobile-dock-tools-icon-open");
+
+		function openSheet() {
+			sheet.classList.add("is-open");
+			overlay.classList.add("is-open");
+			overlay.setAttribute("aria-hidden", "false");
+			if (toolsCollapsedIcon) (toolsCollapsedIcon as HTMLElement).style.display = "none";
+			if (toolsOpenIcon) (toolsOpenIcon as HTMLElement).style.display = "";
+			isOverlayOpen = true;
+		}
+
+		function closeSheet() {
+			sheet.classList.remove("is-open");
+			overlay.classList.remove("is-open");
+			overlay.setAttribute("aria-hidden", "true");
+			if (toolsCollapsedIcon) (toolsCollapsedIcon as HTMLElement).style.display = "";
+			if (toolsOpenIcon) (toolsOpenIcon as HTMLElement).style.display = "none";
+			isOverlayOpen = false;
+		}
+
+		toolsBtn?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			if (sheet.classList.contains("is-open")) {
+				closeSheet();
+			} else {
+				openSheet();
+			}
+		});
+
+		overlay.addEventListener("click", () => closeSheet());
+
+		// Escape 关闭 sheet
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape" && sheet.classList.contains("is-open")) {
+				closeSheet();
+			}
+		});
+
+		// ── sheet 内工具按钮：复用 FloatingDock 按钮逻辑 ──
+		// 通过触发隐藏的 FloatingDock 对应按钮 click，复用其抽屉/功能逻辑
+		const sheetBtnMap: Record<string, string> = {
+			"md-music-btn": "dock-music-btn",
+			"md-announcement-btn": "dock-announcement-btn",
+			"md-tags-btn": "dock-tags-btn",
+			"md-toc-btn": "dock-toc-btn",
+			"md-spine-btn": "dock-spine-btn",
+		};
+
+		Object.entries(sheetBtnMap).forEach(([sheetBtnId, dockBtnId]) => {
+			document.getElementById(sheetBtnId)?.addEventListener("click", (e) => {
+				e.stopPropagation();
+				closeSheet();
+				// 延迟触发，确保 sheet 先关闭
+				setTimeout(() => {
+					document.getElementById(dockBtnId)?.click();
+				}, 50);
+			});
+		});
+
+		// AI 搜索：直接 dispatch 事件
+		document.getElementById("md-ai-search-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			closeSheet();
+			window.dispatchEvent(new CustomEvent("toggle-ai-search"));
+		});
+
+		// 回顶部
+		document.getElementById("md-top-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			closeSheet();
+			window.scroll({ top: 0, behavior: "smooth" });
+		});
+
+		// 评论
+		document.getElementById("md-comment-btn")?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			closeSheet();
+			document.getElementById("post-comments")?.scrollIntoView({ behavior: "smooth", block: "start" });
+		});
+
+		// ── 路径相关显隐 ──
+		function updatePathDependent() {
+			const isHome = window.location.pathname === "/" || window.location.pathname === "";
+			const isPost = /\/posts?\//.test(window.location.pathname);
+			const hasComment = !!document.getElementById("post-comments");
+
+			// 首页按钮：首页时置灰
+			document.getElementById("mobile-dock-home-btn")?.classList.toggle("is-active", !isHome);
+
+			// TOC 按钮：仅文章页显示
+			document.getElementById("md-toc-btn")?.classList.toggle("hide", !isPost);
+
+			// 评论按钮：仅文章页且有评论
+			document.getElementById("md-comment-btn")?.classList.toggle("hide", !isPost || !hasComment);
+		}
+
+		updatePathDependent();
+
+		// ── Swup 页面加载后重新初始化路径相关状态 ──
+		document.addEventListener("astro:page-load", () => {
+			closeSheet();
+			updatePathDependent();
+			// 重置滚动隐藏状态
+			lastScrollY = window.scrollY;
+			dock.classList.remove("is-hidden");
+		});
+	})();
+</script>

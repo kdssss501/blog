@@ -1,0 +1,34 @@
+---
+import Icon from "@components/common/Icon.astro";
+
+/****
+ * FloatingButton 组件
+ * 用于创建一个悬浮按钮，支持图标、点击事件和可选的辅助标签。
+ */
+
+interface Props {
+	id: string;
+	icon: string;
+	ariaLabel?: string;
+	onclick?: string;
+	class?: string;
+}
+
+const { id, icon, ariaLabel, onclick, class: className = "" } = Astro.props;
+---
+
+<div
+  id={id}
+  class:list={["floating-btn", className, "dock-btn flex items-center justify-center transition"]}
+  onclick={onclick}
+>
+  <button
+    aria-label={ariaLabel}
+    class="h-full w-full flex items-center justify-center"
+    type="button"
+  >
+    <Icon name={icon} class="mx-auto" />
+  </button>
+</div>
+
+<!-- 样式已迁移至 src/styles/components/floating-button.css -->

@@ -1,0 +1,221 @@
+---
+import Icon from "@components/common/Icon.astro";
+import DropdownItem from "@/components/common/DropdownItem.astro";
+import { LinkPresets } from "@/constants/link-presets";
+import { LinkPreset, type NavBarLink } from "@/types/config";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	link: NavBarLink;
+	class?: string;
+}
+
+const { link, class: className } = Astro.props;
+
+// 检查 link 是否存在
+if (!link) {
+	return null;
+}
+
+// 转换子菜单中的LinkPreset为NavBarLink
+const processedLink = {
+	...link,
+	children: link.children
+		?.map((child: NavBarLink | LinkPreset): NavBarLink | null => {
+			if (typeof child === "number") {
+				// 检查 LinkPreset 是否存在于 LinkPresets 中
+				if (child in LinkPresets) {
+					return LinkPresets[child as LinkPreset];
+				}
+				return null;
+			}
+			return child;
+		})
+		.filter((child): child is NavBarLink => child !== null),
+};
+
+const hasChildren = processedLink.children && processedLink.children.length > 0;
+---
+
+<div class:list={["dropdown-container", className]} data-dropdown>
+	{hasChildren ? (
+		<button
+			class="btn-plain scale-animation rounded-lg h-9 font-bold px-3 pr-7 active:scale-95 dropdown-trigger relative"
+			aria-expanded="false"
+			aria-haspopup="true"
+			data-dropdown-trigger
+		>
+			<div class="flex items-center gap-1.5">
+				{processedLink.icon && (
+					<span class="navbar-trigger-icon">
+						<Icon name={processedLink.icon} is:inline class="text-[1.05rem]" />
+					</span>
+				)}
+				{processedLink.name}
+			</div>
+			<Icon name="material-symbols:keyboard-arrow-down-rounded" is:inline class="text-[1.1rem] transition-transform duration-200 dropdown-arrow absolute right-2.5 top-1/2 -translate-y-1/2" />
+		</button>
+		<div class="dropdown-menu" data-dropdown-menu>
+			<div class="dropdown-content-wrapper">
+				{processedLink.children?.map((child, index) => {
+					const isLast = index === (processedLink.children?.length || 0) - 1;
+					return child.action ? (
+						<button
+							type="button"
+							class={`dropdown-item action-item flex transition whitespace-nowrap items-center justify-start! w-full btn-plain scale-animation h-9 px-3 font-medium active:scale-95 ${isLast ? "" : "mb-0.5"}`}
+							data-action={child.action}
+						>
+							{child.icon && <Icon name={child.icon} is:inline class="text-[1.2rem] mr-3 navbar-icon" />}
+							<span>{child.name}</span>
+						</button>
+					) : (
+						<DropdownItem
+							href={child.external ? child.url : url(child.url)}
+							target={child.external ? "_blank" : undefined}
+							isLast={isLast}
+							class="dropdown-item"
+						>
+							{child.icon && <Icon name={child.icon} is:inline class="text-[1.2rem] mr-3 navbar-icon" />}
+							<span>{child.name}</span>
+							{child.external && (
+								<Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.7rem] text-black/25 dark:text-white/25 ml-auto" />
+							)}
+						</DropdownItem>
+					);
+				})}
+			</div>
+		</div>
+	) : (
+		<a
+			aria-label={processedLink.name}
+			href={processedLink.external ? processedLink.url : url(processedLink.url)}
+			target={processedLink.external ? "_blank" : null}
+			class="btn-plain scale-animation rounded-lg h-9 font-bold px-3 active:scale-95"
+		>
+			<div class="flex items-center gap-1.5">
+				{processedLink.icon && (
+					<span class="navbar-trigger-icon">
+						<Icon name={processedLink.icon} is:inline class="text-[1.05rem]" />
+					</span>
+				)}
+				{processedLink.name}
+				{processedLink.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.8rem] transition -translate-y-px ml-1 text-black/20 dark:text-white/20" />}
+			</div>
+		</a>
+	)}
+</div>
+
+<!-- 样式已迁移至 src/styles/layout/dropdown-menu.css -->
+
+<script>
+	function getDropdownParts(dropdown: Element) {
+		const trigger = dropdown.querySelector("[data-dropdown-trigger]");
+		const menu = dropdown.querySelector("[data-dropdown-menu]");
+		return { trigger, menu };
+	}
+
+	function toggleDropdown(dropdown: Element, trigger: Element, menu: Element) {
+		const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+		if (isOpen) {
+			closeDropdown(dropdown, trigger, menu);
+		} else {
+			openDropdown(dropdown, trigger, menu);
+		}
+	}
+	
+	function openDropdown(dropdown: Element, trigger: Element, menu: Element) {
+		trigger.setAttribute('aria-expanded', 'true');
+		dropdown.classList.add("is-dropdown-open");
+		menu.classList.remove('opacity-0', 'invisible', 'pointer-events-none', 'translate-y-[-8px]');
+		menu.classList.add('opacity-100', 'visible', 'pointer-events-auto', 'translate-y-0');
+	}
+	
+	function closeDropdown(dropdown: Element, trigger: Element, menu: Element) {
+		trigger.setAttribute('aria-expanded', 'false');
+		dropdown.classList.remove("is-dropdown-open");
+		menu.classList.add('opacity-0', 'invisible', 'pointer-events-none', 'translate-y-[-8px]');
+		menu.classList.remove('opacity-100', 'visible', 'pointer-events-auto', 'translate-y-0');
+	}
+
+	function closeAllDropdowns(options: { blurActive?: boolean } = {}) {
+		document.querySelectorAll("[data-dropdown]").forEach((dropdown) => {
+			const { trigger, menu } = getDropdownParts(dropdown);
+			if (trigger && menu) closeDropdown(dropdown, trigger, menu);
+		});
+
+		if (options.blurActive) {
+			const active = document.activeElement as HTMLElement | null;
+			if (active?.closest?.("[data-dropdown]")) active.blur();
+		}
+	}
+
+	function initDropdownMenus() {
+		if ((window as any).__navbarDropdownInitialized) return;
+		(window as any).__navbarDropdownInitialized = true;
+
+		document.addEventListener("keydown", (e: KeyboardEvent) => {
+			const target = e.target as HTMLElement | null;
+			const trigger = target?.closest?.("[data-dropdown-trigger]");
+			const item = target?.closest?.(".dropdown-item");
+			const dropdown = (trigger || item)?.closest?.("[data-dropdown]");
+			if (!dropdown) return;
+
+			const { trigger: dropdownTrigger, menu } = getDropdownParts(dropdown);
+			if (!dropdownTrigger || !menu) return;
+
+			const items = Array.from(dropdown.querySelectorAll(".dropdown-item")) as HTMLElement[];
+
+			if (trigger && (e.key === "Enter" || e.key === " ")) {
+				e.preventDefault();
+				toggleDropdown(dropdown, dropdownTrigger, menu);
+			} else if (trigger && e.key === "ArrowDown") {
+				e.preventDefault();
+				openDropdown(dropdown, dropdownTrigger, menu);
+				items[0]?.focus();
+			} else if (item && e.key === "ArrowDown") {
+				e.preventDefault();
+				const index = items.indexOf(item as HTMLElement);
+				items[(index + 1) % items.length]?.focus();
+			} else if (item && e.key === "ArrowUp") {
+				e.preventDefault();
+				const index = items.indexOf(item as HTMLElement);
+				items[(index - 1 + items.length) % items.length]?.focus();
+			} else if (e.key === "Escape") {
+				closeDropdown(dropdown, dropdownTrigger, menu);
+				(dropdownTrigger as HTMLElement).focus();
+			}
+		});
+
+		document.addEventListener("click", (e) => {
+			const target = e.target as HTMLElement;
+			const actionBtn = target.closest("[data-action]");
+			const clickedItem = target.closest(".dropdown-item");
+
+			if (actionBtn) {
+				const action = actionBtn.getAttribute("data-action");
+				if (action) window.dispatchEvent(new CustomEvent(action));
+			}
+
+			if (clickedItem) {
+				const dropdown = clickedItem.closest("[data-dropdown]");
+				if (dropdown) {
+					const { trigger, menu } = getDropdownParts(dropdown);
+					if (trigger && menu) closeDropdown(dropdown, trigger, menu);
+				}
+				(document.activeElement as HTMLElement | null)?.blur?.();
+				return;
+			}
+
+			if (!target.closest("[data-dropdown]")) closeAllDropdowns();
+		});
+
+		document.addEventListener("astro:page-load", () => closeAllDropdowns({ blurActive: true }));
+		window.addEventListener("pageshow", () => closeAllDropdowns({ blurActive: true }));
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initDropdownMenus, { once: true });
+	} else {
+		initDropdownMenus();
+	}
+</script>

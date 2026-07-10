@@ -1,0 +1,605 @@
+---
+import DataMetricCard from "@components/features/DataMetricCard.astro";
+import LogoLoop from "@components/features/LogoLoop.svelte";
+import { homeConfig, siteConfig } from "@/config";
+import {
+	getCategoryList,
+	getSortedPosts,
+	getTagList,
+} from "@/utils/content-utils";
+import {
+	countReadableCharacters,
+	normalizeSkillItems,
+} from "@/utils/home-data-layer.js";
+
+type DataPill = {
+	label: string;
+	value: string | number;
+	tone?: "dark" | "light" | "outline" | "solid";
+};
+
+const posts = await getSortedPosts();
+const categories = await getCategoryList();
+const tags = await getTagList();
+const totalWords = posts.reduce((sum, post) => {
+	return sum + countReadableCharacters(post.body || "");
+}, 0);
+
+const articlePills: DataPill[] = [
+	{ label: "文章", value: posts.length, tone: "light" },
+	{ label: "分类", value: categories.length, tone: "solid" },
+	{ label: "标签", value: tags.length, tone: "solid" },
+	{ label: "字数", value: totalWords.toLocaleString(), tone: "light" },
+];
+
+const visitPills: DataPill[] = [
+	{ label: "UV", value: "--", tone: "light" },
+	{ label: "PV", value: "--", tone: "dark" },
+	{ label: "SOURCE", value: "Umami", tone: "outline" },
+];
+
+const socialItems = homeConfig.links.map((link) => ({
+	name: link.name,
+	icon: link.icon,
+	href: link.url,
+	ariaLabel: link.name,
+}));
+
+const skillItems = normalizeSkillItems({ items: homeConfig.skills });
+
+const umamiConfig = siteConfig.analytics?.umamiAnalytics;
+const statsBaseUrl = umamiConfig?.scriptUrl
+	? new URL(umamiConfig.scriptUrl).origin
+	: "";
+const statsShareId = umamiConfig?.shareId ?? "";
+---
+
+<section class="home-data-layer" aria-labelledby="home-data-layer-title" id="home-data-layer"
+	data-stats-base-url={statsBaseUrl}
+	data-stats-share-id={statsShareId}>
+	<div class="home-data-layer__inner">
+		<div class="home-data-layer__heading">
+			<p class="home-data-layer__kicker">CONTEXT</p>
+			<h2 class="home-data-layer__title-main" id="home-data-layer-title">站点数据</h2>
+			<h2 class="home-data-layer__title-matrix">能力矩阵</h2>
+		</div>
+
+		<div class="home-data-layer__grid">
+			<div class="home-data-layer__row home-data-layer__row--top">
+				<DataMetricCard
+					title="站点访问"
+					eyebrow="VISITS"
+					detail="访客与浏览统计载入中"
+					icon="material-symbols:visibility-outline-rounded"
+					hoverTitle="访问轨迹"
+					hoverCode="01"
+					variant="square"
+					pills={visitPills}
+					statKind="visits"
+					visualImage={homeConfig.dataLayer.visitImage}
+				/>
+				<DataMetricCard
+					title="文章档案"
+					eyebrow="ARCHIVE"
+					detail={`${posts.length} 篇文章 / ${categories.length} 个分类 / ${tags.length} 个标签`}
+					icon="material-symbols:article-outline"
+					hoverTitle="内容索引"
+					hoverCode="02"
+					variant="wide"
+					pills={articlePills}
+					statKind="articles"
+					visualImage={homeConfig.dataLayer.archiveImage}
+				/>
+			</div>
+
+			<div class="home-data-layer__row home-data-layer__row--band">
+				<section class="data-band data-band--contact" aria-labelledby="home-contact-title">
+					<div class="data-band__intro">
+						<div class="data-band__frame"></div>
+						<div class="data-band__visual" aria-hidden="true">
+							<img src={homeConfig.dataLayer.contactImage} alt="" class="data-band__visual-img" data-home-motion-image loading="lazy" decoding="async" />
+						</div>
+						<div class="data-band__content">
+							<p class="data-band__eyebrow">CONTACT</p>
+							<h3 id="home-contact-title">社交联系</h3>
+							<p>把散落的入口收束在一条缓慢移动的轨道里。</p>
+						</div>
+					</div>
+					<div class="data-band__loop">
+						<LogoLoop
+							client:visible
+							items={socialItems}
+							speed={86}
+							logoHeight={34}
+							gap={18}
+							hoverSpeed={0}
+							fadeOut
+							ariaLabel="社交联系方式"
+							clickable
+							showLabel
+						/>
+					</div>
+				</section>
+			</div>
+
+			<div class="home-data-layer__row home-data-layer__row--band">
+				<section class="data-band data-band--skills" aria-labelledby="home-skills-title">
+					<div class="data-band__intro">
+						<div class="data-band__frame"></div>
+						<div class="data-band__visual" aria-hidden="true">
+							<img src={homeConfig.dataLayer.skillsImage} alt="" class="data-band__visual-img" data-home-motion-image loading="lazy" decoding="async" />
+						</div>
+						<div class="data-band__content">
+							<p class="data-band__eyebrow">SKILLS</p>
+							<h3 id="home-skills-title">技能图标</h3>
+							<p>工程、内容和部署工具在同一条轨道上循环。</p>
+						</div>
+					</div>
+					<div class="data-band__loop">
+						<LogoLoop
+							client:visible
+							items={skillItems}
+							speed={74}
+							direction="right"
+							logoHeight={44}
+							gap={26}
+							hoverSpeed={0}
+							fadeOut
+							ariaLabel="技能图标"
+							showLabel={false}
+						/>
+					</div>
+				</section>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	import { gsap } from "gsap";
+	import { ScrollTrigger } from "gsap/ScrollTrigger";
+	import { formatCompactNumber } from "@/utils/home-data-layer.js";
+	import { createCache } from "@/utils/cache-utils";
+
+	type ShareData = { websiteId: string; token: string };
+	const shareCache = createCache<ShareData>({
+		key: "umami_share_data",
+		ttl: 3_600_000,
+	});
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	type Cleanup = () => void;
+
+	let cleanups: Cleanup[] = [];
+	let dataLayerTimelines: gsap.core.Timeline[] = [];
+	let dataLayerSTs: ScrollTrigger[] = [];
+
+	function prefersReducedMotion() {
+		return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	}
+
+	function isMobile() {
+		return window.matchMedia("(max-width: 768px)").matches;
+	}
+
+	function killDataLayerMotion() {
+		dataLayerTimelines.forEach((tl) => tl.kill());
+		dataLayerTimelines = [];
+		dataLayerSTs.forEach((st) => st.kill());
+		dataLayerSTs = [];
+	}
+
+	function cleanupHomeDataLayer() {
+		cleanups.forEach((cleanup) => cleanup());
+		cleanups = [];
+		killDataLayerMotion();
+	}
+
+	function initVisitStats() {
+		const layer = document.getElementById("home-data-layer");
+		if (!layer) return;
+		const statsBaseUrl = layer.dataset.statsBaseUrl;
+		const statsShareId = layer.dataset.statsShareId;
+		if (!statsBaseUrl || !statsShareId) return;
+		const detail = layer.querySelector(".data-card[data-stat-kind='visits'] .data-card__detail");
+		const valueNodes = layer.querySelectorAll<HTMLElement>("[data-stat-value]");
+		shareCache
+			.fetch(async () => {
+				const res = await fetch(`${statsBaseUrl}/api/share/${statsShareId}`);
+				if (!res.ok) throw new Error("获取 Umami 分享信息失败");
+				const share = await res.json();
+				return {
+					websiteId: share.websiteId || share.entityId,
+					token: share.token || statsShareId,
+				};
+			})
+			.then(({ websiteId, token }) => {
+				const now = Date.now();
+				return fetch(
+					`${statsBaseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${now}`,
+					{
+						headers: {
+							"x-umami-share-token": token,
+							"x-umami-share-context": "1",
+							"Content-Type": "application/json",
+						},
+					},
+				);
+			})
+			.then((r) => r.json())
+			.then((data) => {
+				const uv = formatCompactNumber(data.uv || data.visitors || 0);
+				const pv = formatCompactNumber(data.pv || data.pageviews || 0);
+				if (detail) detail.textContent = `访客 ${uv} / 浏览 ${pv}`;
+				valueNodes.forEach((node) => {
+					const key = node.dataset.statValue;
+					if (key === "UV") node.textContent = uv;
+					if (key === "PV") node.textContent = pv;
+				});
+			})
+			.catch(() => {
+				if (detail) detail.textContent = "访客 -- / 浏览 --";
+			});
+	}
+
+	function initMetricCards() {
+		const layer = document.getElementById("home-data-layer");
+		if (!layer) return;
+		const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+		const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		if (!canHover || reduceMotion) return;
+
+		const cards = Array.from(layer.querySelectorAll<HTMLElement>("[data-card-interactive]"));
+		cards.forEach((card) => {
+			const hover = card.querySelector<HTMLElement>(".data-card__hover");
+			const orb = card.querySelector<HTMLElement>(".data-card__hover-orb");
+			const header = card.querySelector<HTMLElement>(".data-card__hover-header");
+			const title = card.querySelector<HTMLElement>(".data-card__hover-title");
+			const pills = Array.from(card.querySelectorAll<HTMLElement>(".data-card__hover-pill"));
+			if (!hover || !orb || !header || !title || pills.length === 0) return;
+
+			const timeline = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+			timeline
+				.set(hover, { autoAlpha: 1 })
+				.fromTo(orb, {
+					xPercent: -50,
+					yPercent: -50,
+					scale: 0.18,
+				}, {
+					xPercent: -50,
+					yPercent: -50,
+					scale: 1,
+					duration: 0.58,
+					ease: "expo.out",
+				}, 0)
+				.fromTo([header, title], {
+					autoAlpha: 0,
+					y: 18,
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					duration: 0.28,
+					stagger: 0.05,
+				}, 0.38)
+				.fromTo(pills, {
+					autoAlpha: 0,
+					y: -44,
+					scale: 0.82,
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					scale: 1,
+					duration: 0.44,
+					stagger: 0.08,
+					ease: "back.out(1.7)",
+				}, 0.5);
+
+			const enter = () => timeline.play();
+			const leave = () => timeline.reverse();
+			card.addEventListener("pointerenter", enter);
+			card.addEventListener("pointerleave", leave);
+			cleanups.push(() => {
+				card.removeEventListener("pointerenter", enter);
+				card.removeEventListener("pointerleave", leave);
+				timeline.kill();
+			});
+		});
+	}
+
+	function initDataLayerScrollMotion() {
+		const layer = document.getElementById("home-data-layer");
+		if (!layer) return;
+		if (prefersReducedMotion() || isMobile()) return;
+
+		killDataLayerMotion();
+
+		// ========== Heading Opening ==========
+		const heading = layer.querySelector(".home-data-layer__heading");
+		const kicker = heading?.querySelector(".home-data-layer__kicker");
+		const titleMain = heading?.querySelector(".home-data-layer__title-main");
+		const titleMatrix = heading?.querySelector(".home-data-layer__title-matrix");
+
+		const headingTl = gsap.timeline({
+			scrollTrigger: {
+				id: "data-layer-heading",
+				trigger: heading,
+				start: "top 85%",
+				once: true,
+			},
+			defaults: { ease: "expo.out" },
+		});
+
+		if (kicker) {
+			headingTl.fromTo(kicker, {
+				autoAlpha: 0,
+				y: 40,
+				clipPath: "inset(100% 0 0 0)",
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				clipPath: "inset(0% 0 0 0)",
+				duration: 0.9,
+			}, 0);
+		}
+
+		if (titleMain) {
+			headingTl.fromTo(titleMain, {
+				autoAlpha: 0,
+				y: 70,
+				scaleX: 0.88,
+				clipPath: "inset(0 100% 0 0)",
+				transformOrigin: "0% 50%",
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				scaleX: 1,
+				clipPath: "inset(0 0% 0 0)",
+				duration: 1.1,
+			}, 0.12);
+		}
+
+		if (titleMatrix) {
+			headingTl.fromTo(titleMatrix, {
+				autoAlpha: 0,
+				y: 120,
+				scaleY: 0.8,
+				clipPath: "inset(0 0 100% 0)",
+				transformOrigin: "50% 0%",
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				scaleY: 1,
+				clipPath: "inset(0 0 0% 0)",
+				duration: 1.2,
+			}, 0.28);
+		}
+
+		dataLayerTimelines.push(headingTl);
+
+		// ========== Top Row Cards ==========
+		const topRow = layer.querySelector(".home-data-layer__row--top");
+		if (topRow) {
+			const cards = Array.from(topRow.querySelectorAll<HTMLElement>(".data-card"));
+
+			const cardTl = gsap.timeline({
+				scrollTrigger: {
+					id: "data-layer-top-row",
+					trigger: topRow,
+					start: "top 82%",
+					once: true,
+				},
+				defaults: { ease: "expo.out" },
+			});
+
+			cardTl.fromTo(cards, {
+				autoAlpha: 0,
+				y: 90,
+				rotateX: 10,
+				filter: "blur(10px)",
+				transformOrigin: "50% 100%",
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				rotateX: 0,
+				filter: "blur(0px)",
+				duration: 1.15,
+				stagger: 0.18,
+			}, 0);
+
+			cards.forEach((card, index) => {
+				const eyebrow = card.querySelector(".data-card__eyebrow");
+				const title = card.querySelector(".data-card__title");
+				const detail = card.querySelector(".data-card__detail");
+				const visual = card.querySelector<HTMLElement>(".data-card__visual");
+
+				const innerDelay = 0.35 + index * 0.18;
+
+				if (eyebrow) {
+					cardTl.fromTo(eyebrow, {
+						autoAlpha: 0,
+						y: 24,
+						clipPath: "inset(0 0 100% 0)",
+					}, {
+						autoAlpha: 1,
+						y: 0,
+						clipPath: "inset(0 0 0% 0)",
+						duration: 0.75,
+					}, innerDelay);
+				}
+
+				if (title) {
+					cardTl.fromTo(title, {
+						autoAlpha: 0,
+						y: 30,
+						scaleX: 0.94,
+						clipPath: "inset(0 100% 0 0)",
+						transformOrigin: "0% 50%",
+					}, {
+						autoAlpha: 1,
+						y: 0,
+						scaleX: 1,
+						clipPath: "inset(0 0% 0 0)",
+						duration: 0.85,
+					}, innerDelay + 0.08);
+				}
+
+				if (detail) {
+					cardTl.fromTo(detail, {
+						autoAlpha: 0,
+						y: 20,
+					}, {
+						autoAlpha: 1,
+						y: 0,
+						duration: 0.7,
+					}, innerDelay + 0.18);
+				}
+
+				if (visual) {
+					cardTl.fromTo(visual, {
+						clipPath: "inset(100% 0 0 0)",
+						scale: 1.06,
+					}, {
+						clipPath: "inset(0% 0 0 0)",
+						scale: 1,
+						duration: 1.05,
+						ease: "power3.inOut",
+					}, innerDelay - 0.1);
+				}
+			});
+
+			dataLayerTimelines.push(cardTl);
+
+			// Card image parallax
+			cards.forEach((card) => {
+				const img = card.querySelector<HTMLElement>(".data-card__visual-img");
+				if (!img) return;
+				const st = ScrollTrigger.create({
+					id: `data-layer-card-img-${card.getAttribute("data-stat-kind") || Math.random().toString(36).slice(2, 7)}`,
+					trigger: card,
+					start: "top bottom",
+					end: "bottom top",
+					scrub: 1.2,
+					onUpdate: (self) => {
+						gsap.set(img, { yPercent: -8 + self.progress * 16 });
+					},
+				});
+				dataLayerSTs.push(st);
+			});
+		}
+
+		// ========== Bands ==========
+		const bands = Array.from(layer.querySelectorAll<HTMLElement>(".data-band"));
+		bands.forEach((band, bandIndex) => {
+			const bandTl = gsap.timeline({
+				scrollTrigger: {
+					id: `data-layer-band-${bandIndex}`,
+					trigger: band,
+					start: "top 82%",
+					once: true,
+				},
+				defaults: { ease: "expo.out" },
+			});
+
+			const eyebrow = band.querySelector(".data-band__eyebrow");
+			const title = band.querySelector(".data-band__content h3");
+			const desc = band.querySelector(".data-band__content p:not(.data-band__eyebrow)");
+			const visual = band.querySelector<HTMLElement>(".data-band__visual");
+			const visualImg = band.querySelector<HTMLElement>(".data-band__visual-img");
+			const loop = band.querySelector<HTMLElement>(".data-band__loop");
+
+			if (eyebrow) {
+				bandTl.fromTo(eyebrow, {
+					autoAlpha: 0,
+					y: 60,
+					scaleX: 0.92,
+					clipPath: "inset(0 0 100% 0)",
+					transformOrigin: "50% 100%",
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					scaleX: 1,
+					clipPath: "inset(0 0 0% 0)",
+					duration: 1.05,
+				}, 0);
+			}
+
+			if (title) {
+				bandTl.fromTo(title, {
+					autoAlpha: 0,
+					y: 45,
+					clipPath: "inset(0 100% 0 0)",
+					transformOrigin: "0% 50%",
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					clipPath: "inset(0 0% 0 0)",
+					duration: 0.95,
+				}, 0.14);
+			}
+
+			if (desc) {
+				bandTl.fromTo(desc, {
+					autoAlpha: 0,
+					y: 30,
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					duration: 0.8,
+				}, 0.28);
+			}
+
+			if (visual) {
+				bandTl.fromTo(visual, {
+					clipPath: "inset(100% 0 0 0)",
+					scale: 1.08,
+				}, {
+					clipPath: "inset(0% 0 0 0)",
+					scale: 1,
+					duration: 1.2,
+					ease: "power3.inOut",
+				}, 0.1);
+			}
+
+			if (loop) {
+				bandTl.fromTo(loop, {
+					autoAlpha: 0,
+					y: 40,
+					filter: "blur(8px)",
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					filter: "blur(0px)",
+					duration: 0.95,
+				}, 0.45);
+			}
+
+			dataLayerTimelines.push(bandTl);
+
+			if (visualImg) {
+				const st = ScrollTrigger.create({
+					id: `data-layer-band-img-${bandIndex}`,
+					trigger: band,
+					start: "top bottom",
+					end: "bottom top",
+					scrub: 1.2,
+					onUpdate: (self) => {
+						gsap.set(visualImg, { yPercent: -6 + self.progress * 12 });
+					},
+				});
+				dataLayerSTs.push(st);
+			}
+		});
+	}
+
+	function initHomeDataLayer() {
+		cleanupHomeDataLayer();
+		initVisitStats();
+		initMetricCards();
+		initDataLayerScrollMotion();
+	}
+
+	initHomeDataLayer();
+	document.addEventListener("astro:page-load", initHomeDataLayer);
+	document.addEventListener("swup:willReplaceContent", cleanupHomeDataLayer);
+</script>

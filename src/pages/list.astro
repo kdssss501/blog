@@ -1,0 +1,165 @@
+---
+import { render } from "astro:content";
+import * as path from "node:path";
+import type { ImageMetadata } from "astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+import AnimatedTabs from "@/components/controls/AnimatedTabs.svelte";
+import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { getSortedPosts } from "@/utils/content-utils";
+import {
+	getApiUrlList,
+	processCoverImageSync,
+	shouldAddNoReferrer,
+} from "@/utils/image-utils";
+import {
+	getCategoryUrl,
+	getFileDirFromPath,
+	getPostUrlBySlug,
+	getTagUrl,
+	url,
+} from "@/utils/url-utils";
+
+const title = "文章列表";
+const description = "按整页滚动浏览所有文章。";
+const posts = await getSortedPosts();
+const articleImageFiles = import.meta.glob<ImageMetadata>(
+	"../**/*.{png,jpg,jpeg,webp,avif}",
+	{
+		import: "default",
+	},
+);
+
+const dateFormatter = new Intl.DateTimeFormat(
+	siteConfig.lang.replace("_", "-"),
+	{
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	},
+);
+
+async function resolveArticleImage(entry: (typeof posts)[number]) {
+	const processedImage = processCoverImageSync(entry.data.image, entry.id);
+	const imageApiUrls = getApiUrlList(entry.data.image, entry.id);
+
+	if (!processedImage) {
+		return {
+			imageUrl: "",
+			imageApiUrls,
+			imageReferrerPolicy: "",
+		};
+	}
+
+	const isLocal = !(
+		processedImage.startsWith("/") ||
+		processedImage.startsWith("http") ||
+		processedImage.startsWith("https") ||
+		processedImage.startsWith("data:")
+	);
+
+	if (isLocal) {
+		const basePath = getFileDirFromPath(entry.filePath || "");
+		const normalizedPath = path
+			.normalize(path.join("../", basePath, processedImage))
+			.replace(/\\/g, "/");
+		const imageFile = articleImageFiles[normalizedPath];
+
+		if (!imageFile) {
+			return {
+				imageUrl: "",
+				imageApiUrls,
+				imageReferrerPolicy: "",
+			};
+		}
+
+		const image = await imageFile();
+		return {
+			imageUrl: image.src,
+			imageApiUrls,
+			imageReferrerPolicy: "",
+		};
+	}
+
+	const imageUrl = processedImage.startsWith("/")
+		? url(processedImage)
+		: processedImage;
+
+	return {
+		imageUrl,
+		imageApiUrls,
+		imageReferrerPolicy: shouldAddNoReferrer(imageUrl) ? "no-referrer" : "",
+	};
+}
+
+const articleListPosts = await Promise.all(
+	posts.map(async (entry) => {
+		const { remarkPluginFrontmatter } = await render(entry);
+		const articleImage = await resolveArticleImage(entry);
+		const rawCategory = entry.data.category?.trim();
+		const category = rawCategory || i18n(I18nKey.uncategorized);
+		const tags = (entry.data.tags || [])
+			.map((tag) => tag.trim())
+			.filter(Boolean)
+			.map((tag) => ({
+				name: tag,
+				url: getTagUrl(tag),
+			}));
+
+		return {
+			id: entry.id,
+			title: entry.data.title,
+			url: getPostUrlBySlug(entry.id),
+			publishedIso: entry.data.published.toISOString(),
+			publishedText: dateFormatter.format(entry.data.published),
+			category,
+			categoryUrl: getCategoryUrl(rawCategory || null),
+			tags,
+			description:
+				entry.data.description ||
+				remarkPluginFrontmatter.excerpt ||
+				"暂无文章简介，点击卡片查看完整内容。",
+			imageUrl: articleImage.imageUrl,
+			imageApiUrls: articleImage.imageApiUrls,
+			imageReferrerPolicy: articleImage.imageReferrerPolicy,
+			pinned: !!entry.data.pinned,
+			password: !!entry.data.password,
+		};
+	}),
+);
+
+const defaultLayout = siteConfig.postListLayout.defaultMode || "list";
+const allowLayoutSwitch = siteConfig.postListLayout.allowSwitch;
+---
+
+<MainGridLayout title={title} description={description}>
+	<section class="article-list-page">
+		<header class="article-list-page__header">
+			<div class="article-list-page__header-left">
+				<PageTitle
+					title={title}
+					eyebrow="Article Index"
+				/>
+				<div class="article-list-page__controls">
+					<div class:list={["article-list-page__tabs", { "is-hidden": !allowLayoutSwitch }]}>
+						<AnimatedTabs client:load activeTab={defaultLayout === "grid" ? "grid" : "list"} />
+					</div>
+					<div class="article-list-page__total" aria-label={`共 ${articleListPosts.length} 篇文章`}>
+						<span class="article-list-page__total-number">{articleListPosts.length}</span>
+						<span class="article-list-page__total-label">篇文章</span>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<ArticleVirtualList
+			client:load
+			posts={articleListPosts}
+			defaultView={defaultLayout === "grid" ? "grid" : "list"}
+			postsPerPage={siteConfig.pagination.postsPerPage}
+		/>
+	</section>
+</MainGridLayout>

@@ -1,0 +1,28 @@
+---
+const pathname = Astro.url.pathname;
+const isHome = pathname === "/" || pathname === "";
+---
+<div
+	id="page-loader"
+	class:list={["page-loader", isHome ? "page-loader--visible" : "page-loader--hidden"]}
+	role="status"
+	aria-live="polite"
+	aria-label="Page loading"
+	hidden={!isHome}
+>
+	<div
+		aria-label="Running animation"
+		role="img"
+		class="page-loader__animation"
+	>
+		<img
+			src="/assets/images/loading/feibi-loading.webp"
+			alt=""
+			class="page-loader__image"
+			width="960"
+			height="540"
+			decoding="async"
+		/>
+	</div>
+	<span class="page-loader__sr-only">Loading</span>
+</div>

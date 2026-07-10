@@ -1,0 +1,90 @@
+/* ============================================
+   首页跑马灯公告带 — 来自 HomeTicker.astro
+   全宽、无边框背景、CSS 无缝循环滚动
+   ============================================ */
+
+.home-ticker {
+	position: relative;
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
+	height: 2.5rem;
+	overflow: hidden;
+	background: transparent;
+	border-top: 1px solid #000;
+	border-bottom: 1px solid #000;
+}
+
+:root.dark .home-ticker {
+	border-top-color: #fff;
+	border-bottom-color: #fff;
+}
+
+.home-ticker__inner {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		black 4%,
+		black 96%,
+		transparent 100%
+	);
+	-webkit-mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		black 4%,
+		black 96%,
+		transparent 100%
+	);
+}
+
+.home-ticker__track {
+	display: flex;
+	align-items: center;
+	white-space: nowrap;
+	width: max-content;
+	height: 100%;
+	animation: home-ticker-scroll linear infinite;
+}
+
+.home-ticker:hover .home-ticker__track {
+	animation-play-state: paused;
+}
+
+.home-ticker__text {
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	color: #000;
+	padding: 0 1.5rem;
+	line-height: 1;
+}
+
+:root.dark .home-ticker__text {
+	color: #fff;
+}
+
+.home-ticker__sep {
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: #000;
+	opacity: 0.6;
+	padding: 0 0.5rem;
+	line-height: 1;
+	user-select: none;
+}
+
+:root.dark .home-ticker__sep {
+	color: #fff;
+}
+
+@keyframes home-ticker-scroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-50%);
+	}
+}

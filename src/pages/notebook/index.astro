@@ -1,0 +1,158 @@
+---
+import PageTitle from "@/components/common/PageTitle.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "笔记本";
+const description = "记录生活与学习的点滴，按笔记本分类整理。";
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="flex w-full rounded-(--radius-large) relative min-h-32">
+		<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+			<!-- 页面标题 -->
+			<div class="mb-6">
+				<PageTitle title={title} eyebrow="Notebook" variant="stacked" />
+				{description && (
+					<p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed mt-3">
+						{description}
+					</p>
+				)}
+			</div>
+
+			<!-- 笔记本列表容器 -->
+			<div id="notebook-list-container">
+				<!-- 加载状态 -->
+				<div class="notebook-loading" id="notebook-loading">
+					<span class="notebook-loading-dot"></span>
+					<span>正在加载笔记本...</span>
+				</div>
+
+				<!-- 空状态 -->
+				<div class="notebook-empty hidden" id="notebook-empty">
+					<p>还没有任何笔记本，先创建一个吧。</p>
+				</div>
+
+				<!-- 笔记本卡片网格 -->
+				<div class="notebook-grid hidden" id="notebook-grid"></div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
+
+<script>
+	interface NotebookEntry {
+		id: string;
+		notebook: string;
+		title: string;
+		date: string;
+		content: string;
+		createdAt: number;
+		updatedAt: number;
+	}
+
+	interface NotebookGroup {
+		name: string;
+		count: number;
+		lastUpdated: number;
+		lastDate: string;
+		description: string;
+	}
+
+	function escapeText(str: string): string {
+		const div = document.createElement("div");
+		div.textContent = str;
+		return div.innerHTML;
+	}
+
+	function formatDate(timestamp: number): string {
+		const d = new Date(timestamp);
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, "0");
+		const day = String(d.getDate()).padStart(2, "0");
+		return `${y}-${m}-${day}`;
+	}
+
+	function groupByNotebook(entries: NotebookEntry[]): NotebookGroup[] {
+		const map = new Map<string, NotebookEntry[]>();
+		for (const entry of entries) {
+			const list = map.get(entry.notebook) || [];
+			list.push(entry);
+			map.set(entry.notebook, list);
+		}
+
+		const groups: NotebookGroup[] = [];
+		for (const [name, list] of map.entries()) {
+			const sorted = list.sort((a, b) => b.updatedAt - a.updatedAt);
+			const latest = sorted[0];
+			const description = latest ? latest.content.slice(0, 80).replace(/[#*`>]/g, "").trim() : "";
+			groups.push({
+				name,
+				count: list.length,
+				lastUpdated: latest ? latest.updatedAt : 0,
+				lastDate: latest ? latest.date : "",
+				description: description || "暂无描述",
+			});
+		}
+
+		return groups.sort((a, b) => b.lastUpdated - a.lastUpdated);
+	}
+
+	function renderNotebookCards(groups: NotebookGroup[]) {
+		const grid = document.getElementById("notebook-grid");
+		if (!grid) return;
+
+		grid.innerHTML = groups
+			.map((group) => {
+				const url = `/notebook/view/?name=${encodeURIComponent(group.name)}`;
+				return `
+					<a href="${url}" class="notebook-card">
+						<div class="notebook-card__header">
+							<h2 class="notebook-card__name">${escapeText(group.name)}</h2>
+							<span class="notebook-card__count">${group.count} 篇</span>
+						</div>
+						<div class="notebook-card__meta">
+							<span>最近更新</span>
+							<span class="notebook-card__sep">/</span>
+							<span>${group.lastDate || formatDate(group.lastUpdated)}</span>
+						</div>
+						<p class="notebook-card__desc">${escapeText(group.description)}</p>
+					</a>
+				`;
+			})
+			.join("");
+	}
+
+	async function loadNotebooks() {
+		const loading = document.getElementById("notebook-loading");
+		const empty = document.getElementById("notebook-empty");
+		const grid = document.getElementById("notebook-grid");
+
+		try {
+			const res = await fetch("/api/notebook/", { method: "GET" });
+			if (!res.ok) throw new Error("Failed to load notebooks");
+
+			const data = await res.json();
+			const entries: NotebookEntry[] = data.entries || [];
+
+			if (loading) loading.classList.add("hidden");
+
+			if (entries.length === 0) {
+				if (empty) empty.classList.remove("hidden");
+				return;
+			}
+
+			const groups = groupByNotebook(entries);
+			renderNotebookCards(groups);
+			if (grid) grid.classList.remove("hidden");
+		} catch (err) {
+			if (loading) loading.classList.add("hidden");
+			if (empty) {
+				empty.classList.remove("hidden");
+				const p = empty.querySelector("p");
+				if (p) p.textContent = "加载失败，请稍后重试。";
+			}
+		}
+	}
+
+	loadNotebooks();
+</script>

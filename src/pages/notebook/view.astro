@@ -1,0 +1,156 @@
+---
+import PageTitle from "@/components/common/PageTitle.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "笔记本详情";
+---
+
+<MainGridLayout title={title}>
+	<div class="flex w-full rounded-(--radius-large) relative min-h-32">
+		<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+			<!-- 返回按钮 -->
+			<a href="/notebook/" class="notebook-back">
+				<span>←</span>
+				<span>返回笔记本列表</span>
+			</a>
+
+			<!-- 页面标题 -->
+			<div class="notebook-detail-header">
+				<PageTitle title={title} eyebrow="Notebook" variant="stacked" />
+				<p class="notebook-detail-count" id="notebook-detail-count"></p>
+			</div>
+
+			<!-- 笔记条目容器 -->
+			<div id="notebook-detail-container">
+				<!-- 加载状态 -->
+				<div class="notebook-loading" id="notebook-loading">
+					<span class="notebook-loading-dot"></span>
+					<span>正在加载笔记...</span>
+				</div>
+
+				<!-- 空状态 -->
+				<div class="notebook-empty hidden" id="notebook-empty">
+					<p>这个笔记本还没有任何笔记。</p>
+				</div>
+
+				<!-- 笔记条目列表 -->
+				<div class="notebook-entry-list hidden" id="notebook-entry-list"></div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
+
+<script is:inline>
+	function escapeText(str) {
+		const div = document.createElement("div");
+		div.textContent = str;
+		return div.innerHTML;
+	}
+
+	function getPreview(content) {
+		const text = content.replace(/[#*`>]/g, "").trim();
+		return text.length > 120 ? text.slice(0, 120) + "..." : text;
+	}
+
+	function renderEntries(entries) {
+		const list = document.getElementById("notebook-entry-list");
+		if (!list) return;
+
+		const sorted = entries.sort((a, b) => {
+			return a.date < b.date ? 1 : a.date > b.date ? -1 : b.updatedAt - a.updatedAt;
+		});
+
+		list.innerHTML = sorted
+			.map((entry) => {
+				return `
+					<article class="notebook-entry" data-id="${escapeText(entry.id)}">
+						<div class="notebook-entry__header" role="button" tabindex="0" aria-expanded="false">
+							<span class="notebook-entry__date">${escapeText(entry.date)}</span>
+							<span class="notebook-entry__title">${escapeText(entry.title)}</span>
+							<span class="notebook-entry__toggle" aria-hidden="true">+</span>
+						</div>
+						<div class="notebook-entry__preview">${escapeText(getPreview(entry.content))}</div>
+						<div class="notebook-entry__content">
+							<div class="notebook-entry__content-inner">${escapeText(entry.content)}</div>
+						</div>
+					</article>
+				`;
+			})
+			.join("");
+
+		// 绑定展开/折叠事件
+		const items = list.querySelectorAll(".notebook-entry");
+		items.forEach((item) => {
+			const header = item.querySelector(".notebook-entry__header");
+			if (!header) return;
+
+			const toggle = () => {
+				item.classList.toggle("is-expanded");
+				const isExpanded = item.classList.contains("is-expanded");
+				header.setAttribute("aria-expanded", String(isExpanded));
+			};
+
+			header.addEventListener("click", toggle);
+			header.addEventListener("keydown", (e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					toggle();
+				}
+			});
+		});
+	}
+
+	async function loadEntries() {
+		const params = new URLSearchParams(window.location.search);
+		const notebookName = params.get("name") || "";
+		const loading = document.getElementById("notebook-loading");
+		const empty = document.getElementById("notebook-empty");
+		const list = document.getElementById("notebook-entry-list");
+		const countEl = document.getElementById("notebook-detail-count");
+
+		if (!notebookName) {
+			if (loading) loading.classList.add("hidden");
+			if (empty) {
+				empty.classList.remove("hidden");
+				const p = empty.querySelector("p");
+				if (p) p.textContent = "未指定笔记本名称。";
+			}
+			return;
+		}
+
+		// 更新页面标题
+		document.title = `笔记本 / ${notebookName}`;
+		const titleEl = document.querySelector(".notebook-detail-header h1");
+		if (titleEl) titleEl.textContent = notebookName;
+
+		try {
+			const url = `/api/notebook/?notebook=${encodeURIComponent(notebookName)}`;
+			const res = await fetch(url, { method: "GET" });
+			if (!res.ok) throw new Error("Failed to load entries");
+
+			const data = await res.json();
+			const entries = data.entries || [];
+
+			if (loading) loading.classList.add("hidden");
+
+			if (entries.length === 0) {
+				if (empty) empty.classList.remove("hidden");
+				if (countEl) countEl.textContent = "0 篇笔记";
+				return;
+			}
+
+			if (countEl) countEl.textContent = `${entries.length} 篇笔记`;
+			renderEntries(entries);
+			if (list) list.classList.remove("hidden");
+		} catch (err) {
+			if (loading) loading.classList.add("hidden");
+			if (empty) {
+				empty.classList.remove("hidden");
+				const p = empty.querySelector("p");
+				if (p) p.textContent = "加载失败，请稍后重试。";
+			}
+		}
+	}
+
+	loadEntries();
+</script>

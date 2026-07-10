@@ -1,0 +1,190 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+import Icon from "@components/common/Icon.astro";
+import CoverImage from "@/components/common/CoverImage.astro";
+import PostMetadata from "@/components/layout/PostMeta.astro";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
+import { getFileDirFromPath, getTagUrl } from "@/utils/url-utils";
+
+interface Props {
+	class?: string;
+	entry: CollectionEntry<"posts">;
+	title: string;
+	url: string;
+	published: Date;
+	updated?: Date;
+	tags: string[];
+	category: string | null;
+	image: string;
+	description: string;
+	draft: boolean;
+	pinned?: boolean;
+	password?: boolean;
+	style: string;
+	loading?: "lazy" | "eager";
+	fetchpriority?: "high" | "low" | "auto";
+}
+const {
+	entry,
+	title,
+	url,
+	published,
+	tags,
+	category,
+	image,
+	description,
+	pinned,
+	password,
+	style,
+	loading = "lazy",
+	fetchpriority = "auto",
+} = Astro.props;
+const className = Astro.props.class;
+
+// 处理随机图：如果image为"api"，则从配置的API获取随机图
+const processedImage = processCoverImageSync(image, entry.id);
+const apiUrls = getApiUrlList(image, entry.id);
+const hasCover =
+	processedImage !== undefined &&
+	processedImage !== null &&
+	processedImage !== "";
+
+const coverWidth = "30%";
+
+const showTags = siteConfig.postListLayout.showTags;
+const descriptionLines = Math.max(
+	0,
+	Math.trunc(siteConfig.postListLayout.descriptionLines ?? 2),
+);
+const descriptionClampLines = String(descriptionLines);
+const shouldClampDescription = descriptionLines > 0;
+
+const { remarkPluginFrontmatter } = await render(entry);
+const descriptionText = description || remarkPluginFrontmatter.excerpt || "";
+---
+
+<div
+  class:list={[
+    "post-card-wrapper",
+    hasCover ? "has-cover" : "no-cover",
+    pinned ? "pinned" : "",
+    "flex flex-col-reverse w-full rounded-(--radius-large) overflow-hidden relative cursor-pointer",
+    className,
+  ]}
+  style={`--coverWidth: ${coverWidth}; --descriptionClampLines: ${descriptionClampLines}; ${style || ''}`}
+  data-post-url={url}
+  onclick="((e)=>{if(!e.target.closest('a'))navigateToPage(this.dataset.postUrl)}).call(this,arguments[0])"
+>
+  <!-- pinned icon -->
+  <div
+    class:list={[
+      "post-card-content",
+      "pl-4 md:pl-9 pr-4 md:pr-2 pt-4 md:pt-7 pb-4 md:pb-7 relative flex flex-col h-full",
+      {
+        "w-full md:w-[calc(100%-52px-12px)]": !hasCover,
+        "w-full md:w-[calc(100%-var(--coverWidth)-1.5rem)]": hasCover,
+      },
+    ]}
+  >
+    <a
+      href={url}
+      class="post-card-title transition group font-bold mb-3 text-3xl text-90
+        hover:text-(--primary) dark:hover:text-(--primary)
+        active:text-(--title-active) dark:active:text-(--title-active)"
+    >
+      {title}
+
+      {
+        password && (
+          <Icon
+            name="material-symbols:lock-outline"
+            class="inline text-2xl align-middle -translate-y-px"
+          />
+        )
+      }
+    </a>
+
+    <!-- metadata -->
+    <PostMetadata
+      published={published}
+      tags={tags}
+      showTags={false}
+      category={category || undefined}
+      pinned={pinned}
+      password={password}
+      className="mb-4 post-meta"
+    />
+
+    <!-- description -->
+    <div
+      class:list={[
+        "transition text-75 md:pr-4 description grow",
+        { "description-clamped": shouldClampDescription },
+      ]}
+      title={descriptionText}
+    >
+      {descriptionText}
+    </div>
+
+    <!-- tags -->
+    {
+      showTags && (
+        <div class="text-sm text-black/30 dark:text-white/30 flex flex-wrap gap-2 transition stats pt-3">
+          {tags &&
+            tags.length > 0 &&
+            tags.map((tag, _i) => (
+              <a
+                href={getTagUrl(tag)}
+                aria-label={`View all posts with the ${tag.trim()} tag`}
+                class="post-tag-square text-xs px-2 py-1"
+              >
+                #{tag.trim()}
+              </a>
+            ))}
+          {!(tags && tags.length > 0) && (
+            <span class="text-(--content-meta) text-xs">
+              #{i18n(I18nKey.noTags)}
+            </span>
+          )}
+        </div>
+      )
+    }
+  </div>
+  {
+    hasCover && (
+      <a
+        href={url}
+        aria-label={title}
+        class:list={[
+          "post-card-image",
+          "group",
+          "w-full md:w-(--coverWidth)",
+          "aspect-2/1 md:aspect-auto",
+          "relative md:absolute md:top-4 md:bottom-4 md:right-4",
+          "rounded-(--radius-large) md:rounded-xl overflow-hidden",
+        ]}
+      >
+        <CoverImage
+          src={processedImage}
+          basePath={getFileDirFromPath(entry.filePath || "")}
+          alt="Cover Image of the Post"
+          class="w-full h-full transition-transform duration-300 group-hover:scale-110 group-active:scale-115"
+          preview={true}
+          loading={loading}
+          fetchpriority={fetchpriority}
+          apiUrls={apiUrls}
+        />
+      </a>
+    )
+  }
+
+  <!-- hover arrow -->
+  <div class="post-card-arrow" aria-hidden="true">
+    <Icon name="material-symbols:arrow-outward-rounded" class="text-2xl" />
+  </div>
+</div>
+<!-- 样式已迁移至 src/styles/components/post-card.css -->
