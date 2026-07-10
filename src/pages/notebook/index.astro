@@ -39,119 +39,100 @@ const description = "记录生活与学习的点滴，按笔记本分类整理�
 	</div>
 </MainGridLayout>
 
-<script>
-	interface NotebookEntry {
-		id: string;
-		notebook: string;
-		title: string;
-		date: string;
-		content: string;
-		createdAt: number;
-		updatedAt: number;
-	}
-
-	interface NotebookGroup {
-		name: string;
-		count: number;
-		lastUpdated: number;
-		lastDate: string;
-		description: string;
-	}
-
-	function escapeText(str: string): string {
+<script is:inline>
+	function escapeText(str) {
 		const div = document.createElement("div");
 		div.textContent = str;
 		return div.innerHTML;
 	}
 
-	function formatDate(timestamp: number): string {
+	function formatDate(timestamp) {
 		const d = new Date(timestamp);
 		const y = d.getFullYear();
 		const m = String(d.getMonth() + 1).padStart(2, "0");
 		const day = String(d.getDate()).padStart(2, "0");
-		return `${y}-${m}-${day}`;
+		return y + "-" + m + "-" + day;
 	}
 
-	function groupByNotebook(entries: NotebookEntry[]): NotebookGroup[] {
-		const map = new Map<string, NotebookEntry[]>();
-		for (const entry of entries) {
-			const list = map.get(entry.notebook) || [];
+	function groupByNotebook(entries) {
+		var map = new Map();
+		for (var i = 0; i < entries.length; i++) {
+			var entry = entries[i];
+			var list = map.get(entry.notebook) || [];
 			list.push(entry);
 			map.set(entry.notebook, list);
 		}
 
-		const groups: NotebookGroup[] = [];
-		for (const [name, list] of map.entries()) {
-			const sorted = list.sort((a, b) => b.updatedAt - a.updatedAt);
-			const latest = sorted[0];
-			const description = latest ? latest.content.slice(0, 80).replace(/[#*`>]/g, "").trim() : "";
+		var groups = [];
+		map.forEach(function(list, name) {
+			var sorted = list.sort(function(a, b) { return b.updatedAt - a.updatedAt; });
+			var latest = sorted[0];
+			var description = latest ? latest.content.slice(0, 80).replace(/[#*`>]/g, "").trim() : "";
 			groups.push({
-				name,
+				name: name,
 				count: list.length,
 				lastUpdated: latest ? latest.updatedAt : 0,
 				lastDate: latest ? latest.date : "",
 				description: description || "暂无描述",
 			});
-		}
+		});
 
-		return groups.sort((a, b) => b.lastUpdated - a.lastUpdated);
+		return groups.sort(function(a, b) { return b.lastUpdated - a.lastUpdated; });
 	}
 
-	function renderNotebookCards(groups: NotebookGroup[]) {
-		const grid = document.getElementById("notebook-grid");
+	function renderNotebookCards(groups) {
+		var grid = document.getElementById("notebook-grid");
 		if (!grid) return;
 
-		grid.innerHTML = groups
-			.map((group) => {
-				const url = `/notebook/view/?name=${encodeURIComponent(group.name)}`;
-				return `
-					<a href="${url}" class="notebook-card">
-						<div class="notebook-card__header">
-							<h2 class="notebook-card__name">${escapeText(group.name)}</h2>
-							<span class="notebook-card__count">${group.count} 篇</span>
-						</div>
-						<div class="notebook-card__meta">
-							<span>最近更新</span>
-							<span class="notebook-card__sep">/</span>
-							<span>${group.lastDate || formatDate(group.lastUpdated)}</span>
-						</div>
-						<p class="notebook-card__desc">${escapeText(group.description)}</p>
-					</a>
-				`;
-			})
-			.join("");
+		grid.innerHTML = groups.map(function(group) {
+			var url = "/notebook/view/?name=" + encodeURIComponent(group.name);
+			return '<a href="' + url + '" class="notebook-card">' +
+				'<div class="notebook-card__header">' +
+					'<h2 class="notebook-card__name">' + escapeText(group.name) + '</h2>' +
+					'<span class="notebook-card__count">' + group.count + ' 篇</span>' +
+				'</div>' +
+				'<div class="notebook-card__meta">' +
+					'<span>最近更新</span>' +
+					'<span class="notebook-card__sep">/</span>' +
+					'<span>' + (group.lastDate || formatDate(group.lastUpdated)) + '</span>' +
+				'</div>' +
+				'<p class="notebook-card__desc">' + escapeText(group.description) + '</p>' +
+			'</a>';
+		}).join("");
 	}
 
-	async function loadNotebooks() {
-		const loading = document.getElementById("notebook-loading");
-		const empty = document.getElementById("notebook-empty");
-		const grid = document.getElementById("notebook-grid");
+	function loadNotebooks() {
+		var loading = document.getElementById("notebook-loading");
+		var empty = document.getElementById("notebook-empty");
+		var grid = document.getElementById("notebook-grid");
 
-		try {
-			const res = await fetch("/api/notebook/", { method: "GET" });
-			if (!res.ok) throw new Error("Failed to load notebooks");
+		fetch("/api/notebook/", { method: "GET" })
+			.then(function(res) {
+				if (!res.ok) throw new Error("Failed to load notebooks");
+				return res.json();
+			})
+			.then(function(data) {
+				var entries = data.entries || [];
 
-			const data = await res.json();
-			const entries: NotebookEntry[] = data.entries || [];
+				if (loading) loading.style.display = "none";
 
-			if (loading) loading.classList.add("hidden");
+				if (entries.length === 0) {
+					if (empty) empty.style.display = "flex";
+					return;
+				}
 
-			if (entries.length === 0) {
-				if (empty) empty.classList.remove("hidden");
-				return;
-			}
-
-			const groups = groupByNotebook(entries);
-			renderNotebookCards(groups);
-			if (grid) grid.classList.remove("hidden");
-		} catch (err) {
-			if (loading) loading.classList.add("hidden");
-			if (empty) {
-				empty.classList.remove("hidden");
-				const p = empty.querySelector("p");
-				if (p) p.textContent = "加载失败，请稍后重试。";
-			}
-		}
+				var groups = groupByNotebook(entries);
+				renderNotebookCards(groups);
+				if (grid) grid.style.display = "grid";
+			})
+			.catch(function(err) {
+				if (loading) loading.style.display = "none";
+				if (empty) {
+					empty.style.display = "flex";
+					var p = empty.querySelector("p");
+					if (p) p.textContent = "加载失败，请稍后重试。";
+				}
+			});
 	}
 
 	loadNotebooks();

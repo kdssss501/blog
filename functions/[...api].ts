@@ -141,7 +141,7 @@ export default {
 	},
 };
 
-function handleTreehole(request: Request, url: URL, pathname: string, method: string): Response {
+async function handleTreehole(request: Request, url: URL, pathname: string, method: string): Promise<Response> {
 	const parts = pathname.split("/").filter(Boolean);
 
 	if (method === "OPTIONS") {
@@ -183,7 +183,31 @@ function handleTreehole(request: Request, url: URL, pathname: string, method: st
 
 	if (method === "POST") {
 		if (parts.length === 2) {
-			return new Response(null, { status: 200 });
+			const body = await request.json().catch(() => ({}));
+			const content = escapeHtml((body.content || "").trim());
+			if (!content) {
+				return new Response(JSON.stringify({ error: "content is required" }), { status: 400 });
+			}
+
+			const id = getTreeholeNextId();
+			const msg: TreeholeMessage = {
+				id,
+				content,
+				createdAt: Date.now(),
+				status: "approved",
+				resonance: 0,
+				replies: [],
+			};
+
+			setTreeholeMessage(id, msg);
+			const ids = getTreeholeList();
+			ids.unshift(id);
+			setTreeholeList(ids);
+
+			return new Response(JSON.stringify(msg), {
+				status: 201,
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 
 		if (parts.length === 4 && parts[3] === "resonance") {
@@ -197,6 +221,35 @@ function handleTreehole(request: Request, url: URL, pathname: string, method: st
 			setTreeholeMessage(id, msg);
 
 			return new Response(JSON.stringify({ id, resonance: msg.resonance }), {
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
+		if (parts.length === 4 && parts[3] === "reply") {
+			const id = parts[2];
+			const msg = getTreeholeMessage(id);
+			if (!msg || msg.status !== "approved") {
+				return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
+			}
+
+			const body = await request.json().catch(() => ({}));
+			const content = escapeHtml((body.content || "").trim());
+			if (!content) {
+				return new Response(JSON.stringify({ error: "content is required" }), { status: 400 });
+			}
+
+			const replyId = `r_${Date.now()}`;
+			msg.replies = msg.replies || [];
+			msg.replies.push({
+				id: replyId,
+				content,
+				createdAt: Date.now(),
+				status: "approved",
+				resonance: 0,
+			});
+			setTreeholeMessage(id, msg);
+
+			return new Response(JSON.stringify({ id, content, hint: "回复成功" }), {
 				headers: { "Content-Type": "application/json" },
 			});
 		}

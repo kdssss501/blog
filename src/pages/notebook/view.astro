@@ -109,9 +109,9 @@ const title = "笔记本详情";
 		const countEl = document.getElementById("notebook-detail-count");
 
 		if (!notebookName) {
-			if (loading) loading.classList.add("hidden");
+			if (loading) loading.style.display = "none";
 			if (empty) {
-				empty.classList.remove("hidden");
+				empty.style.display = "flex";
 				const p = empty.querySelector("p");
 				if (p) p.textContent = "未指定笔记本名称。";
 			}
@@ -119,33 +119,33 @@ const title = "笔记本详情";
 		}
 
 		// 更新页面标题
-		document.title = `笔记本 / ${notebookName}`;
+		document.title = "笔记本 / " + notebookName;
 		const titleEl = document.querySelector(".notebook-detail-header h1");
 		if (titleEl) titleEl.textContent = notebookName;
 
 		try {
-			const url = `/api/notebook/?notebook=${encodeURIComponent(notebookName)}`;
+			const url = "/api/notebook/?notebook=" + encodeURIComponent(notebookName);
 			const res = await fetch(url, { method: "GET" });
 			if (!res.ok) throw new Error("Failed to load entries");
 
 			const data = await res.json();
 			const entries = data.entries || [];
 
-			if (loading) loading.classList.add("hidden");
+			if (loading) loading.style.display = "none";
 
 			if (entries.length === 0) {
-				if (empty) empty.classList.remove("hidden");
+				if (empty) empty.style.display = "flex";
 				if (countEl) countEl.textContent = "0 篇笔记";
 				return;
 			}
 
-			if (countEl) countEl.textContent = `${entries.length} 篇笔记`;
+			if (countEl) countEl.textContent = entries.length + " 篇笔记";
 			renderEntries(entries);
-			if (list) list.classList.remove("hidden");
+			if (list) list.style.display = "block";
 		} catch (err) {
-			if (loading) loading.classList.add("hidden");
+			if (loading) loading.style.display = "none";
 			if (empty) {
-				empty.classList.remove("hidden");
+				empty.style.display = "flex";
 				const p = empty.querySelector("p");
 				if (p) p.textContent = "加载失败，请稍后重试。";
 			}
