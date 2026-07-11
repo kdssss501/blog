@@ -1,3 +1,5 @@
+import { pickLocalActivityGalleryUrl } from "@/utils/activity-gallery";
+
 export interface ActivityImage {
 	url: string;
 	alt?: string;
@@ -141,13 +143,10 @@ function createFallbackCoverImage(
 		.join("，");
 	if (!prompt) return null;
 	return {
-		url: buildGptImageUrl(
-			`clean minimal lifestyle editorial illustration, white background, soft natural light, ${prompt}`,
-			"landscape_4_3",
-		),
+		url: pickLocalActivityGalleryUrl(prompt),
 		alt: title || "动态封面",
-		prompt,
-		source: "gpt",
+		prompt: "",
+		source: "manual",
 	};
 }
 

@@ -52,18 +52,10 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 			const images = Array.isArray(item.images) ? item.images : [];
 			return '<article class="activity-detail">' +
 				'<header class="activity-detail__header">' +
-					'<div class="activity-detail__author">' +
-						'<div class="activity-detail__avatar">' +
-							'<svg viewBox="0 0 24 24" fill="currentColor">' +
-								'<circle cx="12" cy="8" r="5"/>' +
-								'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>' +
-							'</svg>' +
-						'</div>' +
-						'<div class="activity-detail__info">' +
-							'<span class="activity-detail__name">kdssss</span>' +
-							'<h1 class="activity-detail__title">' + escapeText(item.title || "未命名动态") + '</h1>' +
-							'<span class="activity-detail__time">' + formatDate(item.createdAt) + '</span>' +
-						'</div>' +
+					'<div class="activity-detail__info">' +
+						'<span class="activity-detail__name">Activity Note</span>' +
+						'<h1 class="activity-detail__title">' + escapeText(item.title || "未命名动态") + '</h1>' +
+						'<span class="activity-detail__time">' + formatDate(item.createdAt) + '</span>' +
 					'</div>' +
 				'</header>' +
 				'<div class="activity-detail__content">' +
@@ -119,6 +111,7 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 			var error = document.getElementById("activity-detail-error");
 			var content = document.getElementById("activity-detail-content");
 			var slug = getActivitySlug();
+			if (window._closeLive2DWidget) window._closeLive2DWidget();
 
 			if (loading) loading.style.display = "flex";
 			if (error) error.style.display = "none";
@@ -177,6 +170,14 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 		width: 100%;
 		--page-bg: #fff;
 		--card-bg: #fff;
+	}
+
+	.activity-detail-page ~ #live2d-widget,
+	.activity-detail-page ~ #live2d-trigger,
+	.activity-detail-page ~ #pio-container,
+	body:has(.activity-detail-page) #live2d-widget,
+	body:has(.activity-detail-page) #live2d-trigger {
+		display: none !important;
 	}
 
 	.activity-back-link {
@@ -261,29 +262,6 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
 	.activity-detail__header {
 		margin-bottom: 1.5rem;
-	}
-
-	.activity-detail__author {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.activity-detail__avatar {
-		width: 4rem;
-		height: 4rem;
-		border-radius: 50%;
-		background: var(--deep-text);
-		color: var(--page-bg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.activity-detail__avatar svg {
-		width: 2rem;
-		height: 2rem;
 	}
 
 	.activity-detail__info {
