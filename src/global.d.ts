@@ -42,6 +42,19 @@ declare global {
 			hashString: (input: string) => number;
 			getCoverImage: (cover: string, name: string) => string;
 		};
+		notebookPresentation?: {
+			getNotebookGroupMeta: (name: string) => {
+				name: string;
+				eyebrow: string;
+				intro: string;
+				listDescription: string;
+				heroTitle: string;
+				heroDescription: string;
+				coverImage: string;
+				coverAlt: string;
+				tags: string[];
+			};
+		};
 		escapeText?: (value: string) => string;
 		formatDate?: (timestamp: number) => string;
 		// biome-ignore lint/suspicious/noExplicitAny: External library

@@ -24,6 +24,10 @@ const title = "笔记本";
 		// @ts-nocheck
 		import { renderRichContent } from "@/utils/activity-content";
 		import { getCoverImage } from "@/utils/notebook-covers";
+		import {
+			getNotebookEntryMeta,
+			getNotebookGroupMeta,
+		} from "@/utils/notebook-content";
 
 		/**
 		 * @typedef {{
@@ -67,55 +71,111 @@ const title = "笔记本";
 			return div.innerHTML;
 		}
 
-		/** @param {string} name @param {NotebookEntry[]} entries */
-		function renderNotebookDetail(name, entries) {
-			const sorted = [...entries].sort((a, b) => {
+		/** @param {NotebookEntry[]} entries */
+		function sortEntries(entries) {
+			return [...entries].sort((a, b) => {
 				if (a.date === b.date) return b.updatedAt - a.updatedAt;
 				return a.date < b.date ? 1 : -1;
 			});
-			const heroCover = sorted.length > 0 ? getCoverImage(sorted[0].cover, name) : "/gallery/gpt-img2-2026/1.webp";
-			const tocHtml = sorted.map(function(entry, index) {
-				return '<button class="toc-item" type="button" data-entry-id="' + escapeText(entry.id) + '">' +
-					'<span class="notebook-toc-item__number">' + (index + 1) + '</span>' +
-					'<span class="notebook-toc-item__title">' + escapeText(entry.title) + '</span>' +
-				'</button>';
-			}).join("");
+		}
 
-			const articleHtml = sorted.map(function(entry, index) {
-				return '<article class="notebook-article-section" id="entry-' + escapeText(entry.id) + '">' +
-					'<div class="notebook-article-section__body">' +
-						'<div class="notebook-article-section__meta">' +
-							'<span>#' + String(index + 1).padStart(2, "0") + '</span>' +
-							'<span>' + escapeText(entry.date) + '</span>' +
+		/** @param {string} name @param {NotebookEntry[]} entries */
+		function renderNotebookDetail(name, entries) {
+			const sorted = sortEntries(entries);
+			const groupMeta = getNotebookGroupMeta(name);
+			const latestEntry = sorted[0] || null;
+			const latestCover = latestEntry
+				? getCoverImage(latestEntry.cover, name)
+				: groupMeta.coverImage;
+			const latestDate = latestEntry ? escapeText(latestEntry.date) : "暂无";
+			const tocHtml = sorted
+				.map(function(entry, index) {
+					return '<button class="notebook-outline__item" type="button" data-entry-id="' + escapeText(entry.id) + '">' +
+						'<span class="notebook-outline__index">' + String(index + 1).padStart(2, "0") + '</span>' +
+						'<span class="notebook-outline__text">' +
+							'<strong>' + escapeText(entry.title) + '</strong>' +
+							'<small>' + escapeText(entry.date) + '</small>' +
+						'</span>' +
+					'</button>';
+				})
+				.join("");
+
+			const tagsHtml = (groupMeta.tags || [])
+				.map(function(tag) {
+					return '<span class="notebook-hero__tag">' + escapeText(tag) + "</span>";
+				})
+				.join("");
+
+			const articleHtml = sorted
+				.map(function(entry, index) {
+					const meta = getNotebookEntryMeta(entry);
+					const labelsHtml = (meta.labels || [])
+						.map(function(label) {
+							return '<span class="notebook-entry-card__label">' + escapeText(label) + "</span>";
+						})
+						.join("");
+
+					return '<article class="notebook-entry-card" id="entry-' + escapeText(entry.id) + '">' +
+						'<div class="notebook-entry-card__media">' +
+							'<img src="' + escapeText(meta.image) + '" alt="' + escapeText(meta.imageAlt || entry.title) + '" loading="lazy" decoding="async" class="notebook-entry-card__image" />' +
 						'</div>' +
-						'<h2 class="notebook-article-section__title">' + escapeText(entry.title) + '</h2>' +
-						'<div class="notebook-article-section__content custom-md">' + renderRichContent(entry.content || "") + '</div>' +
-					'</div>' +
-				'</article>';
-			}).join("");
+						'<div class="notebook-entry-card__body">' +
+							'<div class="notebook-entry-card__meta">' +
+								'<span class="notebook-entry-card__count">#' + String(index + 1).padStart(2, "0") + "</span>" +
+								'<span class="notebook-entry-card__date">' + escapeText(entry.date) + "</span>" +
+							"</div>" +
+							'<h2 class="notebook-entry-card__title">' + escapeText(entry.title) + "</h2>" +
+							'<p class="notebook-entry-card__summary">' + escapeText(meta.summary) + "</p>" +
+							'<blockquote class="notebook-entry-card__insight">' + escapeText(meta.insight) + "</blockquote>" +
+							(labelsHtml ? '<div class="notebook-entry-card__labels">' + labelsHtml + "</div>" : "") +
+							'<div class="notebook-entry-card__content custom-md">' + renderRichContent(entry.content || "") + "</div>" +
+						"</div>" +
+					"</article>";
+				})
+				.join("");
 
 			return '<a href="/notebook/" class="notebook-back">← 返回笔记本列表</a>' +
-				'<section class="notebook-hero" style="background-image:url(\'' + escapeText(heroCover) + '\')">' +
+				'<section class="notebook-hero notebook-hero--detail">' +
+					'<img src="' + escapeText(groupMeta.coverImage || latestCover) + '" alt="' + escapeText(groupMeta.coverAlt || name) + '" class="notebook-hero__image" loading="eager" decoding="async" />' +
 					'<div class="notebook-hero__overlay"></div>' +
 					'<div class="notebook-hero__content">' +
-						'<h1 class="notebook-hero__title">' + escapeText(name) + '</h1>' +
-						'<p class="notebook-hero__count">' + sorted.length + ' 篇笔记</p>' +
-					'</div>' +
-				'</section>' +
-				'<div class="notebook-layout">' +
-					'<main class="notebook-content">' +
-						'<div class="notebook-article-list">' + articleHtml + '</div>' +
-					'</main>' +
-					'<aside class="notebook-sidebar">' +
-						'<div class="notebook-sidebar__container">' +
-							'<div class="notebook-sidebar__header"><span class="notebook-sidebar__title">目录</span></div>' +
-							'<div class="notebook-sidebar__body"><nav class="notebook-toc">' + tocHtml + '</nav></div>' +
-						'</div>' +
-					'</aside>' +
-				'</div>' +
-				'<button class="notebook-toc-toggle" id="notebook-toc-toggle" type="button">' +
-					'<span>目录</span>' +
-				'</button>';
+						'<span class="notebook-hero__eyebrow">' + escapeText(groupMeta.eyebrow || "Notebook") + "</span>" +
+						'<h1 class="notebook-hero__title">' + escapeText(groupMeta.heroTitle || name) + "</h1>" +
+						'<p class="notebook-hero__description">' + escapeText(groupMeta.heroDescription || groupMeta.intro || "") + "</p>" +
+						'<div class="notebook-hero__meta">' +
+							'<span>' + sorted.length + ' 篇笔记</span>' +
+							'<span>最近更新 ' + latestDate + "</span>" +
+						"</div>" +
+						(tagsHtml ? '<div class="notebook-hero__tags">' + tagsHtml + "</div>" : "") +
+					"</div>" +
+				"</section>" +
+				'<section class="notebook-detail-grid">' +
+					'<article class="notebook-panel notebook-panel--entries">' +
+						'<div class="notebook-panel__header">' +
+							'<span class="notebook-panel__eyebrow">Notebook Essays</span>' +
+							'<h2 class="notebook-panel__title">这一组笔记的图文记录</h2>' +
+							'<p class="notebook-panel__text">' + escapeText(groupMeta.intro || "") + "</p>" +
+						"</div>" +
+						'<div class="notebook-entry-list">' + articleHtml + "</div>" +
+					"</article>" +
+					'<aside class="notebook-panel notebook-panel--aside">' +
+						'<section class="notebook-side-card">' +
+							'<span class="notebook-side-card__eyebrow">Overview</span>' +
+							'<h2 class="notebook-side-card__title">' + escapeText(groupMeta.name) + "</h2>" +
+							'<p class="notebook-side-card__text">' + escapeText(groupMeta.listDescription || groupMeta.intro || "") + "</p>" +
+							'<dl class="notebook-side-card__stats">' +
+								"<div><dt>笔记数量</dt><dd>" + sorted.length + " 篇</dd></div>" +
+								"<div><dt>最近更新</dt><dd>" + latestDate + "</dd></div>" +
+								"<div><dt>主题气质</dt><dd>" + escapeText((groupMeta.tags || []).join(" / ") || "记录中") + "</dd></div>" +
+							"</dl>" +
+						"</section>" +
+						'<section class="notebook-side-card">' +
+							'<span class="notebook-side-card__eyebrow">Outline</span>' +
+							'<h2 class="notebook-side-card__title">快速跳转</h2>' +
+							'<div class="notebook-outline">' + tocHtml + "</div>" +
+						"</section>" +
+					"</aside>" +
+				"</section>";
 		}
 
 		/** @param {HTMLElement} root */
