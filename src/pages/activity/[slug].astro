@@ -1,0 +1,307 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+export async function getStaticPaths() {
+	return [];
+}
+
+const { slug } = Astro.params;
+---
+
+<MainGridLayout title="动态详情" description="查看动态详情">
+	<div class="flex w-full rounded-(--radius-large) relative min-h-32">
+		<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+			<a href="/activity/" class="activity-back-link mb-6 inline-flex items-center gap-0.375rem">
+				<span class="activity-back-icon">←</span>
+				<span class="activity-back-text">返回动态列表</span>
+			</a>
+
+			<div id="activity-detail-container">
+				<div class="activity-detail-loading" id="activity-detail-loading">
+					<span class="activity-detail-loading-dot"></span>
+					<span>正在加载动态...</span>
+				</div>
+
+				<div class="activity-detail-error hidden" id="activity-detail-error">
+					<p>加载失败，请稍后重试。</p>
+				</div>
+
+				<div class="activity-detail-content hidden" id="activity-detail-content"></div>
+			</div>
+		</div>
+	</div>
+
+	<script is:inline>
+		function escapeText(str) {
+			const div = document.createElement("div");
+			div.textContent = str;
+			return div.innerHTML;
+		}
+
+		function formatDate(timestamp) {
+			const d = new Date(timestamp);
+			const y = d.getFullYear();
+			const m = String(d.getMonth() + 1).padStart(2, "0");
+			const day = String(d.getDate()).padStart(2, "0");
+			const h = String(d.getHours()).padStart(2, "0");
+			const min = String(d.getMinutes()).padStart(2, "0");
+			return y + "-" + m + "-" + day + " " + h + ":" + min;
+		}
+
+		function renderActivityDetail(item) {
+			return '<article class="activity-detail card-base">' +
+				'<header class="activity-detail__header">' +
+					'<div class="activity-detail__author">' +
+						'<div class="activity-detail__avatar">' +
+							'<svg viewBox="0 0 24 24" fill="currentColor">' +
+								'<circle cx="12" cy="8" r="5"/>' +
+								'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>' +
+							'</svg>' +
+						'</div>' +
+						'<div class="activity-detail__info">' +
+							'<span class="activity-detail__name">kdssss</span>' +
+							'<span class="activity-detail__time">' + formatDate(item.createdAt) + '</span>' +
+						'</div>' +
+					'</div>' +
+				'</header>' +
+				'<div class="activity-detail__content">' +
+					'<p>' + escapeText(item.content) + '</p>' +
+				'</div>' +
+				'<footer class="activity-detail__footer">' +
+					'<span class="activity-detail__updated">更新于 ' + formatDate(item.updatedAt) + '</span>' +
+				'</footer>' +
+			'</article>';
+		}
+
+		function fetchWithTimeout(url, options, timeoutMs) {
+			return new Promise(function(resolve, reject) {
+				var controller = new AbortController();
+				var timer = setTimeout(function() {
+					controller.abort();
+					reject(new Error("Request timeout"));
+				}, timeoutMs || 8000);
+				options = options || {};
+				options.signal = controller.signal;
+				fetch(url, options)
+					.then(function(res) {
+						clearTimeout(timer);
+						resolve(res);
+					})
+					.catch(function(err) {
+						clearTimeout(timer);
+						reject(err);
+					});
+			});
+		}
+
+		function fetchWithRetry(url, options, timeoutMs, retries) {
+			return fetchWithTimeout(url, options, timeoutMs).catch(function(err) {
+				if (retries > 0) {
+					return new Promise(function(resolve) {
+						setTimeout(function() { resolve(fetchWithRetry(url, options, timeoutMs, retries - 1)); }, 500);
+					});
+				}
+				throw err;
+			});
+		}
+
+		function loadActivityDetail() {
+			var loading = document.getElementById("activity-detail-loading");
+			var error = document.getElementById("activity-detail-error");
+			var content = document.getElementById("activity-detail-content");
+
+			var slug = window.location.pathname.split("/").pop();
+
+			fetchWithRetry("/api/activity/?slug=" + encodeURIComponent(slug), { method: "GET" }, 8000, 2)
+				.then(function(res) {
+					if (!res.ok) throw new Error("Failed to load activity");
+					return res.json();
+				})
+				.then(function(data) {
+					if (loading) loading.style.display = "none";
+
+					if (data.error) {
+						if (error) {
+							error.style.display = "flex";
+							error.querySelector("p").textContent = data.error;
+						}
+						return;
+					}
+
+					content.innerHTML = renderActivityDetail(data);
+					if (content) content.style.display = "block";
+				})
+				.catch(function(err) {
+					if (loading) loading.style.display = "none";
+					if (error) error.style.display = "flex";
+					console.error("[activity-detail] load failed:", err);
+				});
+		}
+
+		loadActivityDetail();
+		document.addEventListener("astro:page-load", loadActivityDetail);
+	</script>
+</MainGridLayout>
+
+<style>
+	.activity-back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.5rem 1rem;
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--deep-text);
+		background: transparent;
+		border: 2px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		text-decoration: none;
+		transition: background-color 0.15s, color 0.15s;
+	}
+
+	.activity-back-link:hover {
+		background: var(--deep-text);
+		color: var(--page-bg);
+	}
+
+	.activity-back-icon {
+		font-size: 1.1rem;
+	}
+
+	.activity-back-text {
+		white-space: nowrap;
+	}
+
+	.activity-detail-loading {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 4rem;
+		color: var(--content-meta);
+		font-weight: 700;
+	}
+
+	.activity-detail-loading-dot {
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 50%;
+		background: var(--deep-text);
+		animation: activity-bounce 1s infinite;
+	}
+
+	@keyframes activity-bounce {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-0.5rem); }
+	}
+
+	.activity-detail-error {
+		display: none;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 6rem 0;
+		text-align: center;
+	}
+
+	.activity-detail-error p {
+		color: var(--content-meta);
+		font-size: 0.95rem;
+		font-weight: 700;
+		margin: 0;
+	}
+
+	.activity-detail-content {
+		display: none;
+	}
+
+	.activity-detail {
+		position: relative;
+		border-radius: var(--radius-large);
+		border: 2px solid var(--deep-text);
+		background: var(--page-bg);
+		padding: 2rem;
+	}
+
+	.activity-detail__header {
+		margin-bottom: 1.5rem;
+	}
+
+	.activity-detail__author {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.activity-detail__avatar {
+		width: 4rem;
+		height: 4rem;
+		border-radius: 50%;
+		background: var(--deep-text);
+		color: var(--page-bg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.activity-detail__avatar svg {
+		width: 2rem;
+		height: 2rem;
+	}
+
+	.activity-detail__info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.activity-detail__name {
+		font-size: 1.1rem;
+		font-weight: 800;
+		color: var(--deep-text);
+	}
+
+	.activity-detail__time {
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: var(--content-meta);
+		font-family: ui-monospace, SFMono-Regular, monospace;
+	}
+
+	.activity-detail__content {
+		margin-bottom: 1.5rem;
+	}
+
+	.activity-detail__content p {
+		margin: 0;
+		font-size: 1rem;
+		line-height: 1.8;
+		color: var(--deep-text);
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	.activity-detail__footer {
+		padding-top: 1rem;
+		border-top: 1px solid var(--deep-text);
+	}
+
+	.activity-detail__updated {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--content-meta);
+		font-family: ui-monospace, SFMono-Regular, monospace;
+	}
+
+	@media (max-width: 768px) {
+		.activity-detail {
+			padding: 1.5rem;
+		}
+
+		.activity-detail__content p {
+			font-size: 0.95rem;
+		}
+	}
+</style>

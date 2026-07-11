@@ -115,4 +115,9 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 		url: "/notebook/",
 		icon: "material-symbols:menu-book-outline",
 	},
+	[LinkPreset.Activity]: {
+		name: "动态",
+		url: "/activity/",
+		icon: "material-symbols:update",
+	},
 };

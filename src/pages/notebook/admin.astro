@@ -117,9 +117,8 @@ const description = "创建、编辑和删除笔记本内容";
 			</div>
 		</div>
 	</section>
-</MainGridLayout>
 
-<script is:inline>
+	<script is:inline>
 	// 简单密码验证（前端哈希）
 	var ADMIN_PASSWORD_HASH = "kdssss2026";
 	var currentEntryId = null;
@@ -166,19 +165,27 @@ const description = "创建、编辑和删除笔记本内容";
 			loadEntries();
 		}
 
-		// 封面图库初始化
+		var GALLERY_IMAGES = [
+		"1.webp", "2.webp", "3.webp", "4.webp", "5.webp", "6.webp", "7.webp",
+		"16.webp", "20.webp", "21.webp", "22.webp", "24.webp", "25.webp",
+		"26.webp", "27.webp", "28.webp", "41.webp", "42.webp", "43.webp",
+		"44.webp", "50.webp", "80.webp", "100.webp", "101.webp", "102.webp",
+		"103.webp", "104.webp", "105.webp", "107.webp", "200.webp", "201.webp",
+		"202.webp", "203.webp", "204.webp", "205.webp"
+	];
+
 		function initCoverGallery() {
 			var gallery = document.getElementById('cover-gallery');
 			if (!gallery) return;
 			gallery.innerHTML = '';
-			for (var i = 1; i <= 8; i++) {
+			for (var i = 0; i < GALLERY_IMAGES.length; i++) {
 				(function(index) {
 					var item = document.createElement('div');
-					item.className = 'cover-grad-preview cover-grad-' + index + ' cover-gallery-item';
-					item.setAttribute('data-cover', 'default-' + index);
-					item.textContent = index;
+					item.className = 'cover-gallery-item';
+					item.setAttribute('data-cover', 'default-' + (index + 1));
+					item.style.backgroundImage = 'url(\'/gallery/gpt-img2-2026/' + GALLERY_IMAGES[index] + '\')';
 					item.addEventListener('click', function() {
-						currentCover = 'default-' + index;
+						currentCover = 'default-' + (index + 1);
 						updateCoverPreview();
 					});
 					gallery.appendChild(item);
@@ -271,16 +278,17 @@ const description = "创建、编辑和删除笔记本内容";
 			if (!preview) return;
 
 			if (currentCover && currentCover.indexOf('data:image/') === 0) {
-				// base64 图片
-				preview.innerHTML = '<img src="' + currentCover + '" alt="封面预览" />';
+				preview.style.backgroundImage = 'url(\'' + currentCover + '\')';
+				preview.innerHTML = '';
 			} else if (currentCover && currentCover.indexOf('default-') === 0) {
-				// 默认渐变 N
 				var match = currentCover.match(/^default-(\d+)$/);
-				var n = match ? match[1] : '1';
-				preview.innerHTML = '<div class="cover-grad-preview cover-grad-' + n + '">✓</div>';
+				var n = match ? parseInt(match[1], 10) : 1;
+				var imgIndex = Math.max(0, Math.min(n - 1, GALLERY_IMAGES.length - 1));
+				preview.style.backgroundImage = 'url(\'/gallery/gpt-img2-2026/' + GALLERY_IMAGES[imgIndex] + '\')';
+				preview.innerHTML = '<div class="cover-preview-check">✓</div>';
 			} else {
-				// 空
-				preview.innerHTML = '<div class="cover-grad-preview cover-grad-1">?</div>';
+				preview.style.backgroundImage = '';
+				preview.innerHTML = '<div class="cover-preview-empty">?</div>';
 			}
 
 			// 更新图库选中状态
@@ -504,12 +512,12 @@ const description = "创建、编辑和删除笔记本内容";
 		document.getElementById('entry-content').addEventListener('input', updatePreview);
 	}
 
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initNotebookAdmin);
-	} else {
-		initNotebookAdmin();
-	}
-</script>
+	// 兼容首次加载：内联脚本可能错过首次 astro:page-load
+	// 因此注册监听后立即调用一次兜底
+	initNotebookAdmin();
+	document.addEventListener("astro:page-load", initNotebookAdmin);
+	</script>
+</MainGridLayout>
 
 <style>
 	.notebook-admin-page {
@@ -809,8 +817,8 @@ const description = "创建、编辑和删除笔记本内容";
 	}
 
 	.cover-preview {
-		width: 64px;
-		height: 64px;
+		width: 96px;
+		height: 54px;
 		border: 2px solid var(--deep-text);
 		border-radius: var(--radius-large);
 		overflow: hidden;
@@ -818,12 +826,30 @@ const description = "创建、编辑和删除笔记本内容";
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		position: relative;
 	}
 
-	.cover-preview img {
+	.cover-preview-check,
+	.cover-preview-empty {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		font-weight: 900;
+		font-size: 1rem;
+		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+		background: rgba(0, 0, 0, 0.2);
+	}
+
+	.cover-preview-empty {
+		color: var(--content-meta);
+		background: var(--page-bg);
+		text-shadow: none;
 	}
 
 	.cover-clear-btn {
@@ -845,62 +871,50 @@ const description = "创建、编辑和删除笔记本内容";
 
 	.cover-gallery {
 		display: grid;
-		grid-template-columns: repeat(8, 1fr);
-		gap: 0.4rem;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 0.5rem;
 	}
 
 	@media (max-width: 768px) {
 		.cover-gallery {
-			grid-template-columns: repeat(4, 1fr);
+			grid-template-columns: repeat(2, 1fr);
 		}
 	}
 
-	.cover-grad-preview {
-		width: 100%;
-		aspect-ratio: 1 / 1;
-		border-radius: var(--radius-large);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: #fff;
-		font-weight: 800;
-		font-size: 0.9rem;
-		cursor: pointer;
-		transition: transform 0.15s ease, box-shadow 0.15s ease;
-		user-select: none;
-	}
-
-	.cover-gallery .cover-grad-preview {
+	.cover-gallery-item {
+		aspect-ratio: 16 / 9;
 		border: 2px solid transparent;
+		border-radius: var(--radius-large);
+		cursor: pointer;
+		overflow: hidden;
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		transition: border-color 0.15s, transform 0.15s;
+		position: relative;
 	}
 
-	.cover-gallery .cover-grad-preview:hover {
+	.cover-gallery-item:hover {
 		transform: translateY(-2px);
 		box-shadow: 3px 3px 0px var(--deep-text);
 	}
 
-	.cover-gallery .cover-grad-preview.is-selected {
-		border: 2px solid var(--deep-text);
+	.cover-gallery-item.is-selected {
+		border-color: var(--deep-text);
 		box-shadow: 3px 3px 0px var(--deep-text);
 		transform: translateY(-2px);
 	}
 
-	/* 预览区内的渐变块（非图库）不响应点击 */
-	#cover-preview .cover-grad-preview {
-		cursor: default;
-		width: 100%;
-		height: 100%;
+	.cover-gallery-item.is-selected::after {
+		content: "✓";
+		position: absolute;
+		top: 4px;
+		right: 6px;
+		color: white;
+		font-size: 1rem;
+		font-weight: 900;
+		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 	}
-
-	/* 8 个默认渐变 */
-	.cover-grad-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-	.cover-grad-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-	.cover-grad-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-	.cover-grad-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-	.cover-grad-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-	.cover-grad-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
-	.cover-grad-7 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
-	.cover-grad-8 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333; }
 
 	/* 编辑器底部 */
 	.editor-footer {

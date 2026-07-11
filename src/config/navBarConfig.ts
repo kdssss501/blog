@@ -56,6 +56,7 @@ const buildNavBarConfig = (): NavBarConfig => {
 	if (siteConfig.pages.notebook) {
 		myChildren.push(LinkPreset.Notebook);
 	}
+	myChildren.push(LinkPreset.Activity);
 	myChildren.push(LinkPreset.Music);
 	myChildren.push(LinkPreset.About);
 

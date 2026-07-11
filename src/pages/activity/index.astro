@@ -1,0 +1,315 @@
+---
+import PageTitle from "@/components/common/PageTitle.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "动态";
+const description = "记录日常点滴，分享生活感悟。";
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="flex w-full rounded-(--radius-large) relative min-h-32">
+		<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+			<div class="mb-6">
+				<PageTitle title={title} eyebrow="Activity" variant="stacked" />
+				{description && (
+					<p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed mt-3">
+						{description}
+					</p>
+				)}
+			</div>
+
+			<div id="activity-list-container">
+				<div class="activity-loading" id="activity-loading">
+					<span class="activity-loading-dot"></span>
+					<span>正在加载动态...</span>
+				</div>
+
+				<div class="activity-empty hidden" id="activity-empty">
+					<p>还没有任何动态，分享你的第一条动态吧。</p>
+				</div>
+
+				<div class="activity-list hidden" id="activity-list"></div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		window.escapeText = function(str) {
+			const div = document.createElement("div");
+			div.textContent = str;
+			return div.innerHTML;
+		};
+
+		window.formatDate = function(timestamp) {
+			const d = new Date(timestamp);
+			const y = d.getFullYear();
+			const m = String(d.getMonth() + 1).padStart(2, "0");
+			const day = String(d.getDate()).padStart(2, "0");
+			const h = String(d.getHours()).padStart(2, "0");
+			const min = String(d.getMinutes()).padStart(2, "0");
+			return y + "-" + m + "-" + day + " " + h + ":" + min;
+		};
+	</script>
+
+	<script is:inline>
+		function renderActivityItem(item) {
+			const url = "/activity/" + encodeURIComponent(item.slug);
+			return '<article class="activity-item card-base">' +
+				'<header class="activity-item__header">' +
+					'<div class="activity-item__author">' +
+						'<div class="activity-item__avatar">' +
+							'<svg viewBox="0 0 24 24" fill="currentColor">' +
+								'<circle cx="12" cy="8" r="5"/>' +
+								'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>' +
+							'</svg>' +
+						'</div>' +
+						'<div class="activity-item__info">' +
+							'<span class="activity-item__name">kdssss</span>' +
+							'<span class="activity-item__time">' + formatDate(item.createdAt) + '</span>' +
+						'</div>' +
+					'</div>' +
+				'</header>' +
+				'<div class="activity-item__content">' +
+					'<p>' + escapeText(item.content) + '</p>' +
+				'</div>' +
+				'<footer class="activity-item__footer">' +
+					'<a href="' + url + '" class="activity-item__link">查看详情</a>' +
+				'</footer>' +
+			'</article>';
+		}
+
+		function renderActivityList(items) {
+			const list = document.getElementById("activity-list");
+			if (!list) return;
+
+			list.innerHTML = items.map(function(item) {
+				return renderActivityItem(item);
+			}).join("");
+		}
+
+		function fetchWithTimeout(url, options, timeoutMs) {
+			return new Promise(function(resolve, reject) {
+				var controller = new AbortController();
+				var timer = setTimeout(function() {
+					controller.abort();
+					reject(new Error("Request timeout"));
+				}, timeoutMs || 8000);
+				options = options || {};
+				options.signal = controller.signal;
+				fetch(url, options)
+					.then(function(res) {
+						clearTimeout(timer);
+						resolve(res);
+					})
+					.catch(function(err) {
+						clearTimeout(timer);
+						reject(err);
+					});
+			});
+		}
+
+		function fetchWithRetry(url, options, timeoutMs, retries) {
+			return fetchWithTimeout(url, options, timeoutMs).catch(function(err) {
+				if (retries > 0) {
+					return new Promise(function(resolve) {
+						setTimeout(function() { resolve(fetchWithRetry(url, options, timeoutMs, retries - 1)); }, 500);
+					});
+				}
+				throw err;
+			});
+		}
+
+		function loadActivities() {
+			var loading = document.getElementById("activity-loading");
+			var empty = document.getElementById("activity-empty");
+			var list = document.getElementById("activity-list");
+
+			fetchWithRetry("/api/activity/", { method: "GET" }, 8000, 2)
+				.then(function(res) {
+					if (!res.ok) throw new Error("Failed to load activities");
+					return res.json();
+				})
+				.then(function(data) {
+					var items = data.items || [];
+
+					if (loading) loading.style.display = "none";
+
+					if (items.length === 0) {
+						if (empty) empty.style.display = "flex";
+						return;
+					}
+
+					renderActivityList(items);
+					if (list) list.style.display = "flex";
+				})
+				.catch(function(err) {
+					if (loading) loading.style.display = "none";
+					if (empty) {
+						empty.style.display = "flex";
+						var p = empty.querySelector("p");
+						if (p) p.textContent = "加载失败，请稍后重试。";
+					}
+					console.error("[activity] load failed:", err);
+				});
+		}
+
+		loadActivities();
+		document.addEventListener("astro:page-load", loadActivities);
+	</script>
+</MainGridLayout>
+
+<style>
+	.activity-loading {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 4rem;
+		color: var(--content-meta);
+		font-weight: 700;
+	}
+
+	.activity-loading-dot {
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 50%;
+		background: var(--deep-text);
+		animation: activity-bounce 1s infinite;
+	}
+
+	@keyframes activity-bounce {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-0.5rem); }
+	}
+
+	.activity-empty {
+		display: none;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 6rem 0;
+		text-align: center;
+	}
+
+	.activity-empty p {
+		color: var(--content-meta);
+		font-size: 0.95rem;
+		font-weight: 700;
+		margin: 0;
+	}
+
+	.activity-list {
+		display: none;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.activity-item {
+		position: relative;
+		border-radius: var(--radius-large);
+		border: 2px solid var(--deep-text);
+		background: var(--page-bg);
+		padding: 1.25rem;
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.activity-item:hover {
+		transform: translateY(-2px);
+		box-shadow: 4px 4px 0px var(--deep-text);
+	}
+
+	.activity-item__header {
+		margin-bottom: 1rem;
+	}
+
+	.activity-item__author {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+	}
+
+	.activity-item__avatar {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 50%;
+		background: var(--deep-text);
+		color: var(--page-bg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.activity-item__avatar svg {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.activity-item__info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.activity-item__name {
+		font-size: 0.9rem;
+		font-weight: 800;
+		color: var(--deep-text);
+	}
+
+	.activity-item__time {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--content-meta);
+		font-family: ui-monospace, SFMono-Regular, monospace;
+	}
+
+	.activity-item__content {
+		margin-bottom: 1rem;
+	}
+
+	.activity-item__content p {
+		margin: 0;
+		font-size: 0.95rem;
+		line-height: 1.7;
+		color: var(--deep-text);
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	.activity-item__footer {
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.activity-item__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--deep-text);
+		background: transparent;
+		border: 1px solid var(--deep-text);
+		border-radius: var(--radius-large);
+		text-decoration: none;
+		transition: background-color 0.15s, color 0.15s;
+	}
+
+	.activity-item__link:hover {
+		background: var(--deep-text);
+		color: var(--page-bg);
+	}
+
+	@media (max-width: 768px) {
+		.activity-item {
+			padding: 1rem;
+		}
+
+		.activity-item__content p {
+			font-size: 0.9rem;
+		}
+	}
+</style>
