@@ -36,6 +36,8 @@ interface Props {
 		words?: number;
 		minutes?: number;
 	};
+	/** 是否显示三栏侧边栏布局，仅在特定页面（如动态）启用 */
+	showSidebar?: boolean;
 }
 
 const {
@@ -48,14 +50,15 @@ const {
 	postCategory,
 	catalogGroups,
 	bannerPostMeta: _bannerPostMeta,
+	showSidebar = false,
 } = Astro.props;
 
 const isPostPage = !!postSlug;
 const shouldRenderCategoryBar = !!siteConfig.categoryBar;
 const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
-// 侧边栏布局判断
-const sidebarEnabled = sidebarLayoutConfig.enable;
+// 侧边栏布局判断：仅在 showSidebar 为 true 时启用三栏布局
+const sidebarEnabled = showSidebar && sidebarLayoutConfig.enable;
 const sidebarPosition = sidebarLayoutConfig.position; // "left" | "right" | "both"
 const showBothOnPost = sidebarLayoutConfig.showBothSidebarsOnPostPage;
 
