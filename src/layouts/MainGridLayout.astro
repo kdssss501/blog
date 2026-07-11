@@ -1,6 +1,4 @@
 ---
-import Live2DWidget from "@components/features/Live2DWidget.astro";
-import SpineModel from "@components/features/SpineModel.astro";
 import Footer from "@components/layout/Footer.astro";
 import Navbar from "@components/layout/Navbar.astro";
 import NavMenuPanel from "@components/layout/NavMenuPanel.astro";
@@ -8,7 +6,7 @@ import Sidebar from "@components/layout/Sidebar.astro";
 import ArticleCatalog from "@components/misc/ArticleCatalog.astro";
 import CategoryBar from "@/components/layout/CategoryBar.astro";
 
-import { live2dModelConfig, navBarConfig, sidebarLayoutConfig, siteConfig } from "@/config";
+import { navBarConfig, sidebarLayoutConfig, siteConfig } from "@/config";
 import { LinkPresets } from "@/constants/link-presets";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
@@ -117,7 +115,7 @@ const navLinks = navBarConfig.links.map((item) => {
 			)}
 		</div>
 
-		<main id="swup-container" class="transition-swup-main" data-current-post-category={postCategory || ""}>
+		<main id="swup-container" class="transition-swup-main" data-current-post-category={postCategory || ""} data-sidebar-position={dataSidebarPosition}>
 			{isPostPage && catalogGroups && (
 				<ArticleCatalog groups={catalogGroups} currentPostId={postSlug || ""} />
 			)}
@@ -146,12 +144,7 @@ const navLinks = navBarConfig.links.map((item) => {
 	</div>
 </div>
 
-{/* Live2D / Spine — 移至 #main-grid 外部，避免 Swup 过渡动画的 transform/filter 创建新包含块导致 position:fixed 失效 */}
-<SpineModel></SpineModel>
-{live2dModelConfig.enable && <Live2DWidget config={live2dModelConfig} />}
-
-{/* 全局持久化组件（FloatingDock / MobileDock / AISearch / SearchModal / PrivacyModal）
-    已下沉至 Layout.astro，确保所有页面（含自定义布局页）共享 */}
+{/* Live2D / Spine 已移至 Layout.astro，与其他持久化组件并列，确保跨页面一致 */}
 
 </Layout>
 <!-- 样式已迁移至 src/styles/layout/grid.css -->
@@ -159,6 +152,20 @@ const navLinks = navBarConfig.links.map((item) => {
 <script>
 	import { TOCManager } from "@/utils/toc-utils";
 	import { isPostPage } from "@/utils/navigation-utils";
+
+	// Swup 导航后同步 #main-grid 的 data-sidebar-position 属性
+	// 因为 #main-grid 不是 Swup 容器，其属性不会在导航时自动更新
+	function syncSidebarPosition() {
+		const swupContainer = document.getElementById("swup-container");
+		const mainGrid = document.getElementById("main-grid");
+		if (!swupContainer || !mainGrid) return;
+		const pos = swupContainer.getAttribute("data-sidebar-position");
+		if (pos && mainGrid.getAttribute("data-sidebar-position") !== pos) {
+			mainGrid.setAttribute("data-sidebar-position", pos);
+		}
+	}
+	syncSidebarPosition();
+	document.addEventListener("astro:page-load", syncSidebarPosition);
 
 	let articleTocManager: TOCManager | null = null;
 	let tocClickHandler: ((e: Event) => void) | null = null;

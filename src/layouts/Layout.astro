@@ -6,16 +6,18 @@ import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
 import FancyboxManager from "@components/features/FancyboxManager.astro";
 import FloatingLyrics from "@components/features/FloatingLyrics.astro";
 import FontManager from "@components/features/FontManager.astro";
+import Live2DWidget from "@components/features/Live2DWidget.astro";
 import MusicManager from "@components/features/MusicManager.astro";
 import PageLoader from "@components/features/PageLoader.astro";
 import PrivacyModal from "@components/features/PrivacyModal.astro";
+import SpineModel from "@components/features/SpineModel.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
 import MobileDock from "@components/layout/MobileDock.astro";
 import AISearch from "@/components/controls/AISearch.svelte";
 import FloatingDock from "@/components/controls/FloatingDock.astro";
 import SearchModal from "@/components/controls/SearchModal.svelte";
 
-import { expressiveCodeConfig, homeConfig, siteConfig } from "@/config";
+import { expressiveCodeConfig, homeConfig, live2dModelConfig, siteConfig } from "@/config";
 import { PAGE_WIDTH } from "@/constants/constants";
 import { defaultFavicons } from "@/constants/icon";
 import type { Favicon } from "@/types/config";
@@ -206,6 +208,8 @@ const siteLang = lang.replace("_", "-");
     <ConfigCarrier />
     <MusicManager />
     <FloatingLyrics />
+    <SpineModel />
+    {live2dModelConfig.enable && <Live2DWidget config={live2dModelConfig} />}
     <slot />
     {/* 全局持久化组件 — Swup 容器外，所有页面共享（CLAUDE.md 4.2） */}
     <FloatingDock />

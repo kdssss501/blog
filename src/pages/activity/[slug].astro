@@ -9,25 +9,23 @@ const { slug } = Astro.params;
 ---
 
 <MainGridLayout title="动态详情" description="查看动态详情" showSidebar={true}>
-	<div class="flex w-full rounded-(--radius-large) relative min-h-32">
-		<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
-			<a href="/activity/" class="activity-back-link mb-6 inline-flex items-center gap-0.375rem" data-no-swup>
-				<span class="activity-back-icon">←</span>
-				<span class="activity-back-text">返回动态列表</span>
-			</a>
+	<div class="activity-detail-page">
+		<a href="/activity/" class="activity-back-link mb-6 inline-flex items-center gap-0.375rem" data-no-swup>
+			<span class="activity-back-icon">←</span>
+			<span class="activity-back-text">返回动态列表</span>
+		</a>
 
-			<div id="activity-detail-container">
-				<div class="activity-detail-loading" id="activity-detail-loading">
-					<span class="activity-detail-loading-dot"></span>
-					<span>正在加载动态...</span>
-				</div>
-
-				<div class="activity-detail-error hidden" id="activity-detail-error">
-					<p>加载失败，请稍后重试。</p>
-				</div>
-
-				<div class="activity-detail-content hidden" id="activity-detail-content"></div>
+		<div id="activity-detail-container">
+			<div class="activity-detail-loading" id="activity-detail-loading">
+				<span class="activity-detail-loading-dot"></span>
+				<span>正在加载动态...</span>
 			</div>
+
+			<div class="activity-detail-error hidden" id="activity-detail-error">
+				<p>加载失败，请稍后重试。</p>
+			</div>
+
+			<div class="activity-detail-content hidden" id="activity-detail-content"></div>
 		</div>
 	</div>
 
@@ -49,7 +47,7 @@ const { slug } = Astro.params;
 		}
 
 		function renderActivityDetail(item) {
-			return '<article class="activity-detail card-base">' +
+			return '<article class="activity-detail">' +
 				'<header class="activity-detail__header">' +
 					'<div class="activity-detail__author">' +
 						'<div class="activity-detail__avatar">' +
@@ -144,6 +142,10 @@ const { slug } = Astro.params;
 </MainGridLayout>
 
 <style>
+	.activity-detail-page {
+		width: 100%;
+	}
+
 	.activity-back-link {
 		display: inline-flex;
 		align-items: center;

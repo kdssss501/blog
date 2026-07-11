@@ -7,29 +7,25 @@ const description = "记录日常点滴，分享生活感悟。";
 ---
 
 <MainGridLayout title={title} description={description} showSidebar={true}>
-	<div class="flex w-full rounded-(--radius-large) relative min-h-32">
-		<div class="card-base px-4 py-6 md:px-9 relative w-full">
-			<div class="mb-6">
-				<PageTitle title={title} eyebrow="Activity" variant="stacked" />
-				{description && (
-					<p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed mt-3">
-						{description}
-					</p>
-				)}
+	<div class="activity-page">
+		<div class="activity-page__header">
+			<PageTitle title={title} eyebrow="Activity" variant="stacked" />
+			{description && (
+				<p class="activity-page__desc">{description}</p>
+			)}
+		</div>
+
+		<div id="activity-list-container">
+			<div class="activity-loading" id="activity-loading">
+				<span class="activity-loading-dot"></span>
+				<span>正在加载动态...</span>
 			</div>
 
-			<div id="activity-list-container">
-				<div class="activity-loading" id="activity-loading">
-					<span class="activity-loading-dot"></span>
-					<span>正在加载动态...</span>
-				</div>
-
-				<div class="activity-empty hidden" id="activity-empty">
-					<p>还没有任何动态，分享你的第一条动态吧。</p>
-				</div>
-
-				<div class="activity-list hidden" id="activity-list"></div>
+			<div class="activity-empty hidden" id="activity-empty">
+				<p>还没有任何动态，分享你的第一条动态吧。</p>
 			</div>
+
+			<div class="activity-list hidden" id="activity-list"></div>
 		</div>
 	</div>
 
@@ -52,17 +48,17 @@ const description = "记录日常点滴，分享生活感悟。";
 
 		function renderActivityItem(item) {
 			const url = "/activity/" + encodeURIComponent(item.slug);
-			return '<article class="activity-item">' +
-				'<div class="activity-item__timeline-dot"></div>' +
-				'<div class="activity-item__body">' +
-					'<div class="activity-item__meta">' +
-						'<span class="activity-item__time">' + formatDate(item.createdAt) + '</span>' +
-					'</div>' +
-					'<div class="activity-item__content">' +
-						'<p>' + escapeText(item.content) + '</p>' +
-					'</div>' +
-					'<a href="' + url + '" class="activity-item__link" data-no-swup>查看详情 →</a>' +
+			return '<article class="activity-card">' +
+				'<div class="activity-card__header">' +
+					'<span class="activity-card__time">' + formatDate(item.createdAt) + '</span>' +
+					'<a href="' + url + '" class="activity-card__arrow" data-no-swup aria-label="查看详情">' +
+						'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>' +
+					'</a>' +
 				'</div>' +
+				'<div class="activity-card__body">' +
+					'<p>' + escapeText(item.content) + '</p>' +
+				'</div>' +
+				'<a href="' + url + '" class="activity-card__link" data-no-swup>查看详情 →</a>' +
 			'</article>';
 		}
 
@@ -147,6 +143,23 @@ const description = "记录日常点滴，分享生活感悟。";
 </MainGridLayout>
 
 <style>
+	.activity-page {
+		width: 100%;
+	}
+
+	.activity-page__header {
+		margin-bottom: 1.5rem;
+	}
+
+	.activity-page__desc {
+		font-size: 0.95rem;
+		color: var(--content-meta);
+		line-height: 1.6;
+		margin-top: 0.75rem;
+		font-weight: 700;
+	}
+
+	/* === Loading === */
 	.activity-loading {
 		display: flex;
 		align-items: center;
@@ -170,6 +183,7 @@ const description = "记录日常点滴，分享生活感悟。";
 		50% { transform: translateY(-0.5rem); }
 	}
 
+	/* === Empty === */
 	.activity-empty {
 		display: none;
 		flex-direction: column;
@@ -187,69 +201,43 @@ const description = "记录日常点滴，分享生活感悟。";
 		margin: 0;
 	}
 
-	/* 垂直时间线列表 */
+	/* === Firefly 卡片列表 === */
 	.activity-list {
 		display: none;
 		flex-direction: column;
-		position: relative;
-		padding-left: 1.5rem;
+		gap: 1rem;
 	}
 
-	/* 时间线竖线 */
-	.activity-list::before {
-		content: "";
-		position: absolute;
-		left: 0.375rem;
-		top: 0;
-		bottom: 0;
-		width: 2px;
-		background: var(--line-divider);
-	}
-
-	.activity-item {
-		position: relative;
-		padding: 0.75rem 0 1.5rem 0;
-		transition: transform 0.2s ease;
-	}
-
-	.activity-item:hover {
-		transform: translateX(4px);
-	}
-
-	/* 时间线圆点 */
-	.activity-item__timeline-dot {
-		position: absolute;
-		left: -1.375rem;
-		top: 1.25rem;
-		width: 0.75rem;
-		height: 0.75rem;
-		border-radius: 50%;
-		background: var(--page-bg);
+	/* === Firefly 卡片组件 === */
+	.activity-card {
 		border: 2px solid var(--deep-text);
-		z-index: 1;
-		transition: background-color 0.2s, border-color 0.2s;
+		border-radius: var(--radius-large);
+		padding: 1.25rem 1.5rem;
+		background: transparent;
+		transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+		position: relative;
 	}
 
-	.activity-item:hover .activity-item__timeline-dot {
-		background: var(--primary);
+	.activity-card:hover {
+		transform: translateY(-2px);
 		border-color: var(--primary);
+		box-shadow: 0 8px 24px -8px color-mix(in oklch, var(--deep-text) 25%, transparent);
 	}
 
-	.activity-item__body {
-		border-left: 2px solid transparent;
-		padding-left: 0.75rem;
-		transition: border-color 0.2s;
+	:root.dark .activity-card:hover {
+		border-color: var(--primary);
+		box-shadow: 0 8px 24px -8px color-mix(in oklch, var(--primary) 30%, transparent);
 	}
 
-	.activity-item:hover .activity-item__body {
-		border-left-color: var(--primary);
+	/* === Card Header === */
+	.activity-card__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.75rem;
 	}
 
-	.activity-item__meta {
-		margin-bottom: 0.5rem;
-	}
-
-	.activity-item__time {
+	.activity-card__time {
 		font-size: 0.75rem;
 		font-weight: 700;
 		color: var(--content-meta);
@@ -257,11 +245,44 @@ const description = "记录日常点滴，分享生活感悟。";
 		letter-spacing: 0.02em;
 	}
 
-	.activity-item__content {
-		margin-bottom: 0.625rem;
+	/* === Hover Arrow (like post-card-arrow) === */
+	.activity-card__arrow {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 9999px;
+		background: var(--deep-text);
+		color: var(--page-bg);
+		opacity: 0;
+		transform: translate(0.25rem, 0.25rem);
+		transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.25s ease;
+		text-decoration: none;
+		flex-shrink: 0;
 	}
 
-	.activity-item__content p {
+	.activity-card:hover .activity-card__arrow {
+		opacity: 1;
+		transform: translate(0, 0);
+		background: var(--primary);
+	}
+
+	:root.dark .activity-card__arrow {
+		background: var(--deep-text);
+		color: var(--page-bg);
+	}
+
+	:root.dark .activity-card:hover .activity-card__arrow {
+		background: var(--primary);
+	}
+
+	/* === Card Body === */
+	.activity-card__body {
+		margin-bottom: 0.75rem;
+	}
+
+	.activity-card__body p {
 		margin: 0;
 		font-size: 0.9rem;
 		line-height: 1.7;
@@ -275,7 +296,8 @@ const description = "记录日常点滴，分享生活感悟。";
 		-webkit-box-orient: vertical;
 	}
 
-	.activity-item__link {
+	/* === Card Link === */
+	.activity-card__link {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25rem;
@@ -286,17 +308,17 @@ const description = "记录日常点滴，分享生活感悟。";
 		transition: color 0.15s, gap 0.15s;
 	}
 
-	.activity-item__link:hover {
+	.activity-card__link:hover {
 		color: var(--primary-hover);
 		gap: 0.5rem;
 	}
 
 	@media (max-width: 768px) {
-		.activity-list {
-			padding-left: 1.25rem;
+		.activity-card {
+			padding: 1rem 1.25rem;
 		}
 
-		.activity-item__content p {
+		.activity-card__body p {
 			font-size: 0.85rem;
 			-webkit-line-clamp: 4;
 		}
