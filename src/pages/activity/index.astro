@@ -33,14 +33,14 @@ const description = "记录日常点滴，分享生活感悟。";
 		</div>
 	</div>
 
-	<script>
-		window.escapeText = function(str) {
+	<script is:inline>
+		function escapeText(str) {
 			const div = document.createElement("div");
 			div.textContent = str;
 			return div.innerHTML;
-		};
+		}
 
-		window.formatDate = function(timestamp) {
+		function formatDate(timestamp) {
 			const d = new Date(timestamp);
 			const y = d.getFullYear();
 			const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -48,10 +48,8 @@ const description = "记录日常点滴，分享生活感悟。";
 			const h = String(d.getHours()).padStart(2, "0");
 			const min = String(d.getMinutes()).padStart(2, "0");
 			return y + "-" + m + "-" + day + " " + h + ":" + min;
-		};
-	</script>
+		}
 
-	<script is:inline>
 		function renderActivityItem(item) {
 			const url = "/activity/" + encodeURIComponent(item.slug);
 			return '<article class="activity-item card-base">' +
@@ -73,7 +71,7 @@ const description = "记录日常点滴，分享生活感悟。";
 					'<p>' + escapeText(item.content) + '</p>' +
 				'</div>' +
 				'<footer class="activity-item__footer">' +
-					'<a href="' + url + '" class="activity-item__link">查看详情</a>' +
+					'<a href="' + url + '" class="activity-item__link" data-no-swup>查看详情</a>' +
 				'</footer>' +
 			'</article>';
 		}

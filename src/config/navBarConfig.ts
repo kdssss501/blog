@@ -56,7 +56,6 @@ const buildNavBarConfig = (): NavBarConfig => {
 	if (siteConfig.pages.notebook) {
 		myChildren.push(LinkPreset.Notebook);
 	}
-	myChildren.push(LinkPreset.Activity);
 	myChildren.push(LinkPreset.Music);
 	myChildren.push(LinkPreset.About);
 
@@ -71,6 +70,7 @@ const buildNavBarConfig = (): NavBarConfig => {
 		...(siteConfig.pages.collections ? [LinkPreset.Collections] : []),
 		postsNav,
 		...(contactNav ? [contactNav] : []),
+		LinkPreset.Activity,
 		myNav,
 	];
 
