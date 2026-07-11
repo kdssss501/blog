@@ -30,19 +30,22 @@ const description = "记录日常点滴，分享生活感悟。";
 	</div>
 
 	<script is:inline>
+		var ACTIVITY_CACHE_VERSION = "cards-v2";
+
 		var activityCache = {
-			data: null,
-			timestamp: 0,
 			ttl: 180000,
+			getStorageKey: function(key) {
+				return "activity_" + ACTIVITY_CACHE_VERSION + "_" + key;
+			},
 			get: function(key) {
 				try {
-					var cached = sessionStorage.getItem("activity_" + key);
+					var cached = sessionStorage.getItem(this.getStorageKey(key));
 					if (!cached) return null;
 					var parsed = JSON.parse(cached);
 					if (Date.now() - parsed.timestamp < this.ttl) {
-						return parsed.data;
+						return validateActivityPayload(parsed.data) ? parsed.data : null;
 					}
-					sessionStorage.removeItem("activity_" + key);
+					sessionStorage.removeItem(this.getStorageKey(key));
 					return null;
 				} catch (e) {
 					return null;
@@ -55,8 +58,30 @@ const description = "记录日常点滴，分享生活感悟。";
 						timestamp: Date.now()
 					}));
 				} catch (e) {}
+				try {
+					sessionStorage.setItem(this.getStorageKey(key), JSON.stringify({
+						data: data,
+						timestamp: Date.now()
+					}));
+				} catch (e) {}
 			}
 		};
+
+		function validateActivityItem(item) {
+			if (!item || typeof item !== "object") return false;
+			var slug = typeof item.slug === "string" ? item.slug.trim() : "";
+			var title = typeof item.title === "string" ? item.title.trim() : "";
+			var excerpt = typeof item.excerpt === "string" ? item.excerpt.trim() : "";
+			var coverImage = typeof item.coverImage === "string" ? item.coverImage.trim() : "";
+			var firstImage = Array.isArray(item.images) && item.images[0] && item.images[0].url
+				? String(item.images[0].url).trim()
+				: "";
+			return !!(slug && title && excerpt && (coverImage || firstImage));
+		}
+
+		function validateActivityPayload(data) {
+			return !!(data && Array.isArray(data.items) && data.items.length > 0 && data.items.every(validateActivityItem));
+		}
 
 		function escapeText(str) {
 			const div = document.createElement("div");
@@ -107,6 +132,17 @@ const description = "记录日常点滴，分享生活感悟。";
 			list.innerHTML = items.map(function(item) {
 				return renderActivityItem(item);
 			}).join("");
+			preloadActivityImages(items);
+		}
+
+		function preloadActivityImages(items) {
+			(items || []).slice(0, 4).forEach(function(item) {
+				var coverImage = (item.coverImage || (item.images && item.images[0] && item.images[0].url) || item.image || "").trim();
+				if (!coverImage) return;
+				var img = new Image();
+				img.decoding = "async";
+				img.src = coverImage;
+			});
 		}
 
 		function fetchWithTimeout(url, options, timeoutMs) {
@@ -154,35 +190,67 @@ const description = "记录日常点滴，分享生活感悟。";
 		}
 
 		var isLoading = false;
+		var activityRequestPromise = null;
 
-		function loadActivities(forceRefresh) {
-			if (isLoading) return;
-			isLoading = true;
-
-			var loading = document.getElementById("activity-loading");
-			var empty = document.getElementById("activity-empty");
-			var list = document.getElementById("activity-list");
-
-			if (loading) loading.style.display = "flex";
-			if (empty) empty.style.display = "none";
-			if (list) list.style.display = "none";
-
-			if (!forceRefresh) {
-				var cachedData = activityCache.get("list");
-				if (cachedData) {
-					processActivityData(cachedData, loading, empty, list);
-					isLoading = false;
-					return;
-				}
-			}
-
-			fetchWithExponentialRetry("/api/activity/", { method: "GET" }, 10000, 3)
+		function fetchActivitiesData() {
+			if (activityRequestPromise) return activityRequestPromise;
+			activityRequestPromise = fetchWithExponentialRetry("/api/activity/", { method: "GET" }, 10000, 3)
 				.then(function(res) {
 					if (!res.ok) throw new Error("Failed to load activities");
 					return res.json();
 				})
 				.then(function(data) {
+					if (!validateActivityPayload(data)) {
+						throw new Error("Received stale activity payload");
+					}
 					activityCache.set("list", data);
+					return data;
+				})
+				.finally(function() {
+					activityRequestPromise = null;
+				});
+			return activityRequestPromise;
+		}
+
+		function loadActivities(forceRefresh, options) {
+			if (isLoading) return;
+			isLoading = true;
+			options = options || {};
+
+			var loading = document.getElementById("activity-loading");
+			var empty = document.getElementById("activity-empty");
+			var list = document.getElementById("activity-list");
+
+			if (!options.preserveList) {
+				if (loading) loading.style.display = "flex";
+				if (empty) empty.style.display = "none";
+				if (list) list.style.display = "none";
+			}
+
+			if (!forceRefresh) {
+				var cachedData = activityCache.get("list");
+				if (validateActivityPayload(cachedData)) {
+					processActivityData(cachedData, loading, empty, list);
+					if (!options.skipRefresh) {
+						fetchActivitiesData()
+							.then(function(data) {
+								processActivityData(data, loading, empty, list);
+							})
+							.catch(function(err) {
+								console.error("[activity] background refresh failed:", err);
+							})
+							.finally(function() {
+								isLoading = false;
+							});
+						return;
+					}
+					isLoading = false;
+					return;
+				}
+			}
+
+			fetchActivitiesData()
+				.then(function(data) {
 					processActivityData(data, loading, empty, list);
 				})
 				.catch(function(err) {
@@ -225,22 +293,44 @@ const description = "记录日常点滴，分享生活感悟。";
 			if (document.visibilityState === "visible") {
 				var list = document.getElementById("activity-list");
 				if (!list || list.style.display !== "flex") {
-					loadActivities(false);
+					loadActivities(false, { preserveList: false });
 				}
 			}
 		}
 
-		loadActivities(false);
+		function initializeActivityPage() {
+			var list = document.getElementById("activity-list");
+			if (!list || !list.children.length) {
+				loadActivities(false, { preserveList: false });
+				return;
+			}
+			loadActivities(false, { preserveList: true, skipRefresh: false });
+		}
+
+		initializeActivityPage();
+		requestAnimationFrame(function() {
+			var list = document.getElementById("activity-list");
+			if (!list || !list.children.length) {
+				loadActivities(false, { preserveList: false });
+			}
+		});
+
 		if (window.__activityPageLoadHandler) {
 			document.removeEventListener("astro:page-load", window.__activityPageLoadHandler);
 		}
 		if (window.__activityPageVisibilityHandler) {
 			document.removeEventListener("visibilitychange", window.__activityPageVisibilityHandler);
 		}
-		window.__activityPageLoadHandler = function() { loadActivities(false); };
+		window.__activityPageLoadHandler = function() { initializeActivityPage(); };
 		window.__activityPageVisibilityHandler = handleVisibilityChange;
 		document.addEventListener("astro:page-load", window.__activityPageLoadHandler);
 		document.addEventListener("visibilitychange", handleVisibilityChange);
+		window.addEventListener("pageshow", function() {
+			var list = document.getElementById("activity-list");
+			if (!list || !list.children.length) {
+				loadActivities(false, { preserveList: false });
+			}
+		}, { once: true });
 	</script>
 </MainGridLayout>
 

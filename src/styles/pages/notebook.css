@@ -1,11 +1,102 @@
 .notebook-page {
   --page-bg: #fff;
   --card-bg: #fff;
+  width: 100%;
 }
 
 .notebook-detail-page {
   --page-bg: #fff;
   --card-bg: #fff;
+}
+
+.notebook-shell {
+  width: 100%;
+  padding: 1.5rem;
+  border-radius: var(--radius-large);
+}
+
+.notebook-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr);
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.notebook-overview__intro,
+.notebook-overview__panel {
+  border: 2px solid var(--deep-text);
+  border-radius: var(--radius-large);
+  background: #fff;
+  padding: 1.35rem 1.45rem;
+}
+
+.notebook-overview__desc {
+  margin: 0.85rem 0 0;
+  color: var(--content-meta);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.notebook-overview__lead {
+  margin: 1rem 0 0;
+  color: var(--deep-text);
+  font-size: 1rem;
+  line-height: 1.85;
+}
+
+.notebook-overview__eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.65rem;
+  color: var(--content-meta);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.notebook-overview__title {
+  margin: 0;
+  color: var(--deep-text);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.28;
+  font-weight: 900;
+}
+
+.notebook-overview__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.notebook-overview__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem 0.95rem;
+  border-radius: 1rem;
+  background: #f5f5f4;
+  border: 1.5px solid color-mix(in oklch, var(--deep-text) 14%, transparent);
+}
+
+.notebook-overview__stat-label {
+  color: var(--content-meta);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.notebook-overview__stat-value {
+  color: var(--deep-text);
+  font-size: 1.15rem;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.notebook-overview__note {
+  margin: 1rem 0 0;
+  color: var(--content-meta);
+  font-size: 0.92rem;
+  line-height: 1.75;
 }
 
 html:has(.notebook-detail-page) #live2d-widget,
@@ -445,36 +536,18 @@ html:has(.notebook-detail-page) .model-message-container {
   font-size: 0.78rem;
 }
 
-.notebook-masonry {
-  column-count: 3;
-  column-gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.notebook-masonry > * {
-  break-inside: avoid;
-  margin-bottom: 1.5rem;
-  display: inline-block;
-  width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .notebook-masonry {
-    column-count: 2;
-  }
-}
-
-@media (max-width: 640px) {
-  .notebook-masonry {
-    column-count: 1;
-  }
+.notebook-grid {
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .notebook-card {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  min-height: 20rem;
   border: 2px solid var(--deep-text);
   border-radius: var(--radius-large);
   background-size: cover;
@@ -487,7 +560,7 @@ html:has(.notebook-detail-page) .model-message-container {
     transform 0.3s ease,
     box-shadow 0.3s ease;
   content-visibility: auto;
-  contain-intrinsic-size: 240px;
+  contain-intrinsic-size: 320px;
 }
 
 .notebook-card__badge {
@@ -563,7 +636,7 @@ html:has(.notebook-detail-page) .model-message-container {
 .notebook-card__name {
   margin: 0;
   color: #fff;
-  font-size: 1.35rem;
+  font-size: 1.6rem;
   font-weight: 900;
   line-height: 1.28;
   word-break: break-word;
@@ -574,7 +647,7 @@ html:has(.notebook-detail-page) .model-message-container {
 
 .notebook-card__desc {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
+  font-size: 0.98rem;
   line-height: 1.6;
   margin: 0;
   display: -webkit-box;
@@ -1045,6 +1118,10 @@ html:has(.notebook-detail-page) .model-message-container {
 }
 
 @media (max-width: 1280px) {
+  .notebook-overview {
+    grid-template-columns: 1fr;
+  }
+
   .notebook-detail-grid {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -1061,6 +1138,23 @@ html:has(.notebook-detail-page) .model-message-container {
 }
 
 @media (max-width: 768px) {
+  .notebook-shell {
+    padding: 1rem;
+  }
+
+  .notebook-overview__intro,
+  .notebook-overview__panel {
+    padding: 1.1rem;
+  }
+
+  .notebook-overview__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .notebook-grid {
+    grid-template-columns: 1fr;
+  }
+
   .notebook-hero {
     min-height: 260px;
   }
@@ -1106,7 +1200,7 @@ html:has(.notebook-detail-page) .model-message-container {
   }
 
   .notebook-card__name {
-    font-size: 1.15rem;
+    font-size: 1.3rem;
   }
 
   .notebook-hero__description {
