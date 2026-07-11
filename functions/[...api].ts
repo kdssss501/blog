@@ -47,6 +47,14 @@ interface NotebookEntry {
 	updatedAt: number;
 }
 
+interface Activity {
+	id: string;
+	slug: string;
+	content: string;
+	createdAt: number;
+	updatedAt: number;
+}
+
 function escapeHtml(str: string): string {
 	return str
 		.replace(/&/g, "&amp;")
@@ -112,6 +120,19 @@ async function getNotebookNextId(s: StorageAdapter): Promise<string> {
 	return `nb_${String(counter).padStart(3, "0")}`;
 }
 
+async function getActivityList(s: StorageAdapter): Promise<string[]> {
+	return storageGetList(s, "activity:list");
+}
+async function setActivityList(s: StorageAdapter, ids: string[]): Promise<void> {
+	await storageSetList(s, "activity:list", ids);
+}
+async function getActivity(s: StorageAdapter, slug: string): Promise<Activity | null> {
+	return storageGetJSON<Activity>(s, `activity:item:${slug}`);
+}
+async function setActivity(s: StorageAdapter, slug: string, activity: Activity): Promise<void> {
+	await storageSetJSON(s, `activity:item:${slug}`, activity);
+}
+
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		const url = new URL(request.url);
@@ -140,6 +161,10 @@ export default {
 
 			if (pathname.startsWith("/api/notebook")) {
 				return await handleNotebook(storage, request, url, pathname, method);
+			}
+
+			if (pathname.startsWith("/api/activity")) {
+				return await handleActivity(storage, request, url, pathname, method);
 			}
 
 			return new Response("Not Found", { status: 404 });
@@ -487,6 +512,171 @@ async function handleNotebook(
 		return new Response(JSON.stringify({ success: true, id }), {
 			headers: { "Content-Type": "application/json" },
 		});
+	}
+
+	return new Response("Not Found", { status: 404 });
+}
+
+async function handleActivity(
+	storage: StorageAdapter,
+	request: Request,
+	url: URL,
+	pathname: string,
+	method: string
+): Promise<Response> {
+	const parts = pathname.split("/").filter(Boolean);
+
+	if (method === "GET") {
+		if (parts.length === 2) {
+			const slug = url.searchParams.get("slug");
+			if (slug) {
+				const activity = await getActivity(storage, slug);
+				if (!activity) {
+					return new Response(JSON.stringify({ error: "Activity not found" }), {
+						status: 404,
+						headers: { "Content-Type": "application/json" },
+					});
+				}
+				return new Response(JSON.stringify(activity), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			const ids = await getActivityList(storage);
+			let items: Activity[] = [];
+			for (const id of ids) {
+				const item = await getActivity(storage, id);
+				if (item) items.push(item);
+			}
+
+			if (items.length === 0) {
+				const defaultActivities: Activity[] = [
+					{
+						id: "1",
+						slug: "first-post",
+						content: "今天开始使用这个博客记录生活啦！希望能坚持下去，记录每一天的点点滴滴。",
+						createdAt: Date.now() - 86400000 * 5,
+						updatedAt: Date.now() - 86400000 * 5,
+					},
+					{
+						id: "2",
+						slug: "morning-run",
+						content: "早起跑步的感觉真好！虽然一开始很痛苦，但跑完步后整个人都精神了。坚持就是胜利！",
+						createdAt: Date.now() - 86400000 * 4,
+						updatedAt: Date.now() - 86400000 * 4,
+					},
+					{
+						id: "3",
+						slug: "coding-night",
+						content: "今晚写了一个新功能，虽然遇到了很多坑，但最终还是搞定了。编程的乐趣就在于解决问题的过程！",
+						createdAt: Date.now() - 86400000 * 3,
+						updatedAt: Date.now() - 86400000 * 3,
+					},
+					{
+						id: "4",
+						slug: "anime-watching",
+						content: "今天看了《排球少年》第四季，真的太燃了！乌野的每一个人都在努力，没有主角光环只有汗水和坚持。",
+						createdAt: Date.now() - 86400000 * 2,
+						updatedAt: Date.now() - 86400000 * 2,
+					},
+					{
+						id: "5",
+						slug: "reading-time",
+						content: "周末终于有空看书了，《人类简史》真的很有意思，让我对人类的发展有了新的认识。",
+						createdAt: Date.now() - 86400000,
+						updatedAt: Date.now() - 86400000,
+					},
+					{
+						id: "6",
+						slug: "coffee-break",
+						content: "午后咖啡时光，享受片刻的宁静。生活需要偶尔放慢脚步，好好感受当下。",
+						createdAt: Date.now() - 3600000 * 6,
+						updatedAt: Date.now() - 3600000 * 6,
+					},
+				];
+
+				const newIds: string[] = [];
+				for (const activity of defaultActivities) {
+					await setActivity(storage, activity.slug, activity);
+					newIds.push(activity.slug);
+				}
+				await setActivityList(storage, newIds);
+				items = defaultActivities;
+			}
+
+			items.sort((a, b) => b.createdAt - a.createdAt);
+			return new Response(JSON.stringify({ items, total: items.length }), {
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+	}
+
+	if (method === "POST") {
+		if (parts.length === 2) {
+			const body = await request.json().catch(() => ({}));
+			const content = (body.content || "").trim();
+
+			if (!content) {
+				return new Response(JSON.stringify({ error: "Content is required" }), {
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			const id = Date.now().toString();
+			const slug = "activity-" + id;
+			const now = Date.now();
+
+			const activity: Activity = {
+				id,
+				slug,
+				content,
+				createdAt: now,
+				updatedAt: now,
+			};
+
+			await setActivity(storage, slug, activity);
+			const ids = await getActivityList(storage);
+			ids.unshift(slug);
+			await setActivityList(storage, ids);
+
+			return new Response(JSON.stringify(activity), {
+				status: 201,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+	}
+
+	if (method === "DELETE") {
+		if (parts.length === 2) {
+			const slug = url.searchParams.get("slug");
+			if (!slug) {
+				return new Response(JSON.stringify({ error: "Slug is required" }), {
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			const activity = await getActivity(storage, slug);
+			if (!activity) {
+				return new Response(JSON.stringify({ error: "Activity not found" }), {
+					status: 404,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			await storage.delete(`activity:item:${slug}`);
+			const ids = (await getActivityList(storage)).filter(
+				(existingId) => existingId !== slug
+			);
+			await setActivityList(storage, ids);
+
+			return new Response(JSON.stringify({ success: true }), {
+				status: 200,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
 	}
 
 	return new Response("Not Found", { status: 404 });
