@@ -29,13 +29,22 @@ const description = "记录日常点滴，分享生活感悟。";
 		</div>
 	</div>
 
-	<script is:inline>
-		var ACTIVITY_CACHE_VERSION = "cards-v3";
+        <script>
+                // @ts-nocheck
+                import {
+                        ACTIVITY_CACHE_TTL,
+                        ACTIVITY_LIST_CACHE_VERSION,
+                        formatActivityDate,
+                        getActivityCacheKey,
+                        stripActivityHtml,
+                } from "@/utils/activity-client";
+
+                var ACTIVITY_CACHE_VERSION = ACTIVITY_LIST_CACHE_VERSION;
 
 		var activityCache = {
-			ttl: 180000,
+                        ttl: ACTIVITY_CACHE_TTL,
 			getStorageKey: function(key) {
-				return "activity_" + ACTIVITY_CACHE_VERSION + "_" + key;
+                                return getActivityCacheKey(ACTIVITY_CACHE_VERSION, key);
 			},
 			get: function(key) {
 				try {
@@ -78,25 +87,27 @@ const description = "记录日常点滴，分享生活感悟。";
 			return div.innerHTML;
 		}
 
-		function formatDate(timestamp) {
-			const d = new Date(timestamp);
-			const y = d.getFullYear();
-			const m = String(d.getMonth() + 1).padStart(2, "0");
-			const day = String(d.getDate()).padStart(2, "0");
-			const h = String(d.getHours()).padStart(2, "0");
-			const min = String(d.getMinutes()).padStart(2, "0");
-			return y + "-" + m + "-" + day + " " + h + ":" + min;
+		function stripHtml(html) {
+                        return stripActivityHtml(html || "");
 		}
 
 		function renderActivityItem(item) {
 			const url = "/activity/view/?slug=" + encodeURIComponent(item.slug);
 			const coverImage = (item.coverImage || (item.images && item.images[0] && item.images[0].url) || item.image || "").trim();
-			const excerpt = item.excerpt || item.content || "";
+			const excerpt = item.excerpt || stripHtml(item.html || item.content || "");
+                        const overview = item.overview || {};
+                        const readingMinutes = overview.readingMinutes || 1;
+                        const sectionCount = overview.sectionCount || 1;
+                        const imageCount = overview.imageCount || (Array.isArray(item.images) ? item.images.length : 0);
+                        const activityTime = overview.updatedLabel || formatActivityDate(item.updatedAt || item.createdAt);
 			return '<article class="activity-card">' +
 				'<a href="' + url + '" class="activity-card__surface" aria-label="查看动态详情：' + escapeText(item.title || "未命名动态") + '">' +
 				'<div class="activity-card__header">' +
 					'<div class="activity-card__title-wrap">' +
-						'<span class="activity-card__time">' + formatDate(item.createdAt) + '</span>' +
+						'<div class="activity-card__meta">' +
+							'<span class="activity-card__eyebrow">Modern Activity</span>' +
+                                                        '<span class="activity-card__time">' + activityTime + '</span>' +
+						'</div>' +
 						'<h2 class="activity-card__title">' + escapeText(item.title || "未命名动态") + '</h2>' +
 					'</div>' +
 					'<div class="activity-card__header-side">' +
@@ -108,6 +119,11 @@ const description = "记录日常点滴，分享生活感悟。";
 				'</div>' +
 				'<div class="activity-card__body">' +
 					'<p>' + escapeText(excerpt) + '</p>' +
+				'</div>' +
+				'<div class="activity-card__chips">' +
+					'<span class="activity-card__chip">' + readingMinutes + ' 分钟阅读</span>' +
+					'<span class="activity-card__chip">' + sectionCount + ' 个章节</span>' +
+					'<span class="activity-card__chip">' + imageCount + ' 张图片</span>' +
 				'</div>' +
 				'<span class="activity-card__link">查看详情 →</span>' +
 				'</a>' +
@@ -122,6 +138,33 @@ const description = "记录日常点滴，分享生活感悟。";
 				return renderActivityItem(item);
 			}).join("");
 			preloadActivityImages(items);
+			enhanceActivityList(list);
+		}
+
+		function enhanceActivityList(list) {
+			var cards = list.querySelectorAll(".activity-card");
+			if (!("IntersectionObserver" in window)) {
+				cards.forEach(function(card) {
+					card.classList.add("is-visible");
+				});
+				return;
+			}
+
+			var observer = new IntersectionObserver(function(entries, currentObserver) {
+				entries.forEach(function(entry) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add("is-visible");
+						currentObserver.unobserve(entry.target);
+					}
+				});
+			}, {
+				threshold: 0.14,
+				rootMargin: "0px 0px -10% 0px",
+			});
+
+			cards.forEach(function(card) {
+				observer.observe(card);
+			});
 		}
 
 		function preloadActivityImages(items) {
@@ -409,6 +452,19 @@ const description = "记录日常点滴，分享生活感悟。";
 		overflow: hidden;
 		content-visibility: auto;
 		contain-intrinsic-size: 230px;
+		opacity: 0;
+		transform: translateY(18px);
+		transition:
+			transform 0.3s ease,
+			border-color 0.3s ease,
+			box-shadow 0.3s ease,
+			background-color 0.3s ease,
+			opacity 0.38s ease;
+	}
+
+	.activity-card.is-visible {
+		opacity: 1;
+		transform: translateY(0);
 	}
 
 	.activity-card__surface {
@@ -445,11 +501,31 @@ const description = "记录日常点滴，分享生活感悟。";
 		flex: 1;
 	}
 
+	.activity-card__meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+	}
+
+	.activity-card__eyebrow {
+		display: inline-flex;
+		padding: 0.28rem 0.55rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--deep-text) 7%, #fff);
+		border: 1px solid color-mix(in oklch, var(--deep-text) 14%, transparent);
+		font-size: 0.68rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--deep-text) 68%, #fff);
+	}
+
 	.activity-card__time {
 		display: inline-block;
 		font-size: 0.75rem;
 		font-weight: 700;
-		color: var(--content-meta);
+		color: color-mix(in oklch, var(--deep-text) 72%, #fff);
 		font-family: ui-monospace, SFMono-Regular, monospace;
 		letter-spacing: 0.02em;
 	}
@@ -528,7 +604,8 @@ const description = "记录日常点滴，分享生活感悟。";
 		margin: 0;
 		font-size: 0.95rem;
 		line-height: 1.7;
-		color: var(--deep-text);
+		color: color-mix(in oklch, var(--deep-text) 92%, #000);
+		font-weight: 600;
 		white-space: pre-wrap;
 		word-break: break-word;
 		overflow: hidden;
@@ -542,11 +619,29 @@ const description = "记录日常点滴，分享生活感悟。";
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25rem;
-		padding-top: 0.15rem;
+		padding-top: 0.8rem;
 		font-size: 0.75rem;
 		font-weight: 700;
 		color: var(--deep-text);
 		transition: color 0.15s, gap 0.15s;
+	}
+
+	.activity-card__chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.activity-card__chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.38rem 0.72rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--deep-text) 5%, #fff);
+		border: 1px solid color-mix(in oklch, var(--deep-text) 12%, transparent);
+		font-size: 0.73rem;
+		font-weight: 700;
+		color: color-mix(in oklch, var(--deep-text) 78%, #fff);
 	}
 
 	:root.dark .activity-card__link {

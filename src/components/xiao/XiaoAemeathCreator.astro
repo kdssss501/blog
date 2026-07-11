@@ -1,0 +1,494 @@
+<section class="xiao-module">
+	<header class="xiao-module__hero">
+		<div class="xiao-module__copy">
+			<span class="xiao-module__eyebrow">Xiao / Aemeath Creator</span>
+			<h1 class="xiao-module__title">小爱 · 爱米斯角色创建页</h1>
+			<p class="xiao-module__desc">
+				这是一个独立的顶层功能模块，只负责角色创建与预览，不接入当前站点的动态、笔记本或其他页面逻辑。
+			</p>
+		</div>
+		<div class="xiao-module__badge">
+			<span>独立模块</span>
+			<strong>Zero Side Effects</strong>
+		</div>
+	</header>
+
+	<div class="xiao-module__layout">
+		<section class="xiao-panel">
+			<div class="xiao-panel__head">
+				<span class="xiao-panel__eyebrow">Creator</span>
+				<h2 class="xiao-panel__title">角色参数</h2>
+			</div>
+
+			<form class="xiao-form" id="xiao-creator-form">
+				<label class="xiao-field">
+					<span>角色名称</span>
+					<input name="name" value="爱米斯 Aemeath" maxlength="36" />
+				</label>
+
+				<label class="xiao-field">
+					<span>角色定位</span>
+					<input name="role" value="鸣潮角色 / 博客专题主角" maxlength="48" />
+				</label>
+
+				<label class="xiao-field">
+					<span>角色标签</span>
+					<input name="tags" value="共鸣者, 纯白审美, 资料专题, 图文展示" maxlength="80" />
+				</label>
+
+				<label class="xiao-field">
+					<span>主色调</span>
+					<input name="accent" type="color" value="#7f8cff" />
+				</label>
+
+				<label class="xiao-field">
+					<span>封面图 URL</span>
+					<input name="cover" value="/gallery/gpt-img2-2026/6.webp" />
+				</label>
+
+				<label class="xiao-field xiao-field--full">
+					<span>角色简介</span>
+					<textarea name="summary" rows="4">以安静、锋利、纯白的视觉语言来承接爱米斯角色专题，让角色资料页既有图鉴感，也保留博客式的呼吸感。</textarea>
+				</label>
+
+				<label class="xiao-field xiao-field--full">
+					<span>核心能力</span>
+					<textarea name="skills" rows="4">高识别度角色卡, 专题文章 Hero, 图文混排资料区, 移动端优先适配</textarea>
+				</label>
+
+				<label class="xiao-field xiao-field--full">
+					<span>角色台词</span>
+					<textarea name="quote" rows="3">“把角色页做得像一篇值得读完的内容，而不是一块只会堆信息的面板。”</textarea>
+				</label>
+			</form>
+
+			<div class="xiao-actions">
+				<button type="button" class="xiao-btn xiao-btn--primary" id="xiao-fill-demo">填充示例</button>
+				<button type="button" class="xiao-btn" id="xiao-export-json">导出 JSON</button>
+				<button type="button" class="xiao-btn" id="xiao-reset-form">重置表单</button>
+			</div>
+		</section>
+
+		<section class="xiao-panel">
+			<div class="xiao-panel__head">
+				<span class="xiao-panel__eyebrow">Preview</span>
+				<h2 class="xiao-panel__title">实时预览</h2>
+			</div>
+
+			<article class="xiao-preview-card" id="xiao-preview-card">
+				<div class="xiao-preview-card__media">
+					<img id="xiao-preview-cover" src="/gallery/gpt-img2-2026/6.webp" alt="爱米斯角色封面" />
+				</div>
+				<div class="xiao-preview-card__body">
+					<span class="xiao-preview-card__eyebrow" id="xiao-preview-role">鸣潮角色 / 博客专题主角</span>
+					<h3 class="xiao-preview-card__title" id="xiao-preview-name">爱米斯 Aemeath</h3>
+					<p class="xiao-preview-card__summary" id="xiao-preview-summary"></p>
+					<div class="xiao-preview-card__chips" id="xiao-preview-tags"></div>
+					<blockquote class="xiao-preview-card__quote" id="xiao-preview-quote"></blockquote>
+				</div>
+			</article>
+
+			<div class="xiao-schema">
+				<div class="xiao-schema__head">
+					<span class="xiao-panel__eyebrow">Schema</span>
+					<strong>可落地数据结构</strong>
+				</div>
+				<pre class="xiao-schema__code" id="xiao-schema-output"></pre>
+			</div>
+		</section>
+	</div>
+</section>
+
+<script>
+	// @ts-nocheck
+	const STORAGE_KEY = "xiao_aemeath_creator_v1";
+	const form = document.getElementById("xiao-creator-form");
+	const previewCard = document.getElementById("xiao-preview-card");
+	const output = document.getElementById("xiao-schema-output");
+
+	function safeText(value) {
+		return String(value == null ? "" : value).trim();
+	}
+
+	function getFormState() {
+		const formData = new FormData(form);
+		return {
+			name: safeText(formData.get("name")),
+			role: safeText(formData.get("role")),
+			tags: safeText(formData.get("tags")),
+			accent: safeText(formData.get("accent")) || "#7f8cff",
+			cover: safeText(formData.get("cover")) || "/gallery/gpt-img2-2026/6.webp",
+			summary: safeText(formData.get("summary")),
+			skills: safeText(formData.get("skills")),
+			quote: safeText(formData.get("quote")),
+		};
+	}
+
+	function renderPreview(state) {
+		document.getElementById("xiao-preview-name").textContent = state.name || "未命名角色";
+		document.getElementById("xiao-preview-role").textContent = state.role || "待设定角色定位";
+		document.getElementById("xiao-preview-summary").textContent = state.summary || "暂无角色简介。";
+		document.getElementById("xiao-preview-quote").textContent = state.quote || "“等待填写角色台词。”";
+
+		const cover = document.getElementById("xiao-preview-cover");
+		cover.src = state.cover;
+		cover.alt = state.name || "角色封面";
+
+		const tagWrap = document.getElementById("xiao-preview-tags");
+		tagWrap.innerHTML = state.tags
+			.split(",")
+			.map((item) => item.trim())
+			.filter(Boolean)
+			.map((item) => '<span class="xiao-preview-card__chip">' + item + "</span>")
+			.join("");
+
+		if (previewCard) {
+			previewCard.style.setProperty("--xiao-accent", state.accent);
+		}
+
+		output.textContent = JSON.stringify(
+			{
+				module: "xiao",
+				character: {
+					...state,
+					tags: state.tags
+						.split(",")
+						.map((item) => item.trim())
+						.filter(Boolean),
+					skills: state.skills
+						.split(",")
+						.map((item) => item.trim())
+						.filter(Boolean),
+				},
+			},
+			null,
+			2,
+		);
+	}
+
+	function persistState(state) {
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+		} catch {
+			// ignore persistence failure
+		}
+	}
+
+	function restoreState() {
+		try {
+			const raw = localStorage.getItem(STORAGE_KEY);
+			if (!raw) return;
+			const parsed = JSON.parse(raw);
+			Object.entries(parsed).forEach(([key, value]) => {
+				const field = form.elements.namedItem(key);
+				if (field && "value" in field) {
+					field.value = String(value ?? "");
+				}
+			});
+		} catch {
+			// ignore restore failure
+		}
+	}
+
+	function syncAll() {
+		const state = getFormState();
+		renderPreview(state);
+		persistState(state);
+	}
+
+	restoreState();
+	syncAll();
+
+	form.addEventListener("input", syncAll);
+	form.addEventListener("change", syncAll);
+
+	document.getElementById("xiao-fill-demo").addEventListener("click", function() {
+		form.elements.namedItem("name").value = "爱米斯 Aemeath";
+		form.elements.namedItem("role").value = "鸣潮角色 / 白底极简专题页主角";
+		form.elements.namedItem("tags").value = "高辨识角色卡, 专题导语, 图鉴资料, 响应式适配";
+		form.elements.namedItem("accent").value = "#99a8ff";
+		form.elements.namedItem("cover").value = "/gallery/gpt-img2-2026/1.webp";
+		form.elements.namedItem("summary").value = "用更纯净的版式去承接爱米斯角色专题，让页面兼具内容阅读感和角色设定页的沉浸氛围。";
+		form.elements.namedItem("skills").value = "角色总览, 技能分区, 资料时间线, 可扩展图像资源";
+		form.elements.namedItem("quote").value = "“角色页不是资料仓库，而是把信息组织成值得停留的阅读体验。”";
+		syncAll();
+	});
+
+	document.getElementById("xiao-export-json").addEventListener("click", async function() {
+		const text = output.textContent || "";
+		try {
+			await navigator.clipboard.writeText(text);
+			this.textContent = "已复制 JSON";
+			setTimeout(() => {
+				this.textContent = "导出 JSON";
+			}, 1200);
+		} catch {
+			this.textContent = "复制失败";
+			setTimeout(() => {
+				this.textContent = "导出 JSON";
+			}, 1200);
+		}
+	});
+
+	document.getElementById("xiao-reset-form").addEventListener("click", function() {
+		localStorage.removeItem(STORAGE_KEY);
+		form.reset();
+		form.elements.namedItem("name").value = "爱米斯 Aemeath";
+		form.elements.namedItem("role").value = "鸣潮角色 / 博客专题主角";
+		form.elements.namedItem("tags").value = "共鸣者, 纯白审美, 资料专题, 图文展示";
+		form.elements.namedItem("accent").value = "#7f8cff";
+		form.elements.namedItem("cover").value = "/gallery/gpt-img2-2026/6.webp";
+		form.elements.namedItem("summary").value = "以安静、锋利、纯白的视觉语言来承接爱米斯角色专题，让角色资料页既有图鉴感，也保留博客式的呼吸感。";
+		form.elements.namedItem("skills").value = "高识别度角色卡, 专题文章 Hero, 图文混排资料区, 移动端优先适配";
+		form.elements.namedItem("quote").value = "“把角色页做得像一篇值得读完的内容，而不是一块只会堆信息的面板。”";
+		syncAll();
+	});
+</script>
+
+<style is:global>
+	.xiao-module {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.xiao-module__hero,
+	.xiao-panel,
+	.xiao-preview-card,
+	.xiao-schema {
+		border-radius: var(--radius-large);
+		border: 1.5px solid color-mix(in oklch, var(--deep-text) 12%, transparent);
+		background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(247,247,246,0.98) 100%);
+		box-shadow: 0 26px 60px -34px color-mix(in oklch, var(--deep-text) 22%, transparent);
+	}
+
+	.xiao-module__hero {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1.4rem;
+	}
+
+	.xiao-module__copy {
+		max-width: 48rem;
+	}
+
+	.xiao-module__eyebrow,
+	.xiao-panel__eyebrow {
+		display: inline-block;
+		font-size: 0.76rem;
+		font-weight: 800;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--content-meta);
+	}
+
+	.xiao-module__title,
+	.xiao-panel__title {
+		margin: 0.45rem 0 0;
+		color: var(--deep-text);
+		font-weight: 900;
+	}
+
+	.xiao-module__title {
+		font-size: clamp(2rem, 4vw, 3rem);
+		line-height: 1.06;
+	}
+
+	.xiao-module__desc {
+		margin: 0.8rem 0 0;
+		max-width: 44rem;
+		line-height: 1.9;
+		color: color-mix(in oklch, var(--deep-text) 82%, white);
+	}
+
+	.xiao-module__badge {
+		min-width: 190px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-end;
+		gap: 0.25rem;
+		font-size: 0.82rem;
+		color: var(--content-meta);
+	}
+
+	.xiao-module__badge strong {
+		font-size: 1rem;
+		color: var(--deep-text);
+	}
+
+	.xiao-module__layout {
+		display: grid;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+		gap: 1.25rem;
+	}
+
+	.xiao-panel {
+		padding: 1.3rem;
+	}
+
+	.xiao-panel__head {
+		margin-bottom: 1rem;
+	}
+
+	.xiao-form {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.95rem;
+	}
+
+	.xiao-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+	}
+
+	.xiao-field--full {
+		grid-column: 1 / -1;
+	}
+
+	.xiao-field span {
+		font-size: 0.84rem;
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+
+	.xiao-field input,
+	.xiao-field textarea {
+		width: 100%;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in oklch, var(--deep-text) 12%, transparent);
+		background: #fff;
+		color: var(--deep-text);
+		padding: 0.88rem 0.95rem;
+		line-height: 1.6;
+	}
+
+	.xiao-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1rem;
+	}
+
+	.xiao-btn {
+		height: 2.8rem;
+		padding: 0 1rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklch, var(--deep-text) 14%, transparent);
+		background: #fff;
+		color: var(--deep-text);
+		font-weight: 800;
+	}
+
+	.xiao-btn--primary {
+		background: var(--deep-text);
+		color: #fff;
+	}
+
+	.xiao-preview-card {
+		--xiao-accent: #7f8cff;
+		overflow: hidden;
+	}
+
+	.xiao-preview-card__media {
+		aspect-ratio: 16 / 9;
+		background: color-mix(in oklch, var(--xiao-accent) 18%, white);
+	}
+
+	.xiao-preview-card__media img {
+		width: 100%;
+		height: 100%;
+		display: block;
+		object-fit: cover;
+	}
+
+	.xiao-preview-card__body {
+		padding: 1.1rem 1.15rem 1.2rem;
+	}
+
+	.xiao-preview-card__eyebrow {
+		display: inline-flex;
+		font-size: 0.78rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--xiao-accent) 66%, var(--deep-text));
+	}
+
+	.xiao-preview-card__title {
+		margin: 0.55rem 0 0;
+		font-size: 1.65rem;
+		font-weight: 900;
+		color: var(--deep-text);
+	}
+
+	.xiao-preview-card__summary {
+		margin: 0.8rem 0 0;
+		line-height: 1.85;
+		color: color-mix(in oklch, var(--deep-text) 82%, white);
+	}
+
+	.xiao-preview-card__chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+		margin-top: 0.95rem;
+	}
+
+	.xiao-preview-card__chip {
+		padding: 0.45rem 0.75rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--xiao-accent) 14%, white);
+		color: color-mix(in oklch, var(--xiao-accent) 70%, var(--deep-text));
+		font-size: 0.8rem;
+		font-weight: 800;
+	}
+
+	.xiao-preview-card__quote {
+		margin: 1rem 0 0;
+		padding: 0.95rem 1rem;
+		border-left: 4px solid var(--xiao-accent);
+		background: color-mix(in oklch, var(--xiao-accent) 8%, white);
+		border-radius: 0 1rem 1rem 0;
+		color: var(--deep-text);
+		line-height: 1.8;
+	}
+
+	.xiao-schema {
+		margin-top: 1rem;
+	}
+
+	.xiao-schema__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem 1rem 0;
+		color: var(--deep-text);
+	}
+
+	.xiao-schema__code {
+		margin: 0;
+		padding: 1rem;
+		font-size: 0.86rem;
+		line-height: 1.75;
+		overflow-x: auto;
+		color: #eef2ff;
+		background: linear-gradient(180deg, #101319 0%, #151923 100%);
+		border-radius: 0 0 var(--radius-large) var(--radius-large);
+	}
+
+	@media (max-width: 960px) {
+		.xiao-module__hero,
+		.xiao-module__layout,
+		.xiao-form {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.xiao-module__badge {
+			align-items: flex-start;
+		}
+	}
+</style>

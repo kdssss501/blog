@@ -1,0 +1,1131 @@
+---
+import Markdown from "@/components/common/Markdown.astro";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+
+interface Props {
+	usePathSlug?: boolean;
+}
+
+const { usePathSlug = false } = Astro.props;
+---
+
+<section class="activity-article-page" data-activity-slug-mode={usePathSlug ? "path" : "query"}>
+	<a href="/activity/" class="activity-article-back" data-no-swup>
+		<span class="activity-article-back__icon">←</span>
+		<span class="activity-article-back__text">返回动态列表</span>
+	</a>
+
+	<div class="activity-article-shell" id="activity-article-shell">
+		<div class="activity-article-state activity-article-state--loading" id="activity-article-loading">
+			<span class="activity-article-state__dot"></span>
+			<div class="activity-article-state__copy">
+				<strong>正在装配文章视图</strong>
+				<span>异步拉取正文、目录和图像资源...</span>
+			</div>
+		</div>
+
+		<div class="activity-article-state activity-article-state--error hidden" id="activity-article-error">
+			<p id="activity-article-error-text">加载失败，请稍后重试。</p>
+			<button type="button" class="activity-article-state__retry" id="activity-article-retry">
+				重新加载
+			</button>
+		</div>
+
+		<article class="activity-article-view hidden" id="activity-article-view">
+			<header class="activity-article-hero card-base activity-fade-section">
+				<div class="activity-article-hero__content">
+					<span class="activity-article-hero__eyebrow">Firefly / Activity Article</span>
+					<h1 class="activity-article-hero__title" id="activity-article-title">动态详情</h1>
+					<p class="activity-article-hero__excerpt" id="activity-article-excerpt">正在准备内容摘要...</p>
+					<div class="activity-article-hero__meta" id="activity-article-meta"></div>
+				</div>
+				<div class="activity-article-hero__media" id="activity-article-hero-media"></div>
+			</header>
+
+			<div class="activity-article-grid">
+				<div class="activity-article-main">
+					<section class="activity-article-section card-base activity-fade-section">
+						<div class="activity-article-section__head">
+							<span class="activity-article-section__eyebrow">Article View</span>
+							<h2 class="activity-article-section__title">正文内容</h2>
+						</div>
+						<Markdown class="activity-article-markdown">
+							<div id="activity-article-body"></div>
+						</Markdown>
+					</section>
+
+					<section class="activity-article-section activity-article-section--assets card-base hidden" id="activity-article-assets">
+						<div class="activity-article-section__head">
+							<span class="activity-article-section__eyebrow">Assets</span>
+							<h2 class="activity-article-section__title">图像资源</h2>
+						</div>
+						<div class="activity-article-assets__grid" id="activity-article-assets-grid"></div>
+					</section>
+				</div>
+
+				<aside class="activity-article-sidebar">
+					<WidgetLayout id="activity-overview-widget" name="Overview" class="activity-article-widget">
+						<div class="activity-article-overview" id="activity-overview-stats"></div>
+					</WidgetLayout>
+
+					<WidgetLayout id="activity-toc-widget" name="Contents" class="activity-article-widget">
+						<div class="toc-scroll-container custom-scrollbar activity-article-toc-scroll">
+							<div class="toc-content" id="activity-article-toc"></div>
+						</div>
+					</WidgetLayout>
+
+					<WidgetLayout id="activity-metrics-widget" name="Metrics" class="activity-article-widget">
+						<div class="activity-article-overview" id="activity-performance-stats"></div>
+					</WidgetLayout>
+				</aside>
+			</div>
+		</article>
+	</div>
+</section>
+
+<script>
+	// @ts-nocheck
+	import {
+		ACTIVITY_CACHE_TTL,
+		ACTIVITY_DETAIL_CACHE_VERSION,
+		formatActivityDate,
+		getActivityCacheKey,
+		stripActivityHtml,
+	} from "@/utils/activity-client";
+	import { TOCManager } from "@/utils/toc-utils";
+
+	let activityAbortController = null;
+	let activityTOCManager = null;
+	let interactionProbeBound = false;
+	let metricsState = {
+		fetchCost: null,
+		renderCost: null,
+		firstPaint: null,
+		interactionDelay: null,
+	};
+
+	function escapeText(value) {
+		const div = document.createElement("div");
+		div.textContent = value == null ? "" : String(value);
+		return div.innerHTML;
+	}
+
+	function getSlugMode() {
+		const page = document.querySelector(".activity-article-page");
+		return page ? page.getAttribute("data-activity-slug-mode") || "query" : "query";
+	}
+
+	function getActivitySlug(mode) {
+		if (mode === "path") {
+			const segments = window.location.pathname.split("/").filter(Boolean);
+			return segments.length > 0 ? segments[segments.length - 1] : "";
+		}
+
+		const params = new URLSearchParams(window.location.search);
+		const fromQuery = (params.get("slug") || "").trim();
+		if (fromQuery) return fromQuery;
+
+		const segments = window.location.pathname.split("/").filter(Boolean);
+		return segments.length > 0 ? segments[segments.length - 1] : "";
+	}
+
+	function getDetailCacheKey(slug) {
+		return getActivityCacheKey(ACTIVITY_DETAIL_CACHE_VERSION, slug);
+	}
+
+	function readDetailCache(slug) {
+		try {
+			const cached = sessionStorage.getItem(getDetailCacheKey(slug));
+			if (!cached) return null;
+			const parsed = JSON.parse(cached);
+			if (!parsed || !parsed.data) return null;
+			if (Date.now() - parsed.timestamp > ACTIVITY_CACHE_TTL) return null;
+			return parsed.data;
+		} catch {
+			return null;
+		}
+	}
+
+	function writeDetailCache(slug, data) {
+		try {
+			sessionStorage.setItem(
+				getDetailCacheKey(slug),
+				JSON.stringify({
+					data,
+					timestamp: Date.now(),
+				}),
+			);
+		} catch {
+			// ignore cache failures
+		}
+	}
+
+	function fetchWithTimeout(url, options, timeoutMs) {
+		return new Promise(function(resolve, reject) {
+			const controller = new AbortController();
+			const outerSignal = options && options.signal;
+
+			function handleAbort() {
+				controller.abort();
+				reject(new DOMException("Aborted", "AbortError"));
+			}
+
+			if (outerSignal && typeof outerSignal.addEventListener === "function") {
+				if (outerSignal.aborted) {
+					handleAbort();
+					return;
+				}
+				outerSignal.addEventListener("abort", handleAbort, { once: true });
+			}
+
+			const timer = setTimeout(function() {
+				controller.abort();
+				reject(new Error("Request timeout"));
+			}, timeoutMs || 8000);
+
+			const nextOptions = Object.assign({}, options || {}, { signal: controller.signal });
+			fetch(url, nextOptions)
+				.then(function(res) {
+					clearTimeout(timer);
+					if (outerSignal && typeof outerSignal.removeEventListener === "function") {
+						outerSignal.removeEventListener("abort", handleAbort);
+					}
+					resolve(res);
+				})
+				.catch(function(err) {
+					clearTimeout(timer);
+					if (outerSignal && typeof outerSignal.removeEventListener === "function") {
+						outerSignal.removeEventListener("abort", handleAbort);
+					}
+					reject(err);
+				});
+		});
+	}
+
+	function fetchWithRetry(url, options, timeoutMs, retries) {
+		return fetchWithTimeout(url, options, timeoutMs).catch(function(err) {
+			if (retries > 0) {
+				return new Promise(function(resolve) {
+					setTimeout(function() {
+						resolve(fetchWithRetry(url, options, timeoutMs, retries - 1));
+					}, 320);
+				});
+			}
+			throw err;
+		});
+	}
+
+	function createHighlightedCode(code, lang) {
+		const placeholders = [];
+
+		function stash(value) {
+			const token = "__TOKEN_" + placeholders.length + "__";
+			placeholders.push(value);
+			return token;
+		}
+
+		let html = escapeText(code);
+		html = html.replace(/(\/\/.*$|\/\*[\s\S]*?\*\/|#.*$)/gm, function(match) {
+			return stash('<span class="tok-comment">' + match + "</span>");
+		});
+		html = html.replace(/(["'`])(?:\\.|(?!\1)[^\\\n])*\1/g, function(match) {
+			return stash('<span class="tok-string">' + match + "</span>");
+		});
+		html = html.replace(/\b\d+(?:\.\d+)?\b/g, '<span class="tok-number">$&</span>');
+
+		const keywordGroups = {
+			javascript: /\b(const|let|var|function|return|if|else|for|while|await|async|new|class|import|from|export|try|catch|throw|switch|case|break|continue)\b/g,
+			typescript: /\b(const|let|var|function|return|if|else|for|while|await|async|new|class|import|from|export|try|catch|throw|interface|type|extends|implements|public|private|protected)\b/g,
+			json: /\b(true|false|null)\b/g,
+			css: /\b(display|position|color|background|border|padding|margin|grid|flex|font-size|transform|transition)\b/g,
+			html: /(&lt;\/?[a-zA-Z-]+|\/?&gt;)/g,
+			bash: /\b(if|then|fi|for|do|done|echo|export|npm|pnpm|git|node)\b/g,
+			astro: /\b(import|from|const|return|class|if|else|await|async)\b/g,
+		};
+		const keywordPattern = keywordGroups[lang] || keywordGroups.javascript;
+		html = html.replace(keywordPattern, '<span class="tok-keyword">$&</span>');
+		html = html.replace(/\b([A-Z][A-Za-z0-9_]+)\b/g, '<span class="tok-type">$1</span>');
+
+		return html.replace(/__TOKEN_(\d+)__/g, function(_, index) {
+			return placeholders[Number(index)] || "";
+		});
+	}
+
+	function highlightCodeBlocks(root) {
+		const codeBlocks = root.querySelectorAll(".activity-code-block code");
+		codeBlocks.forEach(function(block) {
+			const source = block.textContent || "";
+			const langClass = Array.from(block.classList).find(function(name) {
+				return name.indexOf("language-") === 0;
+			}) || "";
+			const lang = langClass.replace("language-", "");
+			block.innerHTML = createHighlightedCode(source, lang);
+		});
+	}
+
+	function initImages(root) {
+		root.querySelectorAll("img").forEach(function(image) {
+			if (!image.classList.contains("activity-article-hero__image")) {
+				image.loading = "lazy";
+			}
+			image.decoding = "async";
+			image.classList.add("activity-image-ready");
+			if (image.complete) {
+				image.classList.add("is-loaded");
+			} else {
+				image.addEventListener(
+					"load",
+					function() {
+						image.classList.add("is-loaded");
+					},
+					{ once: true },
+				);
+			}
+		});
+	}
+
+	function initRevealAnimations(root) {
+		const targets = root.querySelectorAll(
+			".activity-fade-section, .activity-content-block, .activity-rich-heading, .activity-code-block, .activity-rich-image, .activity-article-asset"
+		);
+
+		if (!("IntersectionObserver" in window)) {
+			targets.forEach(function(target) {
+				target.classList.add("is-visible");
+			});
+			return;
+		}
+
+		const observer = new IntersectionObserver(
+			function(entries, currentObserver) {
+				entries.forEach(function(entry) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add("is-visible");
+						currentObserver.unobserve(entry.target);
+					}
+				});
+			},
+			{
+				threshold: 0.12,
+				rootMargin: "0px 0px -8% 0px",
+			},
+		);
+
+		targets.forEach(function(target) {
+			observer.observe(target);
+		});
+	}
+
+	function cleanupActivityTOC() {
+		if (activityTOCManager) {
+			activityTOCManager.cleanup();
+			activityTOCManager = null;
+		}
+	}
+
+	function initTOC() {
+		cleanupActivityTOC();
+		activityTOCManager = new TOCManager({
+			contentId: "activity-article-toc",
+			indicatorId: "activity-article-toc-indicator",
+			maxLevel: 4,
+			scrollOffset: 110,
+		});
+		activityTOCManager.init();
+
+		const tocContent = document.getElementById("activity-article-toc");
+		const tocWidget = document
+			.getElementById("activity-toc-widget")
+			?.closest("widget-layout");
+		if (!tocContent || !tocWidget) return;
+
+		if (tocContent.textContent && tocContent.textContent.includes("暂无")) {
+			tocWidget.classList.add("hidden");
+		} else {
+			tocWidget.classList.remove("hidden");
+		}
+	}
+
+	function updatePerformancePanel() {
+		const panel = document.getElementById("activity-performance-stats");
+		if (!panel) return;
+
+		const metrics = [
+			{
+				label: "数据加载",
+				value: metricsState.fetchCost != null ? Math.round(metricsState.fetchCost) + "ms" : "采样中",
+			},
+			{
+				label: "视图装配",
+				value: metricsState.renderCost != null ? Math.round(metricsState.renderCost) + "ms" : "采样中",
+			},
+			{
+				label: "首次绘制",
+				value: metricsState.firstPaint != null ? Math.round(metricsState.firstPaint) + "ms" : "浏览器未提供",
+			},
+			{
+				label: "首次交互",
+				value: metricsState.interactionDelay != null ? Math.round(metricsState.interactionDelay) + "ms" : "等待触发",
+			},
+		];
+
+		panel.innerHTML = metrics
+			.map(function(item) {
+				return (
+					'<div class="activity-overview-card">' +
+					'<span class="activity-overview-card__label">' +
+					escapeText(item.label) +
+					"</span>" +
+					'<strong class="activity-overview-card__value">' +
+					escapeText(item.value) +
+					"</strong>" +
+					"</div>"
+				);
+			})
+			.join("");
+	}
+
+	function samplePaintMetrics() {
+		const entries = performance.getEntriesByType("paint");
+		const target = entries.find(function(entry) {
+			return entry.name === "first-contentful-paint";
+		}) || entries.find(function(entry) {
+			return entry.name === "first-paint";
+		});
+
+		if (target) {
+			metricsState.firstPaint = target.startTime;
+			updatePerformancePanel();
+		}
+	}
+
+	function bindInteractionProbe() {
+		if (interactionProbeBound) return;
+		interactionProbeBound = true;
+
+		const handler = function() {
+			const start = performance.now();
+			requestAnimationFrame(function() {
+				metricsState.interactionDelay = performance.now() - start;
+				updatePerformancePanel();
+			});
+			window.removeEventListener("pointerdown", handler, true);
+			window.removeEventListener("keydown", handler, true);
+			interactionProbeBound = false;
+		};
+
+		window.addEventListener("pointerdown", handler, true);
+		window.addEventListener("keydown", handler, true);
+	}
+
+	function renderMeta(item) {
+		const overview = item.overview || {};
+		const meta = [
+			"发布于 " + formatActivityDate(item.createdAt),
+			"更新于 " + (overview.updatedLabel || formatActivityDate(item.updatedAt || item.createdAt)),
+			overview.readingMinutes + " 分钟阅读",
+			overview.sectionCount + " 个章节",
+		];
+
+		return meta
+			.filter(Boolean)
+			.map(function(text) {
+				return '<span class="activity-article-meta__item">' + escapeText(text) + "</span>";
+			})
+			.join('<span class="activity-article-meta__dot"></span>');
+	}
+
+	function renderOverview(item) {
+		const overview = item.overview || {};
+		const cards = [
+			{ label: "阅读时间", value: (overview.readingMinutes || 1) + " 分钟" },
+			{ label: "章节数量", value: String(overview.sectionCount || 1) },
+			{ label: "图片数量", value: String(overview.imageCount || 0) },
+			{ label: "最近更新", value: overview.updatedLabel || formatActivityDate(item.updatedAt || item.createdAt) },
+		];
+
+		return cards
+			.map(function(card) {
+				return (
+					'<div class="activity-overview-card">' +
+					'<span class="activity-overview-card__label">' +
+					escapeText(card.label) +
+					"</span>" +
+					'<strong class="activity-overview-card__value">' +
+					escapeText(card.value) +
+					"</strong>" +
+					"</div>"
+				);
+			})
+			.join("");
+	}
+
+	function renderAssets(images, title) {
+		if (!Array.isArray(images) || images.length === 0) return "";
+		return images
+			.map(function(image, index) {
+				const alt = image.alt || (title || "动态图像") + " " + (index + 1);
+				return (
+					'<figure class="activity-article-asset activity-fade-section">' +
+					'<img src="' +
+					escapeText(image.url) +
+					'" alt="' +
+					escapeText(alt) +
+					'" loading="lazy" decoding="async" />' +
+					"<figcaption>" +
+					escapeText(alt) +
+					"</figcaption>" +
+					"</figure>"
+				);
+			})
+			.join("");
+	}
+
+	function renderHeroMedia(item) {
+		const coverImage =
+			(item.coverImage || (item.images && item.images[0] && item.images[0].url) || "").trim();
+		if (!coverImage) return "";
+
+		return (
+			'<div class="activity-article-hero__visual">' +
+			'<img class="activity-article-hero__image" src="' +
+			escapeText(coverImage) +
+			'" alt="' +
+			escapeText(item.title || "动态封面") +
+			'" loading="eager" fetchpriority="high" decoding="async" />' +
+			"</div>"
+		);
+	}
+
+	function applyRenderedContent(item) {
+		const title = document.getElementById("activity-article-title");
+		const excerpt = document.getElementById("activity-article-excerpt");
+		const meta = document.getElementById("activity-article-meta");
+		const heroMedia = document.getElementById("activity-article-hero-media");
+		const body = document.getElementById("activity-article-body");
+		const overview = document.getElementById("activity-overview-stats");
+		const assetsSection = document.getElementById("activity-article-assets");
+		const assetsGrid = document.getElementById("activity-article-assets-grid");
+		const article = document.getElementById("activity-article-view");
+
+		if (!title || !excerpt || !meta || !heroMedia || !body || !overview || !article) return;
+
+		title.textContent = item.title || "未命名动态";
+		excerpt.textContent = item.excerpt || stripActivityHtml(item.html || item.body || item.content || "");
+		meta.innerHTML = renderMeta(item);
+		heroMedia.innerHTML = renderHeroMedia(item);
+		body.innerHTML = item.html || "";
+		overview.innerHTML = renderOverview(item);
+
+		if (assetsSection && assetsGrid) {
+			const assetsHtml = renderAssets(item.images || [], item.title || "动态图片");
+			assetsGrid.innerHTML = assetsHtml;
+			assetsSection.classList.toggle("hidden", !assetsHtml);
+		}
+
+		article.classList.remove("hidden");
+
+		highlightCodeBlocks(article);
+		initImages(article);
+		initRevealAnimations(article);
+
+		requestAnimationFrame(function() {
+			initTOC();
+		});
+	}
+
+	function setLoadingState(loading) {
+		const loadingEl = document.getElementById("activity-article-loading");
+		const article = document.getElementById("activity-article-view");
+		if (loadingEl) loadingEl.style.display = loading ? "flex" : "none";
+		if (article && loading) article.classList.add("hidden");
+	}
+
+	function setError(message) {
+		const error = document.getElementById("activity-article-error");
+		const errorText = document.getElementById("activity-article-error-text");
+		if (errorText) errorText.textContent = message || "加载失败，请稍后重试。";
+		if (error) error.style.display = "flex";
+	}
+
+	function hideError() {
+		const error = document.getElementById("activity-article-error");
+		if (error) error.style.display = "none";
+	}
+
+	function loadActivityDetail(forceRefresh) {
+		const slug = getActivitySlug(getSlugMode());
+		const fetchStartedAt = performance.now();
+
+		updatePerformancePanel();
+		hideError();
+		setLoadingState(true);
+		cleanupActivityTOC();
+		if (window._closeLive2DWidget) window._closeLive2DWidget();
+
+		if (activityAbortController) {
+			activityAbortController.abort();
+		}
+		activityAbortController = new AbortController();
+
+		if (!slug) {
+			setLoadingState(false);
+			setError("未找到动态标识。");
+			return;
+		}
+
+		const cached = !forceRefresh ? readDetailCache(slug) : null;
+		if (cached) {
+			setLoadingState(false);
+			applyRenderedContent(cached);
+		}
+
+		fetchWithRetry(
+			"/api/activity/?slug=" + encodeURIComponent(slug),
+			{ method: "GET", signal: activityAbortController.signal },
+			8000,
+			2,
+		)
+			.then(function(res) {
+				if (!res.ok) throw new Error("Failed to load activity");
+				return res.json();
+			})
+			.then(function(data) {
+				metricsState.fetchCost = performance.now() - fetchStartedAt;
+				updatePerformancePanel();
+
+				if (data.error) {
+					throw new Error(data.error);
+				}
+
+				writeDetailCache(slug, data);
+				setLoadingState(false);
+
+				const renderStartedAt = performance.now();
+				applyRenderedContent(data);
+				requestAnimationFrame(function() {
+					metricsState.renderCost = performance.now() - renderStartedAt;
+					updatePerformancePanel();
+					samplePaintMetrics();
+					bindInteractionProbe();
+				});
+			})
+			.catch(function(err) {
+				if (err && err.name === "AbortError") return;
+				setLoadingState(false);
+				if (!cached) {
+					setError(err && err.message ? err.message : "加载失败，请稍后重试。");
+				}
+				console.error("[activity-article] load failed:", err);
+			});
+	}
+
+	function initializeActivityArticleExperience(forceRefresh) {
+		metricsState = {
+			fetchCost: null,
+			renderCost: null,
+			firstPaint: null,
+			interactionDelay: null,
+		};
+		updatePerformancePanel();
+		loadActivityDetail(!!forceRefresh);
+	}
+
+	const retryButton = document.getElementById("activity-article-retry");
+	if (retryButton) {
+		retryButton.addEventListener("click", function() {
+			initializeActivityArticleExperience(true);
+		});
+	}
+
+	initializeActivityArticleExperience(false);
+	if (window.__activityArticlePageLoadHandler) {
+		document.removeEventListener("astro:page-load", window.__activityArticlePageLoadHandler);
+	}
+	window.__activityArticlePageLoadHandler = function() {
+		initializeActivityArticleExperience(false);
+	};
+	document.addEventListener("astro:page-load", window.__activityArticlePageLoadHandler);
+</script>
+
+<style is:global>
+	.activity-article-page {
+		width: 100%;
+		--activity-article-line: color-mix(in oklch, var(--deep-text) 12%, transparent);
+		--activity-article-soft: color-mix(in oklch, var(--deep-text) 3%, #fff);
+	}
+
+	.activity-article-page ~ #live2d-widget,
+	.activity-article-page ~ #live2d-trigger,
+	.activity-article-page ~ #pio-container,
+	body:has(.activity-article-page) #live2d-widget,
+	body:has(.activity-article-page) #live2d-trigger {
+		display: none !important;
+	}
+
+	.activity-article-back {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1rem;
+		margin-bottom: 1.25rem;
+		font-size: 0.85rem;
+		font-weight: 800;
+		color: var(--deep-text);
+		background: #fff;
+		border: 1.5px solid var(--activity-article-line);
+		border-radius: 999px;
+		text-decoration: none;
+		box-shadow: 0 12px 30px -26px color-mix(in oklch, var(--deep-text) 24%, transparent);
+		transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+	}
+
+	.activity-article-back:hover {
+		transform: translateY(-2px);
+		border-color: var(--deep-text);
+		box-shadow: 0 16px 36px -26px color-mix(in oklch, var(--deep-text) 26%, transparent);
+	}
+
+	.activity-article-state {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		gap: 0.9rem;
+		padding: 4rem 1.5rem;
+		border-radius: var(--radius-large);
+		border: 1.5px solid var(--activity-article-line);
+		background: #fff;
+	}
+
+	.activity-article-state.hidden,
+	.activity-article-view.hidden,
+	.activity-article-section.hidden,
+	.hidden {
+		display: none !important;
+	}
+
+	.activity-article-state__dot {
+		width: 0.8rem;
+		height: 0.8rem;
+		border-radius: 999px;
+		background: var(--deep-text);
+		animation: activity-article-bounce 0.9s ease-in-out infinite;
+	}
+
+	.activity-article-state__copy {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		text-align: center;
+	}
+
+	.activity-article-state__copy strong {
+		font-size: 1rem;
+		color: var(--deep-text);
+	}
+
+	.activity-article-state__copy span,
+	.activity-article-state--error p {
+		font-size: 0.9rem;
+		color: var(--content-meta);
+	}
+
+	.activity-article-state__retry {
+		height: 2.8rem;
+		padding: 0 1.15rem;
+		border-radius: 999px;
+		border: 1px solid var(--activity-article-line);
+		background: #fff;
+		font-weight: 800;
+		color: var(--deep-text);
+	}
+
+	.activity-article-view {
+		display: block;
+	}
+
+	.activity-article-hero {
+		display: grid;
+		grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.88fr);
+		gap: 1.4rem;
+		padding: 1.4rem;
+		margin-bottom: 1.25rem;
+		border: 1.5px solid var(--activity-article-line);
+		background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(247,247,246,0.98) 100%);
+		box-shadow: 0 26px 60px -34px color-mix(in oklch, var(--deep-text) 24%, transparent);
+	}
+
+	.activity-article-hero__content {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 0.95rem;
+		min-width: 0;
+	}
+
+	.activity-article-hero__eyebrow,
+	.activity-article-section__eyebrow {
+		font-size: 0.76rem;
+		font-weight: 800;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--content-meta);
+	}
+
+	.activity-article-hero__title {
+		margin: 0;
+		font-size: clamp(2rem, 3.8vw, 3rem);
+		line-height: 1.08;
+		font-weight: 900;
+		color: var(--deep-text);
+	}
+
+	.activity-article-hero__excerpt {
+		margin: 0;
+		font-size: 1rem;
+		line-height: 1.9;
+		color: color-mix(in oklch, var(--deep-text) 82%, white);
+		max-width: 52rem;
+	}
+
+	.activity-article-hero__meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+	}
+
+	.activity-article-meta__item {
+		font-size: 0.84rem;
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+
+	.activity-article-meta__dot {
+		width: 0.32rem;
+		height: 0.32rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--deep-text) 24%, transparent);
+	}
+
+	.activity-article-hero__visual {
+		min-height: 260px;
+		border-radius: 1.35rem;
+		overflow: hidden;
+		border: 1px solid color-mix(in oklch, var(--deep-text) 10%, transparent);
+		background: var(--activity-article-soft);
+	}
+
+	.activity-article-hero__image {
+		width: 100%;
+		height: 100%;
+		display: block;
+		object-fit: cover;
+	}
+
+	.activity-article-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.86fr);
+		gap: 1.25rem;
+	}
+
+	.activity-article-main {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		min-width: 0;
+	}
+
+	.activity-article-section {
+		border: 1.5px solid var(--activity-article-line);
+		background: #fff;
+		box-shadow: 0 24px 56px -38px color-mix(in oklch, var(--deep-text) 22%, transparent);
+	}
+
+	.activity-article-section__head {
+		padding: 1.3rem 1.35rem 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.activity-article-section__title {
+		margin: 0;
+		font-size: 1.18rem;
+		font-weight: 900;
+		color: var(--deep-text);
+	}
+
+	.activity-article-markdown {
+		padding: 1rem 1.35rem 1.25rem;
+	}
+
+	.activity-article-markdown.custom-md {
+		font-size: 1rem;
+		line-height: 1.92;
+	}
+
+	.activity-article-sidebar {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.activity-article-widget {
+		position: sticky;
+		top: 6rem;
+		border-radius: var(--radius-large);
+	}
+
+	.activity-article-overview {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.8rem;
+	}
+
+	.activity-overview-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 0.95rem 1rem;
+		border-radius: 1rem;
+		background: var(--activity-article-soft);
+		border: 1px solid color-mix(in oklch, var(--deep-text) 8%, transparent);
+	}
+
+	.activity-overview-card__label {
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--content-meta);
+	}
+
+	.activity-overview-card__value {
+		font-size: 0.96rem;
+		line-height: 1.45;
+		font-weight: 900;
+		color: var(--deep-text);
+	}
+
+	.activity-article-toc-scroll {
+		max-height: min(56vh, 34rem);
+	}
+
+	.activity-article-assets__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
+		padding: 1rem 1.35rem 1.35rem;
+	}
+
+	.activity-article-asset {
+		margin: 0;
+		padding: 0;
+		border-radius: 1rem;
+		background: var(--activity-article-soft);
+		overflow: hidden;
+		border: 1px solid color-mix(in oklch, var(--deep-text) 8%, transparent);
+	}
+
+	.activity-article-asset figcaption {
+		padding: 0.8rem 0.9rem 0.95rem;
+		font-size: 0.82rem;
+		line-height: 1.65;
+		color: var(--content-meta);
+	}
+
+	.activity-rich-heading,
+	.activity-content-block,
+	.activity-code-block,
+	.activity-rich-image,
+	.activity-fade-section,
+	.activity-article-asset {
+		opacity: 0;
+		transform: translateY(16px);
+		transition: opacity 0.46s ease, transform 0.46s ease;
+		will-change: opacity, transform;
+	}
+
+	.activity-rich-heading.is-visible,
+	.activity-content-block.is-visible,
+	.activity-code-block.is-visible,
+	.activity-rich-image.is-visible,
+	.activity-fade-section.is-visible,
+	.activity-article-asset.is-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.activity-rich-heading {
+		position: relative;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.55rem;
+		scroll-margin-top: 7rem;
+	}
+
+	.activity-rich-heading__anchor {
+		opacity: 0;
+		text-decoration: none;
+		color: var(--content-meta);
+		font-size: 0.8rem;
+		padding-top: 0.25rem;
+		transition: opacity 0.2s ease;
+	}
+
+	.activity-rich-heading:hover .activity-rich-heading__anchor {
+		opacity: 1;
+	}
+
+	.activity-content-block {
+		padding: 0.42rem 0.75rem;
+		margin-inline: -0.75rem;
+		border-radius: 1rem;
+		transition: background-color 0.24s ease, transform 0.24s ease;
+	}
+
+	.activity-content-block:hover,
+	.activity-article-markdown.custom-md li:hover {
+		background: color-mix(in oklch, var(--deep-text) 4%, #fff);
+		transform: translateX(4px);
+	}
+
+	.activity-content-list {
+		padding-left: 1.15rem;
+	}
+
+	.activity-content-list li {
+		margin-bottom: 0.45rem;
+		border-radius: 0.9rem;
+		transition: background-color 0.24s ease, transform 0.24s ease;
+	}
+
+	.activity-rich-divider {
+		margin: 1.55rem 0;
+		border: 0;
+		height: 1px;
+		background: color-mix(in oklch, var(--deep-text) 10%, transparent);
+	}
+
+	.activity-code-block {
+		margin: 1.25rem 0;
+		padding: 0;
+		overflow: hidden;
+		border-radius: 1.15rem;
+		border: 1px solid color-mix(in oklch, var(--deep-text) 12%, transparent);
+		background: linear-gradient(180deg, #101319 0%, #151923 100%);
+		box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+	}
+
+	.activity-code-block__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.75rem 1rem;
+		border-bottom: 1px solid rgba(255,255,255,0.08);
+		background: rgba(255,255,255,0.04);
+	}
+
+	.activity-code-block__label {
+		font-size: 0.78rem;
+		font-weight: 800;
+		color: rgba(255,255,255,0.7);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+	}
+
+	.activity-code-block code {
+		display: block;
+		padding: 1rem 1.1rem 1.15rem;
+		overflow-x: auto;
+		color: #eef2ff;
+		background: transparent !important;
+		font-size: 0.9rem;
+		line-height: 1.75;
+	}
+
+	.activity-code-block .tok-comment { color: #7c8599; }
+	.activity-code-block .tok-string { color: #f6c177; }
+	.activity-code-block .tok-number { color: #8bd5ca; }
+	.activity-code-block .tok-keyword { color: #c4b5fd; }
+	.activity-code-block .tok-type { color: #93c5fd; }
+
+	.activity-rich-image,
+	.activity-article-asset img {
+		margin: 1.25rem 0;
+	}
+
+	.activity-rich-image img,
+	.activity-article-asset img {
+		width: 100%;
+		display: block;
+		border-radius: 1rem;
+		opacity: 0;
+		transform: scale(0.985);
+		transition: opacity 0.35s ease, transform 0.35s ease;
+	}
+
+	.activity-image-ready.is-loaded {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	.activity-rich-image figcaption {
+		margin-top: 0.75rem;
+		font-size: 0.82rem;
+		line-height: 1.6;
+		text-align: center;
+		color: var(--content-meta);
+	}
+
+	@keyframes activity-article-bounce {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-0.45rem); }
+	}
+
+	@media (max-width: 1280px) {
+		.activity-article-hero,
+		.activity-article-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.activity-article-sidebar {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			align-items: start;
+		}
+
+		.activity-article-widget {
+			position: static;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.activity-article-hero {
+			padding: 1rem;
+			gap: 1rem;
+		}
+
+		.activity-article-grid,
+		.activity-article-sidebar {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.activity-article-hero__title {
+			font-size: 1.8rem;
+		}
+
+		.activity-article-markdown,
+		.activity-article-section__head,
+		.activity-article-assets__grid {
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
+
+		.activity-content-block {
+			margin-inline: -0.35rem;
+			padding-inline: 0.45rem;
+		}
+	}
+</style>

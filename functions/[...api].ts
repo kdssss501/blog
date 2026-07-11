@@ -551,7 +551,18 @@ async function handleActivity(
 		if (parts.length === 2) {
 			const slug = url.searchParams.get("slug");
 			if (slug) {
-				const activity = await getActivity(storage, slug);
+                                const ids = await getActivityList(storage);
+                                let items: Activity[] = [];
+                                for (const id of ids) {
+                                        const item = await getActivity(storage, id);
+                                        if (item) items.push(item);
+                                }
+
+                                if (shouldResetActivities(items)) {
+                                        items = await resetActivitiesToDefaults(storage);
+                                }
+
+                                const activity = items.find((item) => item.slug === slug) || (await getActivity(storage, slug));
 				if (!activity) {
 					return new Response(JSON.stringify({ error: "Activity not found" }), {
 						status: 404,
