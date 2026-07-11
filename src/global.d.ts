@@ -29,6 +29,21 @@ declare global {
 		__aiSearchOpen?: boolean;
 		_showLive2DWidget?: () => void;
 		_closeLive2DWidget?: () => void;
+		__activityPageVisibilityHandler?: EventListenerOrEventListenerObject | null;
+		__activityPageLoadHandler?: EventListenerOrEventListenerObject | null;
+		__activityDetailPageLoadHandler?: EventListenerOrEventListenerObject | null;
+		__notebookListPageLoadHandler?: EventListenerOrEventListenerObject | null;
+		__notebookListVisibilityHandler?: EventListenerOrEventListenerObject | null;
+		__notebookDetailPageLoadHandler?: EventListenerOrEventListenerObject | null;
+		__notebookDetailVisibilityHandler?: EventListenerOrEventListenerObject | null;
+		__activityAdminInitialized?: boolean;
+		notebookCovers?: {
+			GALLERY_IMAGES: string[];
+			hashString: (input: string) => number;
+			getCoverImage: (cover: string, name: string) => string;
+		};
+		escapeText?: (value: string) => string;
+		formatDate?: (timestamp: number) => string;
 		// biome-ignore lint/suspicious/noExplicitAny: External library
 		spinePlayerInstance?: any;
 		pagefind: {

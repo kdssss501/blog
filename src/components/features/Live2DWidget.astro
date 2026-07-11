@@ -84,7 +84,7 @@ const size = config.size || { width: 280, height: 250 };
 >
 	const STORAGE_KEYS = {
 		visibility: "live2d-visibility-cache",
-		position: "live2d-position-cache",
+		position: "live2d-position-cache-v2",
 	};
 
 	// ============================================================
@@ -107,19 +107,15 @@ const size = config.size || { width: 280, height: 250 };
 			wasDragging: false,
 			idleTimer: 0,
 			indicatorTimer: 0,
-    canvasElement: null,
-    widgetElement: null,
-    abortController: null,
-  };
-}
+			canvasElement: null,
+			widgetElement: null,
+			domAbortController: null,
+			pageListenersBound: false,
+		};
+	}
 
 	const g = window[GLOBAL_KEY] || createGlobalState();
 	window[GLOBAL_KEY] = g;
-
-	// 统一管理事件监听器，cleanup 时一次性移除
-	let live2dAbortController = g.abortController || new AbortController();
-	if (!g.abortController) g.abortController = live2dAbortController;
-	else live2dAbortController = g.abortController;
 
 	const allMotionGroups = ["Expression", "TapShort", "TapLong", "Other"];
 	let clickMotionGroups = ["Expression", "TapShort"];
@@ -238,6 +234,55 @@ const size = config.size || { width: 280, height: 250 };
 		const shouldUseHiddenDefault =
 			cachedVisibility == null && config.defaultVisible === false;
 		return cachedVisibility === "hidden" || shouldUseHiddenDefault;
+	}
+
+	function toNumericPositionValue(value) {
+		if (typeof value === "number" && Number.isFinite(value)) {
+			return value;
+		}
+		if (typeof value === "string") {
+			const parsed = Number.parseFloat(value);
+			if (Number.isFinite(parsed)) {
+				return parsed;
+			}
+		}
+		return null;
+	}
+
+	function cacheWidgetPosition(widget) {
+		if (!widget) return;
+		const rect = widget.getBoundingClientRect();
+		const left = toNumericPositionValue(widget.style.left) ?? rect.left;
+		const top = toNumericPositionValue(widget.style.top) ?? rect.top;
+		try {
+			localStorage.setItem(
+				STORAGE_KEYS.position,
+				JSON.stringify({ left, top }),
+			);
+		} catch {
+			// ignore storage errors
+		}
+	}
+
+	function restoreWidgetPosition(widget) {
+		if (!widget) return;
+		try {
+			const cachedPosition = localStorage.getItem(STORAGE_KEYS.position);
+			if (!cachedPosition) return;
+			const pos = JSON.parse(cachedPosition);
+			const left = toNumericPositionValue(pos?.left);
+			const top = toNumericPositionValue(pos?.top);
+			if (left !== null) {
+				widget.style.left = `${left}px`;
+				widget.style.right = "auto";
+			}
+			if (top !== null) {
+				widget.style.top = `${top}px`;
+				widget.style.bottom = "auto";
+			}
+		} catch {
+			// ignore
+		}
 	}
 
 	function applyHiddenWidgetState() {
@@ -376,11 +421,11 @@ const size = config.size || { width: 280, height: 250 };
 		let currentGroupIndex = 0;
 
 		const canvas = document.getElementById("live2d-canvas");
-    const interactionsSignal = g.abortController?.signal;
-    canvas?.addEventListener("click", () => {
-      if (!g.wasDragging) playRandomMotion();
-      g.wasDragging = false;
-    }, { signal: interactionsSignal });
+		const interactionsSignal = g.domAbortController?.signal;
+		canvas?.addEventListener("click", () => {
+			if (!g.wasDragging) playRandomMotion();
+			g.wasDragging = false;
+		}, { signal: interactionsSignal });
 
 		const switchBtn = document.getElementById("toolbar-switch");
 		const groupIndicator = document.getElementById("live2d-group-indicator");
@@ -536,18 +581,7 @@ const size = config.size || { width: 280, height: 250 };
 
 			// Save current position before hiding
 			const rect = widget.getBoundingClientRect();
-			const positionCache = {
-				left: widget.style.left || rect.left,
-				top: widget.style.top || rect.top,
-			};
-			try {
-				localStorage.setItem(
-					STORAGE_KEYS.position,
-					JSON.stringify(positionCache),
-				);
-			} catch {
-				// ignore storage errors
-			}
+			cacheWidgetPosition(widget);
 
 			const viewportHeight = window.innerHeight;
 			const distanceToBottom = viewportHeight - rect.bottom;
@@ -660,18 +694,7 @@ const size = config.size || { width: 280, height: 250 };
 			}
 
 			// Restore cached position
-			try {
-				const cachedPosition = localStorage.getItem(
-					STORAGE_KEYS.position,
-				);
-				if (cachedPosition) {
-					const pos = JSON.parse(cachedPosition);
-					if (pos.left) widget.style.left = `${pos.left}px`;
-					if (pos.top) widget.style.top = `${pos.top}px`;
-				}
-			} catch {
-				// ignore
-			}
+			restoreWidgetPosition(widget);
 
 			window.dispatchEvent(
 				new CustomEvent("live2d-visibility-change", {
@@ -699,7 +722,7 @@ function initTrigger() {
 
 		trigger.addEventListener("click", () => {
 			showLive2DWidget();
-		}, { signal: g.abortController?.signal });
+		}, { signal: g.domAbortController?.signal });
 
 		const cachedVisibility = g.stateManager?.getCachedVisibility();
 		if (shouldHideWidget(cachedVisibility)) {
@@ -720,7 +743,7 @@ function initTrigger() {
 		g.isDragSetup = true;
 
 		const container = document.getElementById("live2d-widget");
-		const dragSignal = g.abortController?.signal;
+		const dragSignal = g.domAbortController?.signal;
 		if (!container) return;
 
 		let isDragging = false;
@@ -803,17 +826,7 @@ function initTrigger() {
 				}
 				container.style.cursor = "grab";
 				// Save position after drag
-				try {
-					localStorage.setItem(
-						STORAGE_KEYS.position,
-						JSON.stringify({
-							left: parseInt(container.style.left, 10) || 0,
-							top: parseInt(container.style.top, 10) || 0,
-						}),
-					);
-				} catch {
-					// ignore storage errors
-				}
+				cacheWidgetPosition(container);
 			}
 		}, { signal: dragSignal });
 
@@ -884,6 +897,8 @@ function initTrigger() {
 		const widget = document.getElementById("live2d-widget");
 		const trigger = document.getElementById("live2d-trigger");
 		if (!widget) return;
+		g.widgetElement = widget;
+		g.canvasElement = document.getElementById("live2d-canvas");
 
 		const cachedVisibility = g.stateManager?.getCachedVisibility();
 
@@ -925,16 +940,7 @@ function initTrigger() {
 		}
 
 		// 恢复位置
-		try {
-			const cachedPosition = localStorage.getItem(STORAGE_KEYS.position);
-			if (cachedPosition) {
-				const pos = JSON.parse(cachedPosition);
-				if (pos.left) widget.style.left = `${pos.left}px`;
-				if (pos.top) widget.style.top = `${pos.top}px`;
-			}
-		} catch {
-			// ignore
-		}
+		restoreWidgetPosition(widget);
 	}
 
 	/**
@@ -952,10 +958,16 @@ function initTrigger() {
 	 */
 	async function handlePageLoad() {
 		// 移动端不加载 Live2D
-		if (window.innerWidth <= 768) return;
+		if (window.innerWidth <= 480) return;
 
 		// 如果 DOM 被替换了，需要重新初始化 PIXI
 		if (g.initialized && detectDOMReplacement()) {
+			if (g.domAbortController) {
+				g.domAbortController.abort();
+			}
+			g.domAbortController = new AbortController();
+			g.isDragSetup = false;
+			g.isInteractionsSetup = false;
 			g.app = null;
 			g.model = null;
 			g.canvasElement = null;
@@ -1008,9 +1020,9 @@ function initTrigger() {
 			g.model = null;
 		}
 		// 移除所有事件监听器
-		if (g.abortController) {
-			g.abortController.abort();
-			g.abortController = null;
+		if (g.domAbortController) {
+			g.domAbortController.abort();
+			g.domAbortController = null;
 		}
 		g.initialized = false;
 		g.isDragSetup = false;
@@ -1023,13 +1035,18 @@ function initTrigger() {
 	async function initialize() {
 		if (g.initialized) return;
 		// 移动端默认不加载 Live2D（由 CSS 隐藏 widget 和 trigger）
-		if (window.innerWidth <= 768) {
+		if (window.innerWidth <= 480) {
 			g.initialized = true;
 			return;
 		}
 
 		// 创建新的 AbortController 用于管理所有事件监听器
-		g.abortController = new AbortController();
+		if (g.domAbortController) {
+			g.domAbortController.abort();
+		}
+		g.domAbortController = new AbortController();
+		g.isDragSetup = false;
+		g.isInteractionsSetup = false;
 
 		g.stateManager = await Live2DStateManager.getInstance();
 		initTrigger();
@@ -1051,23 +1068,20 @@ function initTrigger() {
 	// ============================================================
 	// 启动入口
 	// ============================================================
-	const _sig = live2dAbortController.signal;
+	if (!g.pageListenersBound) {
+		g.pageListenersBound = true;
 
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", handlePageLoad, { signal: _sig });
-	} else {
-		handlePageLoad();
+		if (document.readyState === "loading") {
+			document.addEventListener("DOMContentLoaded", handlePageLoad);
+		} else {
+			handlePageLoad();
+		}
+
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+		document.addEventListener("astro:page-load", handlePageLoad);
+		document.addEventListener("swup:page:view", handlePageLoad);
+		window.addEventListener("beforeunload", cleanup);
 	}
-
-	// 页面可见性变化（切换浏览器标签）
-	document.addEventListener("visibilitychange", handleVisibilityChange, { signal: _sig });
-
-	// Swup SPA 导航后恢复状态（核心：跨页面状态保持）
-	document.addEventListener("astro:page-load", handlePageLoad, { signal: _sig });
-	document.addEventListener("swup:page:view", handlePageLoad, { signal: _sig });
-
-	// 页面卸载时清理
-	window.addEventListener("beforeunload", cleanup, { signal: _sig });
 
 	function sleep(ms) {
 		return new Promise((resolve) => setTimeout(resolve, ms));

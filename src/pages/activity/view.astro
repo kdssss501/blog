@@ -1,9 +1,5 @@
 ---
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-
-export async function getStaticPaths() {
-	return [];
-}
 ---
 
 <MainGridLayout title="动态详情" description="查看动态详情" showSidebar={true}>
@@ -34,7 +30,10 @@ export async function getStaticPaths() {
 			return div.innerHTML;
 		}
 
-		function getActivitySlugFromPathname() {
+		function getActivitySlug() {
+			var params = new URLSearchParams(window.location.search);
+			var fromQuery = (params.get("slug") || "").trim();
+			if (fromQuery) return fromQuery;
 			var segments = window.location.pathname.split("/").filter(Boolean);
 			return segments.length > 0 ? segments[segments.length - 1] : "";
 		}
@@ -68,7 +67,7 @@ export async function getStaticPaths() {
 					'</div>' +
 				'</header>' +
 				'<div class="activity-detail__content">' +
-					(renderActivityContent(item)) +
+					(item.html || ('<p>' + escapeText(item.content || "") + '</p>')) +
 				'</div>' +
 				(images.length > 0 ? '<section class="activity-detail__gallery">' +
 					images.map(function(image, index) {
@@ -80,11 +79,7 @@ export async function getStaticPaths() {
 				'<footer class="activity-detail__footer">' +
 					'<span class="activity-detail__updated">更新于 ' + formatDate(item.updatedAt) + '</span>' +
 				'</footer>' +
-				'</article>';
-		}
-
-		function renderActivityContent(item) {
-			return item.html || ('<p>' + escapeText(item.content || "") + '</p>');
+			'</article>';
 		}
 
 		function fetchWithTimeout(url, options, timeoutMs) {
@@ -123,7 +118,7 @@ export async function getStaticPaths() {
 			var loading = document.getElementById("activity-detail-loading");
 			var error = document.getElementById("activity-detail-error");
 			var content = document.getElementById("activity-detail-content");
-			var slug = getActivitySlugFromPathname();
+			var slug = getActivitySlug();
 
 			if (loading) loading.style.display = "flex";
 			if (error) error.style.display = "none";
@@ -150,13 +145,16 @@ export async function getStaticPaths() {
 					if (data.error) {
 						if (error) {
 							error.style.display = "flex";
-							error.querySelector("p").textContent = data.error;
+							var errorMessage = error.querySelector("p");
+							if (errorMessage) errorMessage.textContent = data.error;
 						}
 						return;
 					}
 
-					content.innerHTML = renderActivityDetail(data);
-					if (content) content.style.display = "block";
+					if (content) {
+						content.innerHTML = renderActivityDetail(data);
+						content.style.display = "block";
+					}
 				})
 				.catch(function(err) {
 					if (loading) loading.style.display = "none";

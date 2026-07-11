@@ -1,3 +1,8 @@
+.notebook-page {
+	--page-bg: #fff;
+	--card-bg: #fff;
+}
+
 .notebook-loading {
 	display: flex;
 	align-items: center;
@@ -432,6 +437,8 @@
 	text-decoration: none;
 	overflow: hidden;
 	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	content-visibility: auto;
+	contain-intrinsic-size: 240px;
 }
 
 .notebook-card:hover,
@@ -504,21 +511,6 @@
 	font-family: ui-monospace, SFMono-Regular, monospace;
 	background: rgba(0, 0, 0, 0.3);
 	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-}
-
-.notebook-card__meta {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	color: rgba(255, 255, 255, 0.85);
-	font-size: 0.8rem;
-	font-weight: 700;
-	font-family: ui-monospace, SFMono-Regular, monospace;
-	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-}
-
-.notebook-card__sep {
-	opacity: 0.6;
 }
 
 .notebook-card__desc {

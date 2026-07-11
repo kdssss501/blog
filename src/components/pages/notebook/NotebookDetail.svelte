@@ -25,7 +25,32 @@
 
 	let tocOpen = $state(false);
 
-	function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 8000): Promise<Response> {
+	const cache = {
+		get: <T>(key: string): T | null => {
+			try {
+				const cached = sessionStorage.getItem("notebook_" + key);
+				if (!cached) return null;
+				const parsed = JSON.parse(cached);
+				if (Date.now() - parsed.timestamp < 300000) {
+					return parsed.data;
+				}
+				sessionStorage.removeItem("notebook_" + key);
+				return null;
+			} catch {
+				return null;
+			}
+		},
+		set: <T>(key: string, data: T): void => {
+			try {
+				sessionStorage.setItem("notebook_" + key, JSON.stringify({
+					data,
+					timestamp: Date.now()
+				}));
+			} catch {}
+		}
+	};
+
+	function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 10000): Promise<Response> {
 		return new Promise((resolve, reject) => {
 			const controller = new AbortController();
 			const timer = setTimeout(() => {
@@ -39,14 +64,26 @@
 		});
 	}
 
-	function fetchWithRetry(url: string, options: RequestInit = {}, timeoutMs: number = 8000, retries: number = 2): Promise<Response> {
-		return fetchWithTimeout(url, options, timeoutMs).catch((err) => {
-			if (retries > 0) {
-				return new Promise((resolve) => {
-					setTimeout(() => { resolve(fetchWithRetry(url, options, timeoutMs, retries - 1)); }, 500);
-				});
+	function fetchWithExponentialRetry(url: string, options: RequestInit = {}, timeoutMs: number = 10000, maxRetries: number = 3): Promise<Response> {
+		return new Promise((resolve, reject) => {
+			let attempts = 0;
+			let delay = 500;
+
+			function attempt() {
+				fetchWithTimeout(url, options, timeoutMs)
+					.then(resolve)
+					.catch((err) => {
+						attempts++;
+						if (attempts <= maxRetries) {
+							setTimeout(attempt, delay);
+							delay = delay * 2;
+						} else {
+							reject(err);
+						}
+					});
 			}
-			throw err;
+
+			attempt();
 		});
 	}
 
@@ -78,7 +115,7 @@
 
 		try {
 			const url = "/api/notebook/?notebook=" + encodeURIComponent(name);
-			const res = await fetchWithRetry(url, { method: "GET" }, 8000, 2);
+			const res = await fetchWithExponentialRetry(url, { method: "GET" }, 10000, 3);
 			if (!res.ok) throw new Error("加载失败");
 
 			const data: NotebookData = await res.json();

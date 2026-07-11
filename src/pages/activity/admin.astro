@@ -1,0 +1,438 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+
+const title = "动态管理";
+const description = "创建、编辑和维护动态内容";
+---
+
+<MainGridLayout title={title} description={description}>
+	<section class="activity-admin-page">
+		<header class="activity-admin-page__header">
+			<PageTitle title={title} eyebrow="Activity Admin" />
+		</header>
+
+		<div class="activity-admin-shell">
+			<div id="activity-admin-login" class="activity-admin-login">
+				<h2>管理登录</h2>
+				<p>输入管理密码后可创建和编辑动态。</p>
+				<input id="activity-admin-password" type="password" class="activity-admin-input" placeholder="管理密码" maxlength="50" />
+				<button id="activity-admin-login-btn" class="activity-admin-btn activity-admin-btn--primary">登录</button>
+				<p id="activity-admin-login-error" class="activity-admin-error"></p>
+			</div>
+
+			<div id="activity-admin-panel" class="activity-admin-panel hidden">
+				<section class="activity-admin-card">
+					<div class="activity-admin-card__header">
+						<h3>动态编辑器</h3>
+						<button id="activity-admin-new" class="activity-admin-btn">+ 新建动态</button>
+					</div>
+
+					<div class="activity-admin-form">
+						<input id="activity-title" class="activity-admin-input" type="text" placeholder="动态标题" maxlength="80" />
+						<input id="activity-excerpt" class="activity-admin-input" type="text" placeholder="摘要（用于列表展示）" maxlength="140" />
+						<textarea id="activity-content" class="activity-admin-textarea" placeholder="正文内容，支持 Markdown 和图片语法"></textarea>
+
+						<div class="activity-admin-image-tools">
+							<input id="activity-image-prompt" class="activity-admin-input" type="text" placeholder="输入图片提示词，用于 GPT 生成图" maxlength="240" />
+							<button id="activity-generate-image" class="activity-admin-btn" type="button">插入 GPT 图片</button>
+						</div>
+
+						<div id="activity-image-list" class="activity-admin-image-list"></div>
+
+						<div class="activity-admin-actions">
+							<button id="activity-save" class="activity-admin-btn activity-admin-btn--primary">保存动态</button>
+							<button id="activity-delete" class="activity-admin-btn activity-admin-btn--danger" type="button">删除</button>
+						</div>
+						<p id="activity-admin-message" class="activity-admin-message"></p>
+					</div>
+				</section>
+
+				<section class="activity-admin-card">
+					<div class="activity-admin-card__header">
+						<h3>已有动态</h3>
+					</div>
+					<div id="activity-admin-list" class="activity-admin-list"></div>
+				</section>
+			</div>
+		</div>
+	</section>
+
+	<script is:inline>
+		const ADMIN_PASSWORD = "kdssss2026";
+		const GPT_IMAGE_ENDPOINT = "https://coresg-normal.trae.ai/api/ide/v1/text_to_image";
+		let currentSlug = "";
+		let currentImages = [];
+
+		function escapeText(str) {
+			const div = document.createElement("div");
+			div.textContent = str;
+			return div.innerHTML;
+		}
+
+		function buildImageUrl(prompt) {
+			return GPT_IMAGE_ENDPOINT + "?prompt=" + encodeURIComponent(prompt) + "&image_size=landscape_4_3";
+		}
+
+		function showMessage(message, type) {
+			const target = document.getElementById("activity-admin-message");
+			if (!target) return;
+			target.textContent = message;
+			target.className = "activity-admin-message is-" + type;
+		}
+
+		function renderImageList() {
+			const list = document.getElementById("activity-image-list");
+			if (!list) return;
+			if (currentImages.length === 0) {
+				list.innerHTML = '<p class="activity-admin-muted">还没有插入图片。</p>';
+				return;
+			}
+			list.innerHTML = currentImages.map(function(image, index) {
+				return '<div class="activity-admin-image-item">' +
+					'<img src="' + escapeText(image.url) + '" alt="' + escapeText(image.alt || "动态图片") + '" />' +
+					'<div class="activity-admin-image-item__meta">' +
+						'<span>' + escapeText(image.alt || ("图片 " + (index + 1))) + '</span>' +
+						'<button type="button" data-remove-image="' + index + '" class="activity-admin-btn">移除</button>' +
+					'</div>' +
+				'</div>';
+			}).join("");
+
+			const buttons = list.querySelectorAll("[data-remove-image]");
+			for (const button of buttons) {
+				button.addEventListener("click", function() {
+					const index = Number(button.getAttribute("data-remove-image"));
+					currentImages.splice(index, 1);
+					renderImageList();
+				});
+			}
+		}
+
+		function fillForm(item) {
+			currentSlug = item?.slug || "";
+			currentImages = Array.isArray(item?.images) ? item.images.slice() : [];
+			document.getElementById("activity-title").value = item?.title || "";
+			document.getElementById("activity-excerpt").value = item?.excerpt || "";
+			document.getElementById("activity-content").value = item?.body || item?.content || "";
+			renderImageList();
+		}
+
+		function readForm() {
+			return {
+				title: document.getElementById("activity-title").value.trim(),
+				excerpt: document.getElementById("activity-excerpt").value.trim(),
+				content: document.getElementById("activity-content").value.trim(),
+				images: currentImages,
+			};
+		}
+
+		function bindListItems(items) {
+			const list = document.getElementById("activity-admin-list");
+			if (!list) return;
+			if (items.length === 0) {
+				list.innerHTML = '<p class="activity-admin-muted">还没有动态内容。</p>';
+				return;
+			}
+
+			list.innerHTML = items.map(function(item) {
+				return '<button type="button" class="activity-admin-list-item" data-slug="' + escapeText(item.slug) + '">' +
+					'<span class="activity-admin-list-item__title">' + escapeText(item.title || "未命名动态") + '</span>' +
+					'<span class="activity-admin-list-item__meta">' + escapeText(item.excerpt || "") + '</span>' +
+				'</button>';
+			}).join("");
+
+			const buttons = list.querySelectorAll("[data-slug]");
+			for (const button of buttons) {
+				button.addEventListener("click", function() {
+					const slug = button.getAttribute("data-slug");
+					const target = items.find(function(item) { return item.slug === slug; });
+					if (target) fillForm(target);
+				});
+			}
+		}
+
+		async function loadActivities() {
+			const response = await fetch("/api/activity/");
+			if (!response.ok) throw new Error("加载动态失败");
+			const data = await response.json();
+			bindListItems(data.items || []);
+			return data.items || [];
+		}
+
+		async function saveActivity() {
+			const payload = readForm();
+			if (!payload.title || !payload.content) {
+				showMessage("标题和正文不能为空。", "error");
+				return;
+			}
+
+			const requestUrl = currentSlug ? ("/api/activity/?slug=" + encodeURIComponent(currentSlug)) : "/api/activity/";
+			const method = currentSlug ? "PUT" : "POST";
+			const response = await fetch(requestUrl, {
+				method,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+			const data = await response.json();
+			if (!response.ok) {
+				throw new Error(data.error || "保存失败");
+			}
+
+			fillForm(data);
+			await loadActivities();
+			showMessage(currentSlug ? "动态已更新。" : "动态已创建。", "success");
+		}
+
+		async function deleteActivity() {
+			if (!currentSlug) {
+				showMessage("请先选择要删除的动态。", "error");
+				return;
+			}
+			const response = await fetch("/api/activity/?slug=" + encodeURIComponent(currentSlug), { method: "DELETE" });
+			const data = await response.json();
+			if (!response.ok) {
+				throw new Error(data.error || "删除失败");
+			}
+			fillForm(null);
+			await loadActivities();
+			showMessage("动态已删除。", "success");
+		}
+
+		function insertGptImage() {
+			const promptInput = document.getElementById("activity-image-prompt");
+			const content = document.getElementById("activity-content");
+			const prompt = promptInput.value.trim();
+			if (!prompt) {
+				showMessage("先输入图片提示词。", "error");
+				return;
+			}
+
+			const url = buildImageUrl(prompt);
+			const image = {
+				url,
+				alt: prompt.slice(0, 24),
+				prompt,
+				source: "gpt",
+			};
+			currentImages.push(image);
+			content.value = (content.value.trim() ? content.value.trim() + "\n\n" : "") + "![" + image.alt + "](" + image.url + ")";
+			promptInput.value = "";
+			renderImageList();
+			showMessage("GPT 图片已插入正文。", "success");
+		}
+
+		function initActivityAdmin() {
+			const login = document.getElementById("activity-admin-login");
+			const panel = document.getElementById("activity-admin-panel");
+			const error = document.getElementById("activity-admin-login-error");
+			const loginBtn = document.getElementById("activity-admin-login-btn");
+			const passwordInput = document.getElementById("activity-admin-password");
+
+			if (window.__activityAdminInitialized) return;
+			window.__activityAdminInitialized = true;
+
+			function showPanel() {
+				login.style.display = "none";
+				panel.style.display = "grid";
+				fillForm(null);
+				loadActivities().catch(function(err) {
+					showMessage(err.message || "加载失败", "error");
+				});
+			}
+
+			if (sessionStorage.getItem("activity_admin") === "true") {
+				showPanel();
+			}
+
+			loginBtn.addEventListener("click", function() {
+				if (passwordInput.value.trim() === ADMIN_PASSWORD) {
+					sessionStorage.setItem("activity_admin", "true");
+					error.textContent = "";
+					showPanel();
+					return;
+				}
+				error.textContent = "密码错误，请重试。";
+			});
+
+			passwordInput.addEventListener("keydown", function(event) {
+				if (event.key === "Enter") loginBtn.click();
+			});
+
+			document.getElementById("activity-admin-new").addEventListener("click", function() {
+				fillForm(null);
+			});
+			document.getElementById("activity-save").addEventListener("click", function() {
+				saveActivity().catch(function(err) {
+					showMessage(err.message || "保存失败", "error");
+				});
+			});
+			document.getElementById("activity-delete").addEventListener("click", function() {
+				deleteActivity().catch(function(err) {
+					showMessage(err.message || "删除失败", "error");
+				});
+			});
+			document.getElementById("activity-generate-image").addEventListener("click", insertGptImage);
+			renderImageList();
+		}
+
+		initActivityAdmin();
+	</script>
+</MainGridLayout>
+
+<style>
+	.activity-admin-page {
+		--page-bg: #fff;
+		--card-bg: #fff;
+		width: 100%;
+	}
+
+	.activity-admin-page__header {
+		margin-bottom: 1.5rem;
+	}
+
+	.activity-admin-shell {
+		display: grid;
+		gap: 1.25rem;
+	}
+
+	.activity-admin-login,
+	.activity-admin-card {
+		border: 1.5px solid var(--line-divider);
+		border-radius: var(--radius-xl);
+		background: #fff;
+		padding: 1.5rem;
+	}
+
+	.activity-admin-login {
+		max-width: 420px;
+		margin: 3rem auto;
+		display: grid;
+		gap: 0.85rem;
+	}
+
+	.activity-admin-panel {
+		display: none;
+		gap: 1.25rem;
+	}
+
+	.activity-admin-card__header,
+	.activity-admin-actions,
+	.activity-admin-image-tools {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.activity-admin-form,
+	.activity-admin-list {
+		display: grid;
+		gap: 0.9rem;
+	}
+
+	.activity-admin-input,
+	.activity-admin-textarea {
+		width: 100%;
+		border: 1.5px solid var(--line-divider);
+		border-radius: 0.9rem;
+		background: #fff;
+		color: var(--deep-text);
+		padding: 0.85rem 1rem;
+	}
+
+	.activity-admin-textarea {
+		min-height: 260px;
+		resize: vertical;
+		line-height: 1.7;
+	}
+
+	.activity-admin-btn {
+		border: 1.5px solid var(--line-divider);
+		border-radius: 999px;
+		padding: 0.7rem 1rem;
+		background: #fff;
+		color: var(--deep-text);
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.activity-admin-btn--primary {
+		background: var(--deep-text);
+		color: #fff;
+		border-color: var(--deep-text);
+	}
+
+	.activity-admin-btn--danger {
+		color: #c62828;
+		border-color: color-mix(in oklch, #c62828 40%, var(--line-divider));
+	}
+
+	.activity-admin-list-item {
+		display: grid;
+		gap: 0.3rem;
+		text-align: left;
+		border: 1.5px solid var(--line-divider);
+		border-radius: 1rem;
+		background: #fff;
+		padding: 1rem;
+		cursor: pointer;
+	}
+
+	.activity-admin-list-item__title {
+		font-size: 0.98rem;
+		font-weight: 800;
+		color: var(--deep-text);
+	}
+
+	.activity-admin-list-item__meta,
+	.activity-admin-muted,
+	.activity-admin-error,
+	.activity-admin-message {
+		font-size: 0.85rem;
+		color: var(--content-meta);
+		margin: 0;
+	}
+
+	.activity-admin-image-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.activity-admin-image-item {
+		border: 1px solid var(--line-divider);
+		border-radius: 1rem;
+		overflow: hidden;
+		background: #fff;
+	}
+
+	.activity-admin-image-item img {
+		display: block;
+		width: 100%;
+		height: 140px;
+		object-fit: cover;
+	}
+
+	.activity-admin-image-item__meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		font-size: 0.8rem;
+	}
+
+	.activity-admin-message.is-success {
+		color: #2e7d32;
+	}
+
+	.activity-admin-message.is-error,
+	.activity-admin-error {
+		color: #c62828;
+	}
+
+	.hidden {
+		display: none;
+	}
+</style>

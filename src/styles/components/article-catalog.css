@@ -5,9 +5,9 @@
 /* ---------- 浮动外层（镜像右 TOC） ---------- */
 .article-catalog-wrapper {
 	position: absolute;
-	left: calc(50% - 32rem - 20rem); /* 镜像右 TOC 的 calc(50% + 32rem) */
+	left: calc(50% - 30rem - 18rem);
 	top: 0;
-	width: 20rem;
+	width: 18rem;
 	pointer-events: none;
 	z-index: 10;
 	transition: transform 0.3s ease;

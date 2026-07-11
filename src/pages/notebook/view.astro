@@ -1,11 +1,237 @@
 ---
-import PageTitle from "@/components/common/PageTitle.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import NotebookDetail from "@/components/pages/notebook/NotebookDetail.svelte";
 
 const title = "笔记本";
 ---
 
 <MainGridLayout title={title}>
-	<NotebookDetail client:load />
+	<div class="notebook-detail-page">
+		<div id="notebook-detail-container">
+			<div class="notebook-loading" id="notebook-detail-loading">
+				<span class="notebook-loading-dot"></span>
+				<span>正在加载笔记...</span>
+			</div>
+
+			<div class="notebook-empty hidden" id="notebook-detail-error">
+				<p>加载失败，请稍后重试。</p>
+			</div>
+
+			<div class="notebook-detail-container hidden" id="notebook-detail-content"></div>
+		</div>
+	</div>
+
+	<script>
+		// @ts-nocheck
+		import { renderRichContent } from "@/utils/activity-content";
+		import { getCoverImage } from "@/utils/notebook-covers";
+
+		/**
+		 * @typedef {{
+		 *   id: string;
+		 *   notebook: string;
+		 *   title: string;
+		 *   date: string;
+		 *   content: string;
+		 *   cover: string;
+		 *   updatedAt: number;
+		 * }} NotebookEntry
+		 */
+
+		const detailCache = {
+			get(key) {
+				try {
+					const cached = sessionStorage.getItem("notebook_detail_" + key);
+					if (!cached) return null;
+					const parsed = /** @type {{ data: { entries: NotebookEntry[] }; timestamp: number }} */ (JSON.parse(cached));
+					if (Date.now() - parsed.timestamp < 300000) {
+						return parsed.data;
+					}
+					sessionStorage.removeItem("notebook_detail_" + key);
+				} catch {}
+				return null;
+			},
+			set(key, data) {
+				try {
+					sessionStorage.setItem("notebook_detail_" + key, JSON.stringify({
+						data,
+						timestamp: Date.now(),
+					}));
+				} catch {}
+			},
+		};
+
+		/** @param {string} str */
+		function escapeText(str) {
+			const div = document.createElement("div");
+			div.textContent = str;
+			return div.innerHTML;
+		}
+
+		/** @param {string} name @param {NotebookEntry[]} entries */
+		function renderNotebookDetail(name, entries) {
+			const sorted = [...entries].sort((a, b) => {
+				if (a.date === b.date) return b.updatedAt - a.updatedAt;
+				return a.date < b.date ? 1 : -1;
+			});
+			const heroCover = sorted.length > 0 ? getCoverImage(sorted[0].cover, name) : "/gallery/gpt-img2-2026/1.webp";
+			const tocHtml = sorted.map(function(entry, index) {
+				return '<button class="toc-item" type="button" data-entry-id="' + escapeText(entry.id) + '">' +
+					'<span class="notebook-toc-item__number">' + (index + 1) + '</span>' +
+					'<span class="notebook-toc-item__title">' + escapeText(entry.title) + '</span>' +
+				'</button>';
+			}).join("");
+
+			const articleHtml = sorted.map(function(entry, index) {
+				return '<article class="notebook-article-section" id="entry-' + escapeText(entry.id) + '">' +
+					'<div class="notebook-article-section__body">' +
+						'<div class="notebook-article-section__meta">' +
+							'<span>#' + String(index + 1).padStart(2, "0") + '</span>' +
+							'<span>' + escapeText(entry.date) + '</span>' +
+						'</div>' +
+						'<h2 class="notebook-article-section__title">' + escapeText(entry.title) + '</h2>' +
+						'<div class="notebook-article-section__content custom-md">' + renderRichContent(entry.content || "") + '</div>' +
+					'</div>' +
+				'</article>';
+			}).join("");
+
+			return '<a href="/notebook/" class="notebook-back">← 返回笔记本列表</a>' +
+				'<section class="notebook-hero" style="background-image:url(\'' + escapeText(heroCover) + '\')">' +
+					'<div class="notebook-hero__overlay"></div>' +
+					'<div class="notebook-hero__content">' +
+						'<h1 class="notebook-hero__title">' + escapeText(name) + '</h1>' +
+						'<p class="notebook-hero__count">' + sorted.length + ' 篇笔记</p>' +
+					'</div>' +
+				'</section>' +
+				'<div class="notebook-layout">' +
+					'<main class="notebook-content">' +
+						'<div class="notebook-article-list">' + articleHtml + '</div>' +
+					'</main>' +
+					'<aside class="notebook-sidebar">' +
+						'<div class="notebook-sidebar__container">' +
+							'<div class="notebook-sidebar__header"><span class="notebook-sidebar__title">目录</span></div>' +
+							'<div class="notebook-sidebar__body"><nav class="notebook-toc">' + tocHtml + '</nav></div>' +
+						'</div>' +
+					'</aside>' +
+				'</div>' +
+				'<button class="notebook-toc-toggle" id="notebook-toc-toggle" type="button">' +
+					'<span>目录</span>' +
+				'</button>';
+		}
+
+		/** @param {HTMLElement} root */
+		function bindNotebookDetailInteractions(root) {
+			const tocItems = root.querySelectorAll("[data-entry-id]");
+			for (const item of tocItems) {
+				item.addEventListener("click", function() {
+					const entryId = item.getAttribute("data-entry-id");
+					const target = entryId ? document.getElementById("entry-" + entryId) : null;
+					if (target) {
+						target.scrollIntoView({ behavior: "smooth", block: "start" });
+					}
+				});
+			}
+		}
+
+		/** @param {string} url @param {RequestInit=} options @param {number=} timeoutMs */
+		function fetchWithTimeout(url, options, timeoutMs) {
+			return /** @type {Promise<Response>} */ (new Promise(function(resolve, reject) {
+				const controller = new AbortController();
+				const timer = setTimeout(function() {
+					controller.abort();
+					reject(new Error("Request timeout"));
+				}, timeoutMs || 8000);
+				fetch(url, { ...(options || {}), signal: controller.signal })
+					.then(function(res) {
+						clearTimeout(timer);
+						resolve(res);
+					})
+					.catch(function(err) {
+						clearTimeout(timer);
+						reject(err);
+					});
+			}));
+		}
+
+		async function loadNotebookDetail(forceRefresh = false) {
+			const loading = /** @type {HTMLElement | null} */ (document.getElementById("notebook-detail-loading"));
+			const error = /** @type {HTMLElement | null} */ (document.getElementById("notebook-detail-error"));
+			const content = /** @type {HTMLElement | null} */ (document.getElementById("notebook-detail-content"));
+			const params = new URLSearchParams(window.location.search);
+			const name = (params.get("name") || "").trim();
+
+			if (!name) {
+				if (loading) loading.style.display = "none";
+				if (error) {
+					error.style.display = "flex";
+					const p = error.querySelector("p");
+					if (p) p.textContent = "未指定笔记本名称。";
+				}
+				return;
+			}
+
+			if (loading) loading.style.display = "flex";
+			if (error) error.style.display = "none";
+			if (content) content.style.display = "none";
+
+			if (!forceRefresh) {
+				const cached = detailCache.get(name);
+				if (cached?.entries?.length && content) {
+					if (loading) loading.style.display = "none";
+					content.innerHTML = renderNotebookDetail(name, cached.entries);
+					content.style.display = "block";
+					bindNotebookDetailInteractions(content);
+					return;
+				}
+			}
+
+			try {
+				const response = await fetchWithTimeout("/api/notebook/?notebook=" + encodeURIComponent(name), { method: "GET" }, 10000);
+				if (!response.ok) throw new Error("Failed to load notebook detail");
+				const data = /** @type {{ entries?: NotebookEntry[] }} */ (await response.json());
+				const entries = data.entries || [];
+				detailCache.set(name, { entries });
+
+				if (loading) loading.style.display = "none";
+				if (entries.length === 0) {
+					if (error) {
+						error.style.display = "flex";
+						const p = error.querySelector("p");
+						if (p) p.textContent = "这个笔记本还没有内容。";
+					}
+					return;
+				}
+
+				if (content) {
+					content.innerHTML = renderNotebookDetail(name, entries);
+					content.style.display = "block";
+					bindNotebookDetailInteractions(content);
+				}
+			} catch (err) {
+				if (loading) loading.style.display = "none";
+				if (error) error.style.display = "flex";
+				console.error("[notebook-detail] load failed:", err);
+			}
+		}
+
+		loadNotebookDetail(false);
+		if (window.__notebookDetailPageLoadHandler) {
+			document.removeEventListener("astro:page-load", window.__notebookDetailPageLoadHandler);
+		}
+		if (window.__notebookDetailVisibilityHandler) {
+			document.removeEventListener("visibilitychange", window.__notebookDetailVisibilityHandler);
+		}
+		window.__notebookDetailPageLoadHandler = function() {
+			loadNotebookDetail(false);
+		};
+		window.__notebookDetailVisibilityHandler = function() {
+			if (document.visibilityState === "visible") {
+				const content = document.getElementById("notebook-detail-content");
+				if (!content || content.style.display !== "block") {
+					loadNotebookDetail(false);
+				}
+			}
+		};
+		document.addEventListener("astro:page-load", window.__notebookDetailPageLoadHandler);
+		document.addEventListener("visibilitychange", window.__notebookDetailVisibilityHandler);
+	</script>
 </MainGridLayout>
