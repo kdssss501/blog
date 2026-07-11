@@ -1,10 +1,19 @@
 /* ============================================
-   主网格布局 — 来自 MainGridLayout.astro
-   Swup 容器结构和文章页浮动目录
+   Firefly 三栏网格布局
+   左侧栏 17.5rem | 主内容 1fr | 右侧栏 17.5rem
+   页面宽度 100rem，响应式断点 1280px
    ============================================ */
 
 #main-grid {
-	--page-width: 64rem;
+	--page-width: 100rem;
+	--sidebar-width: 17.5rem;
+	display: grid;
+	grid-template-columns: var(--sidebar-width) minmax(0, 1fr) var(--sidebar-width);
+	gap: 1.5rem;
+	align-items: start;
+	width: 100%;
+	max-width: var(--page-width);
+	margin: 0 auto;
 }
 
 /* Swup 容器最小高度保护，防止页面过渡时高度塌陷导致 Footer 跳动 */
@@ -12,12 +21,62 @@
 	min-height: 60vh;
 }
 
+/* 主内容区域 */
+#main-grid > main {
+	min-width: 0;
+	grid-column: 2;
+}
+
+/* 左侧栏占第一列 */
+#main-grid > #left-sidebar-dynamic {
+	grid-column: 1;
+}
+
+/* 右侧栏占第三列 */
+#main-grid > #right-sidebar-dynamic {
+	grid-column: 3;
+}
+
+/* 当没有侧边栏时，主内容居中 */
+#main-grid[data-sidebar-position="none"] {
+	grid-template-columns: minmax(0, 1fr);
+	max-width: 48rem;
+}
+#main-grid[data-sidebar-position="none"] > main {
+	grid-column: 1;
+}
+#main-grid[data-sidebar-position="none"] > #left-sidebar-dynamic,
+#main-grid[data-sidebar-position="none"] > #right-sidebar-dynamic {
+	display: none !important;
+}
+
+/* 仅左侧栏布局 */
+#main-grid[data-sidebar-position="left"] {
+	grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+	max-width: 72rem;
+}
+#main-grid[data-sidebar-position="left"] > main {
+	grid-column: 2;
+}
+
+/* 仅右侧栏布局 */
+#main-grid[data-sidebar-position="right"] {
+	grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+	max-width: 72rem;
+}
+#main-grid[data-sidebar-position="right"] > main {
+	grid-column: 1;
+}
+#main-grid[data-sidebar-position="right"] > #right-sidebar-dynamic {
+	grid-column: 2;
+}
+
 /* .onload-animation 统一定义在 transition.css 中，避免 CSS 冲突 */
 
 /* 文章页外部浮动目录 - 独立于主内容区域 */
 .article-toc-wrapper {
 	position: absolute;
-	left: calc(50% + 32rem);
+	left: calc(50% + 50rem);
 	top: 0;
 	width: 20rem;
 	max-width: 20rem;
@@ -37,7 +96,7 @@
 	max-height: calc(100vh - 7rem);
 	display: flex;
 	flex-direction: column;
-	border-radius: 1rem;
+	border-radius: var(--radius-large);
 	border: 1px solid var(--line-divider);
 	background: var(--card-bg);
 	overflow: hidden;
@@ -75,7 +134,19 @@
 	padding: 0.5rem;
 }
 
+/* 响应式：1280px 以下隐藏侧边栏，退化为单列 */
 @media (max-width: 1280px) {
+	#main-grid {
+		grid-template-columns: minmax(0, 1fr) !important;
+		max-width: 48rem !important;
+	}
+	#main-grid > main {
+		grid-column: 1 !important;
+	}
+	#main-grid > #left-sidebar-dynamic,
+	#main-grid > #right-sidebar-dynamic {
+		display: none !important;
+	}
 	.article-toc-wrapper {
 		display: none !important;
 	}

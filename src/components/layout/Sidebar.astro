@@ -1,0 +1,169 @@
+---
+/**
+ * 侧边栏组件 — 根据 sidebarLayoutConfig 渲染对应侧的 widget 列表
+ * Firefly 三栏布局：左侧栏 17.5rem | 主内容 1fr | 右侧栏 17.5rem
+ */
+import Profile from "@components/widget/Profile.astro";
+import Announcement from "@components/widget/Announcement.astro";
+import Categories from "@components/widget/Categories.astro";
+import Tags from "@components/widget/Tags.astro";
+import SidebarTOC from "@components/widget/SidebarTOC.astro";
+import Calendar from "@components/widget/Calendar.astro";
+import Music from "@components/widget/Music.astro";
+import Icon from "@components/common/Icon.astro";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { sidebarLayoutConfig, siteConfig } from "@/config";
+import {
+	getCategoryList,
+	getSortedPosts,
+	getTagList,
+} from "@/utils/content-utils";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+interface Props {
+	side: "left" | "right";
+	isPostPage?: boolean;
+}
+const { side, isPostPage = false } = Astro.props;
+
+const components =
+	side === "left"
+		? sidebarLayoutConfig.leftComponents
+		: sidebarLayoutConfig.rightComponents;
+
+// 过滤：只渲染启用的组件，并根据页面类型过滤
+const visibleComponents = components.filter((c) => {
+	if (!c.enable) return false;
+	if (isPostPage && c.showOnPostPage === false) return false;
+	if (!isPostPage && c.showOnNonPostPage === false) return false;
+	return true;
+});
+
+// 分离 top 和 sticky 组件
+const topComponents = visibleComponents.filter((c) => c.position === "top");
+const stickyComponents = visibleComponents.filter((c) => c.position === "sticky");
+
+// 站点统计数据（用于 stats widget）
+const posts = await getSortedPosts();
+const categories = await getCategoryList();
+const tags = await getTagList();
+
+let totalWords = 0;
+for (const post of posts) {
+	if (post.body) {
+		const text = post.body
+			.replace(/```[\s\S]*?```/g, "")
+			.replace(/`[^`]*`/g, "")
+			.replace(/\s+/g, " ")
+			.trim();
+		const chineseChars = text.match(/[一-龥]/g) || [];
+		const englishChars = text.match(/[a-zA-Z]/g) || [];
+		totalWords += chineseChars.length + englishChars.length;
+	}
+}
+
+const siteStartDate = siteConfig.siteStartDate || "2025-01-01";
+const startDate = new Date(siteStartDate);
+const today = new Date();
+const diffTime = Math.abs(today.getTime() - startDate.getTime());
+const runningDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+const stats = [
+	{ icon: "material-symbols:article-outline", label: "文章", value: posts.length },
+	{ icon: "material-symbols:folder-outline", label: "分类", value: categories.length },
+	{ icon: "material-symbols:label-outline", label: "标签", value: tags.length },
+	{ icon: "material-symbols:text-ad-outline-rounded", label: "字数", value: totalWords },
+	{ icon: "material-symbols:calendar-clock-outline", label: "运行", value: runningDays, suffix: "天" },
+];
+---
+
+<aside id={side === "left" ? "left-sidebar" : "right-sidebar"} class:list={["sidebar", `${side}-sidebar`]}>
+	{/* top 位置组件 — 固定在侧边栏顶部 */}
+	{topComponents.map((c) => (
+		<div class="sidebar-widget sidebar-widget-top">
+			{c.type === "profile" && <Profile />}
+			{c.type === "announcement" && <Announcement />}
+			{c.type === "stats" && (
+				<WidgetLayout name="统计" id="sidebar-stats">
+					<div class="grid grid-cols-2 gap-3">
+						{stats.map((s) => (
+							<div class="flex flex-col items-center gap-1 p-2 rounded-lg">
+								<Icon name={s.icon} class="text-lg text-(--primary)" />
+								<span class="text-xs text-(--content-meta)">{s.label}</span>
+								<span class="text-sm font-bold text-(--deep-text)">{s.value}{s.suffix || ""}</span>
+							</div>
+						))}
+					</div>
+				</WidgetLayout>
+			)}
+			{c.type === "categories" && <Categories />}
+			{c.type === "tags" && <Tags />}
+			{c.type === "calendar" && <Calendar />}
+			{c.type === "music" && <Music />}
+			{c.type === "sidebarToc" && <SidebarTOC />}
+		</div>
+	))}
+
+	{/* sticky 位置组件 — 粘性定位，跟随滚动 */}
+	{stickyComponents.length > 0 && (
+		<div class="sidebar-widget sidebar-widget-sticky">
+			{stickyComponents.map((c) => (
+				<div class="sidebar-widget-inner">
+					{c.type === "profile" && <Profile />}
+					{c.type === "announcement" && <Announcement />}
+					{c.type === "stats" && (
+						<WidgetLayout name="统计" id="sidebar-stats-sticky">
+							<div class="grid grid-cols-2 gap-3">
+								{stats.map((s) => (
+									<div class="flex flex-col items-center gap-1 p-2 rounded-lg">
+										<Icon name={s.icon} class="text-lg text-(--primary)" />
+										<span class="text-xs text-(--content-meta)">{s.label}</span>
+										<span class="text-sm font-bold text-(--deep-text)">{s.value}{s.suffix || ""}</span>
+									</div>
+								))}
+							</div>
+						</WidgetLayout>
+					)}
+					{c.type === "categories" && <Categories />}
+					{c.type === "tags" && <Tags />}
+					{c.type === "calendar" && <Calendar />}
+					{c.type === "music" && <Music />}
+					{c.type === "sidebarToc" && <SidebarTOC />}
+				</div>
+			))}
+		</div>
+	)}
+</aside>
+
+<style>
+.sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	width: 17.5rem;
+	flex-shrink: 0;
+}
+
+.sidebar-widget-sticky {
+	position: sticky;
+	top: 5rem;
+	max-height: calc(100vh - 6rem);
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.sidebar-widget-sticky::-webkit-scrollbar {
+	width: 4px;
+}
+.sidebar-widget-sticky::-webkit-scrollbar-thumb {
+	background: var(--scrollbar-bg);
+	border-radius: 2px;
+}
+
+@media (max-width: 1280px) {
+	.sidebar {
+		display: none !important;
+	}
+}
+</style>

@@ -4,10 +4,11 @@ import SpineModel from "@components/features/SpineModel.astro";
 import Footer from "@components/layout/Footer.astro";
 import Navbar from "@components/layout/Navbar.astro";
 import NavMenuPanel from "@components/layout/NavMenuPanel.astro";
+import Sidebar from "@components/layout/Sidebar.astro";
 import ArticleCatalog from "@components/misc/ArticleCatalog.astro";
 import CategoryBar from "@/components/layout/CategoryBar.astro";
 
-import { live2dModelConfig, navBarConfig, siteConfig } from "@/config";
+import { live2dModelConfig, navBarConfig, sidebarLayoutConfig, siteConfig } from "@/config";
 import { LinkPresets } from "@/constants/link-presets";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
@@ -53,6 +54,23 @@ const isPostPage = !!postSlug;
 const shouldRenderCategoryBar = !!siteConfig.categoryBar;
 const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
+// 侧边栏布局判断
+const sidebarEnabled = sidebarLayoutConfig.enable;
+const sidebarPosition = sidebarLayoutConfig.position; // "left" | "right" | "both"
+const showBothOnPost = sidebarLayoutConfig.showBothSidebarsOnPostPage;
+
+// 判断当前页面应该显示哪侧侧边栏
+let dataSidebarPosition: string = "none";
+if (sidebarEnabled) {
+	if (sidebarPosition === "both") {
+		dataSidebarPosition = "both";
+	} else if (sidebarPosition === "left") {
+		dataSidebarPosition = isPostPage && showBothOnPost ? "both" : "left";
+	} else if (sidebarPosition === "right") {
+		dataSidebarPosition = isPostPage && showBothOnPost ? "both" : "right";
+	}
+}
+
 const navLinks = navBarConfig.links.map((item) => {
 	if (typeof item === "number") return LinkPresets[item];
 	return item;
@@ -79,12 +97,22 @@ const navLinks = navBarConfig.links.map((item) => {
 
 <NavMenuPanel links={navLinks} />
 
-{/* 主内容容器 — 单列居中，无壁纸/三栏 */}
+{/* 主内容容器 — Firefly 三栏网格布局 */}
 <div class="relative w-full" id="main-grid-wrapper">
-	<div class="mx-auto max-w-5xl px-4 md:px-6" data-sidebar-position="none" id="main-grid">
-		{/* Swup 占位：保留 left/right sidebar 容器以满足 swup containers 协议 */}
-		<div id="left-sidebar-dynamic" class="hidden transition-swup-main"></div>
-		<div id="right-sidebar-dynamic" class="hidden transition-swup-main"></div>
+	<div class="mx-auto px-4 md:px-6" data-sidebar-position={dataSidebarPosition} id="main-grid">
+		{/* 左侧栏 */}
+		<div id="left-sidebar-dynamic" class="transition-swup-main">
+			{(dataSidebarPosition === "both" || dataSidebarPosition === "left") && (
+				<Sidebar side="left" isPostPage={isPostPage} />
+			)}
+		</div>
+
+		{/* 右侧栏 */}
+		<div id="right-sidebar-dynamic" class="transition-swup-main">
+			{(dataSidebarPosition === "both" || dataSidebarPosition === "right") && (
+				<Sidebar side="right" isPostPage={isPostPage} />
+			)}
+		</div>
 
 		<main id="swup-container" class="transition-swup-main" data-current-post-category={postCategory || ""}>
 			{isPostPage && catalogGroups && (
@@ -104,10 +132,6 @@ const navLinks = navBarConfig.links.map((item) => {
 			)}
 			{shouldRenderCategoryBar && <div id="category-bar-wrapper"><CategoryBar title={title} postSlug={postSlug} postCategory={postCategory} /></div>}
 			<h1 class="sr-only">{title}</h1>
-
-
-
-
 
 			<div id="content-wrapper" class="onload-animation">
 				<slot></slot>
