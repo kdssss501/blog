@@ -143,12 +143,12 @@ const navLinks = navBarConfig.links.map((item) => {
 				<Footer></Footer>
 			</div>
 		</main>
-
-		{/* Live2D / Spine — 由悬浮坞控制显隐 */}
-		<SpineModel></SpineModel>
-		{live2dModelConfig.enable && <Live2DWidget config={live2dModelConfig} />}
 	</div>
 </div>
+
+{/* Live2D / Spine — 移至 #main-grid 外部，避免 Swup 过渡动画的 transform/filter 创建新包含块导致 position:fixed 失效 */}
+<SpineModel></SpineModel>
+{live2dModelConfig.enable && <Live2DWidget config={live2dModelConfig} />}
 
 {/* 全局持久化组件（FloatingDock / MobileDock / AISearch / SearchModal / PrivacyModal）
     已下沉至 Layout.astro，确保所有页面（含自定义布局页）共享 */}
