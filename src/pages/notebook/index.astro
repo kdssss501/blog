@@ -57,38 +57,76 @@ const description = "记录生活与学习的点滴，按笔记本分类整理�
 	</div>
 
 	<script>
-	import { GALLERY_IMAGES, hashString, getCoverImage } from "@/utils/notebook-covers";
-	import { getNotebookGroupMeta } from "@/utils/notebook-content";
-	window.notebookCovers = { GALLERY_IMAGES, hashString, getCoverImage };
-	window.notebookPresentation = { getNotebookGroupMeta };
-	window.escapeText = function(str) {
-		const div = document.createElement("div");
-		div.textContent = str;
-		return div.innerHTML;
-	};
-	window.formatDate = function(timestamp) {
-		const d = new Date(timestamp);
-		const y = d.getFullYear();
-		const m = String(d.getMonth() + 1).padStart(2, "0");
-		const day = String(d.getDate()).padStart(2, "0");
-		return y + "-" + m + "-" + day;
-	};
+import { GALLERY_IMAGES, hashString, getCoverImage } from "@/utils/notebook-covers";
+import { getNotebookGroupMeta } from "@/utils/notebook-content";
+window.notebookCovers = { GALLERY_IMAGES, hashString, getCoverImage };
+window.notebookPresentation = { getNotebookGroupMeta };
+window.escapeText = function(str) {
+	const div = document.createElement("div");
+	div.textContent = str;
+	return div.innerHTML;
+};
+window.formatDate = function(timestamp) {
+	const d = new Date(timestamp);
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, "0");
+	const day = String(d.getDate()).padStart(2, "0");
+	return y + "-" + m + "-" + day;
+};
 </script>
 
 <script is:inline>
-	var notebookCache = {
+var notebookCovers = window.notebookCovers || {
+	GALLERY_IMAGES: [
+		"1.webp", "2.webp", "3.webp", "4.webp", "5.webp", "6.webp", "7.webp",
+		"16.webp", "20.webp", "21.webp", "22.webp", "24.webp", "25.webp",
+		"26.webp", "27.webp", "28.webp", "41.webp", "42.webp", "43.webp",
+		"44.webp", "50.webp", "80.webp", "100.webp", "101.webp", "102.webp",
+		"103.webp", "104.webp", "105.webp", "107.webp", "200.webp", "201.webp",
+		"202.webp", "203.webp", "204.webp", "205.webp"
+	],
+	hashString: function(str) {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+			hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+		}
+		return Math.abs(hash);
+	},
+	getCoverImage: function(cover, name) {
+		if (cover && (cover.indexOf("data:") === 0 || cover.indexOf("http") === 0)) {
+			return cover;
+		}
+		let imgIndex = 0;
+		if (cover && cover.indexOf("default-") === 0) {
+			const num = parseInt(cover.replace("default-", ""), 10);
+			if (!isNaN(num) && num >= 1 && num <= this.GALLERY_IMAGES.length) {
+				imgIndex = num - 1;
+			}
+		} else {
+			imgIndex = this.hashString(name || "n") % this.GALLERY_IMAGES.length;
+		}
+		return "/gallery/gpt-img2-2026/" + this.GALLERY_IMAGES[imgIndex];
+	}
+};
+var notebookPresentation = window.notebookPresentation || {
+	getNotebookGroupMeta: function(name) {
+		return null;
+	}
+};
+
+var notebookCache = {
 		data: null,
 		timestamp: 0,
 		ttl: 300000,
 		get: function(key) {
 			try {
-				var cached = sessionStorage.getItem("notebook_" + key);
+				var cached = sessionStorage.getItem("notebook_v2_" + key);
 				if (!cached) return null;
 				var parsed = JSON.parse(cached);
 				if (Date.now() - parsed.timestamp < this.ttl) {
 					return parsed.data;
 				}
-				sessionStorage.removeItem("notebook_" + key);
+				sessionStorage.removeItem("notebook_v2_" + key);
 				return null;
 			} catch (e) {
 				return null;
@@ -96,7 +134,7 @@ const description = "记录生活与学习的点滴，按笔记本分类整理�
 		},
 		set: function(key, data) {
 			try {
-				sessionStorage.setItem("notebook_" + key, JSON.stringify({
+				sessionStorage.setItem("notebook_v2_" + key, JSON.stringify({
 					data: data,
 					timestamp: Date.now()
 				}));
@@ -109,17 +147,17 @@ const description = "记录生活与学习的点滴，按笔记本分类整理�
         }
 
 	function renderCover(cover, name) {
-		var presentation = window.notebookPresentation;
-		if (presentation && typeof presentation.getNotebookGroupMeta === "function") {
-			var meta = presentation.getNotebookGroupMeta(name);
-			if (meta && meta.coverImage) {
-				return 'style="background-image: url(\'' + safeEscapeText(meta.coverImage) + '\');"';
-			}
+	if (typeof notebookPresentation.getNotebookGroupMeta === "function") {
+		var meta = notebookPresentation.getNotebookGroupMeta(name);
+		if (meta && meta.coverImage) {
+			return 'style="background-image: url(\'' + safeEscapeText(meta.coverImage) + '\');"';
 		}
-		var helpers = window.notebookCovers;
-		var url = helpers ? helpers.getCoverImage(cover, name) : cover;
-		return 'style="background-image: url(\'' + safeEscapeText(url) + '\');"';
 	}
+	var url = typeof notebookCovers.getCoverImage === "function"
+		? notebookCovers.getCoverImage(cover, name)
+		: cover;
+	return 'style="background-image: url(\'' + safeEscapeText(url) + '\');"';
+}
 
 	function groupByNotebook(entries) {
 		var map = new Map();

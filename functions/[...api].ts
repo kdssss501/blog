@@ -159,7 +159,7 @@ export default {
 		const url = new URL(request.url);
 		const pathname = url.pathname;
 		const method = request.method;
-		const storage = getStorage(env);
+		const storage = await getStorage(env);
 
 		const corsHeaders = {
 			"Access-Control-Allow-Origin": "*",

@@ -1,0 +1,1041 @@
+---
+interface Props {
+	usePathSlug?: boolean;
+}
+
+const { usePathSlug = false } = Astro.props;
+---
+
+<section class="activity-detail-page" data-activity-slug-mode={usePathSlug ? "path" : "query"}>
+	<a href="/activity/" class="activity-back-link" data-no-swup>
+		<span class="activity-back-icon">←</span>
+		<span class="activity-back-text">返回动态列表</span>
+	</a>
+
+	<div class="activity-detail-shell" id="activity-detail-shell">
+		<div class="activity-detail-loading" id="activity-detail-loading">
+			<span class="activity-detail-loading-dot"></span>
+			<div class="activity-detail-loading__copy">
+				<strong>正在加载动态内容</strong>
+				<span>准备目录、富文本排版与图片资源...</span>
+			</div>
+		</div>
+
+		<div class="activity-detail-error hidden" id="activity-detail-error">
+			<p>加载失败，请稍后重试。</p>
+			<button type="button" class="activity-detail-error__retry" id="activity-detail-retry">
+				重新加载
+			</button>
+		</div>
+
+		<div class="activity-detail-content hidden" id="activity-detail-content"></div>
+	</div>
+</section>
+
+<script>
+	// @ts-nocheck
+	import { TOCManager } from "@/utils/toc-utils";
+
+	const DETAIL_CACHE_VERSION = "detail-v4";
+	let activityTOCManager = null;
+	let activityDetailAbortController = null;
+
+	function escapeText(str) {
+		const div = document.createElement("div");
+		div.textContent = str == null ? "" : String(str);
+		return div.innerHTML;
+	}
+
+	function getActivitySlug(mode) {
+		if (mode === "path") {
+			const segments = window.location.pathname.split("/").filter(Boolean);
+			return segments.length > 0 ? segments[segments.length - 1] : "";
+		}
+
+		const params = new URLSearchParams(window.location.search);
+		const fromQuery = (params.get("slug") || "").trim();
+		if (fromQuery) return fromQuery;
+		const segments = window.location.pathname.split("/").filter(Boolean);
+		return segments.length > 0 ? segments[segments.length - 1] : "";
+	}
+
+	function formatDate(timestamp) {
+		const d = new Date(timestamp);
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, "0");
+		const day = String(d.getDate()).padStart(2, "0");
+		const h = String(d.getHours()).padStart(2, "0");
+		const min = String(d.getMinutes()).padStart(2, "0");
+		return y + "-" + m + "-" + day + " " + h + ":" + min;
+	}
+
+	function stripHtml(html) {
+		const div = document.createElement("div");
+		div.innerHTML = html || "";
+		return (div.textContent || "").replace(/\s+/g, " ").trim();
+	}
+
+	function estimateReadingMinutes(item) {
+		const plain = stripHtml(item.html || item.body || item.content || "");
+		const chineseChars = (plain.match(/[\u4e00-\u9fa5]/g) || []).length;
+		const englishWords = (plain.match(/[a-zA-Z0-9_]+/g) || []).length;
+		const total = chineseChars + englishWords;
+		return Math.max(1, Math.ceil(total / 320));
+	}
+
+	function countSections(item) {
+		const html = item.html || "";
+		const matches = html.match(/<h[1-4]\b/gi);
+		return matches ? matches.length : 0;
+	}
+
+	function buildStatCards(item) {
+		const imageCount = Array.isArray(item.images) ? item.images.length : 0;
+		return [
+			{ label: "阅读时间", value: estimateReadingMinutes(item) + " 分钟" },
+			{ label: "章节数量", value: String(Math.max(1, countSections(item))) },
+			{ label: "图片数量", value: String(imageCount) },
+			{ label: "最近更新", value: formatDate(item.updatedAt) },
+		];
+	}
+
+	function renderStatCards(item) {
+		return buildStatCards(item)
+			.map(function(stat) {
+				return '<div class="activity-detail__stat-card activity-fade-section">' +
+					'<span class="activity-detail__stat-label">' + escapeText(stat.label) + '</span>' +
+					'<strong class="activity-detail__stat-value">' + escapeText(stat.value) + '</strong>' +
+				'</div>';
+			})
+			.join("");
+	}
+
+	function renderGallery(images, title) {
+		if (!images || images.length === 0) return "";
+		return '<section class="activity-detail__gallery-wrap activity-fade-section">' +
+			'<div class="activity-detail__section-head">' +
+				'<span class="activity-detail__section-eyebrow">Gallery</span>' +
+				'<h2 class="activity-detail__section-title">图像片段</h2>' +
+			'</div>' +
+			'<div class="activity-detail__gallery">' +
+				images.map(function(image, index) {
+					var figureAlt = image.alt || (title || "动态图片") + " " + (index + 1);
+					return '<figure class="activity-detail__gallery-item">' +
+						'<img src="' + escapeText(image.url) + '" alt="' + escapeText(figureAlt) + '" loading="lazy" decoding="async" />' +
+						'<figcaption>' + escapeText(figureAlt) + '</figcaption>' +
+					'</figure>';
+				}).join("") +
+			'</div>' +
+		'</section>';
+	}
+
+	function renderHeroVisual(image, title) {
+		if (!image || !image.url) return "";
+		return '<div class="activity-detail-hero__visual">' +
+			'<img class="activity-detail-hero__image" src="' + escapeText(image.url) + '" alt="' + escapeText(image.alt || title || "动态封面") + '" loading="eager" fetchpriority="high" decoding="async" />' +
+		'</div>';
+	}
+
+	function renderActivityDetail(item) {
+		const images = Array.isArray(item.images) ? item.images : [];
+		const coverImage = images.length > 0 ? images[0] : null;
+		const excerpt = item.excerpt || stripHtml(item.html || item.body || item.content || "").slice(0, 120);
+		const richContent = item.html || ('<p class="activity-content-block activity-content-block--paragraph">' + escapeText(item.content || "") + '</p>');
+
+		return '<article class="activity-detail-card">' +
+			'<div class="activity-detail-layout">' +
+				'<div class="activity-detail-main">' +
+					'<header class="activity-detail-hero activity-fade-section">' +
+						'<div class="activity-detail-hero__content">' +
+							'<span class="activity-detail-hero__eyebrow">Activity / Modern View</span>' +
+							'<h1 class="activity-detail-hero__title">' + escapeText(item.title || "未命名动态") + '</h1>' +
+							'<p class="activity-detail-hero__excerpt">' + escapeText(excerpt || "暂无内容摘要。") + '</p>' +
+							'<div class="activity-detail-hero__meta">' +
+								'<span class="activity-detail-hero__meta-item">发布于 ' + formatDate(item.createdAt) + '</span>' +
+								'<span class="activity-detail-hero__meta-dot"></span>' +
+								'<span class="activity-detail-hero__meta-item">动态内容异步加载</span>' +
+								'<span class="activity-detail-hero__meta-dot"></span>' +
+								'<span class="activity-detail-hero__meta-item">支持富文本与目录跟随</span>' +
+							'</div>' +
+						'</div>' +
+						renderHeroVisual(coverImage, item.title || "动态封面") +
+					'</header>' +
+
+					'<section class="activity-detail__article-card activity-fade-section">' +
+						'<div class="activity-detail__section-head">' +
+							'<span class="activity-detail__section-eyebrow">Article View</span>' +
+							'<h2 class="activity-detail__section-title">正文内容</h2>' +
+						'</div>' +
+						'<div class="activity-detail__article custom-md markdown-bordered" id="activity-article-content">' +
+							richContent +
+						'</div>' +
+					'</section>' +
+
+					renderGallery(images, item.title || "动态图片") +
+				'</div>' +
+
+				'<aside class="activity-detail-aside">' +
+					'<section class="activity-detail__aside-card activity-detail__aside-card--stats activity-fade-section">' +
+						'<span class="activity-detail__section-eyebrow">Overview</span>' +
+						'<h2 class="activity-detail__aside-title">内容概览</h2>' +
+						'<div class="activity-detail__stats-grid">' +
+							renderStatCards(item) +
+						'</div>' +
+					'</section>' +
+
+					'<section class="activity-detail__aside-card activity-detail__aside-card--toc activity-fade-section" id="activity-toc-card">' +
+						'<span class="activity-detail__section-eyebrow">Contents</span>' +
+						'<h2 class="activity-detail__aside-title">目录导航</h2>' +
+						'<div class="toc-scroll-container custom-scrollbar activity-detail__toc-scroll">' +
+							'<div class="toc-content activity-detail__toc-content" id="activity-toc-content"></div>' +
+						'</div>' +
+					'</section>' +
+				'</aside>' +
+			'</div>' +
+		'</article>';
+	}
+
+	function getDetailCacheKey(slug) {
+		return "activity_detail_" + DETAIL_CACHE_VERSION + "_" + slug;
+	}
+
+	function readDetailCache(slug) {
+		try {
+			const cached = sessionStorage.getItem(getDetailCacheKey(slug));
+			if (!cached) return null;
+			const parsed = JSON.parse(cached);
+			if (!parsed || !parsed.data) return null;
+			if (Date.now() - parsed.timestamp > 180000) return null;
+			return parsed.data;
+		} catch {
+			return null;
+		}
+	}
+
+	function writeDetailCache(slug, data) {
+		try {
+			sessionStorage.setItem(getDetailCacheKey(slug), JSON.stringify({
+				data: data,
+				timestamp: Date.now(),
+			}));
+		} catch {
+			// ignore cache failures
+		}
+	}
+
+	function fetchWithTimeout(url, options, timeoutMs) {
+		return new Promise(function(resolve, reject) {
+			const controller = new AbortController();
+			const outerSignal = options && options.signal;
+			function handleAbort() {
+				controller.abort();
+				reject(new DOMException("Aborted", "AbortError"));
+			}
+			if (outerSignal && typeof outerSignal.addEventListener === "function") {
+				if (outerSignal.aborted) {
+					handleAbort();
+					return;
+				}
+				outerSignal.addEventListener("abort", handleAbort, { once: true });
+			}
+			const timer = setTimeout(function() {
+				controller.abort();
+				reject(new Error("Request timeout"));
+			}, timeoutMs || 8000);
+			const nextOptions = Object.assign({}, options || {}, { signal: controller.signal });
+			fetch(url, nextOptions)
+				.then(function(res) {
+					clearTimeout(timer);
+					if (outerSignal && typeof outerSignal.removeEventListener === "function") {
+						outerSignal.removeEventListener("abort", handleAbort);
+					}
+					resolve(res);
+				})
+				.catch(function(err) {
+					clearTimeout(timer);
+					if (outerSignal && typeof outerSignal.removeEventListener === "function") {
+						outerSignal.removeEventListener("abort", handleAbort);
+					}
+					reject(err);
+				});
+		});
+	}
+
+	function fetchWithRetry(url, options, timeoutMs, retries) {
+		return fetchWithTimeout(url, options, timeoutMs).catch(function(err) {
+			if (retries > 0) {
+				return new Promise(function(resolve) {
+					setTimeout(function() {
+						resolve(fetchWithRetry(url, options, timeoutMs, retries - 1));
+					}, 400);
+				});
+			}
+			throw err;
+		});
+	}
+
+	function cleanupActivityTOC() {
+		if (activityTOCManager) {
+			activityTOCManager.cleanup();
+			activityTOCManager = null;
+		}
+	}
+
+	function highlightCodeBlocks(root) {
+		const codeBlocks = root.querySelectorAll(".activity-code-block code");
+		codeBlocks.forEach(function(block) {
+			const source = block.textContent || "";
+			const langClass = Array.from(block.classList).find(function(name) {
+				return name.indexOf("language-") === 0;
+			}) || "";
+			const lang = langClass.replace("language-", "");
+			block.innerHTML = createHighlightedCode(source, lang);
+		});
+	}
+
+	function createHighlightedCode(code, lang) {
+		const placeholders = [];
+		function stash(value) {
+			const token = "__TOKEN_" + placeholders.length + "__";
+			placeholders.push(value);
+			return token;
+		}
+
+		let html = escapeText(code);
+		html = html.replace(/(\/\/.*$|\/\*[\s\S]*?\*\/|#.*$)/gm, function(match) {
+			return stash('<span class="tok-comment">' + match + '</span>');
+		});
+		html = html.replace(/(["'`])(?:\\.|(?!\1)[^\\\n])*\1/g, function(match) {
+			return stash('<span class="tok-string">' + match + '</span>');
+		});
+		html = html.replace(/\b\d+(?:\.\d+)?\b/g, '<span class="tok-number">$&</span>');
+
+		const keywordGroups = {
+			javascript: /\b(const|let|var|function|return|if|else|for|while|await|async|new|class|import|from|export|try|catch|throw|switch|case|break|continue)\b/g,
+			typescript: /\b(const|let|var|function|return|if|else|for|while|await|async|new|class|import|from|export|try|catch|throw|interface|type|extends|implements|public|private|protected)\b/g,
+			json: /\b(true|false|null)\b/g,
+			css: /\b(display|position|color|background|border|padding|margin|grid|flex|font-size|transform|transition)\b/g,
+			html: /(&lt;\/?[a-zA-Z-]+|\/?&gt;)/g,
+			bash: /\b(if|then|fi|for|do|done|echo|export|npm|pnpm|git|node)\b/g,
+			astro: /\b(import|from|const|return|class|if|else|await|async)\b/g,
+		};
+		const keywordPattern = keywordGroups[lang] || keywordGroups.javascript;
+		html = html.replace(keywordPattern, '<span class="tok-keyword">$&</span>');
+		html = html.replace(/\b([A-Z][A-Za-z0-9_]+)\b/g, '<span class="tok-type">$1</span>');
+
+		return html.replace(/__TOKEN_(\d+)__/g, function(_, index) {
+			return placeholders[Number(index)] || "";
+		});
+	}
+
+	function initRevealAnimations(root) {
+		const targets = root.querySelectorAll(
+			".activity-fade-section, .activity-content-block, .activity-rich-heading, .activity-code-block, .activity-rich-image"
+		);
+		if (!("IntersectionObserver" in window)) {
+			targets.forEach(function(target) {
+				target.classList.add("is-visible");
+			});
+			return;
+		}
+
+		const observer = new IntersectionObserver(function(entries, currentObserver) {
+			entries.forEach(function(entry) {
+				if (entry.isIntersecting) {
+					entry.target.classList.add("is-visible");
+					currentObserver.unobserve(entry.target);
+				}
+			});
+		}, {
+			threshold: 0.14,
+			rootMargin: "0px 0px -10% 0px",
+		});
+
+		targets.forEach(function(target) {
+			observer.observe(target);
+		});
+	}
+
+	function initImages(root) {
+		root.querySelectorAll("img").forEach(function(image) {
+			if (!image.classList.contains("activity-detail-hero__image")) {
+				image.loading = "lazy";
+			}
+			image.decoding = "async";
+			image.classList.add("activity-image-ready");
+			if (image.complete) {
+				image.classList.add("is-loaded");
+			} else {
+				image.addEventListener("load", function() {
+					image.classList.add("is-loaded");
+				}, { once: true });
+			}
+		});
+	}
+
+	function initTOC() {
+		cleanupActivityTOC();
+		activityTOCManager = new TOCManager({
+			contentId: "activity-toc-content",
+			indicatorId: "activity-toc-indicator",
+			maxLevel: 4,
+			scrollOffset: 110,
+		});
+		activityTOCManager.init();
+
+		const tocContent = document.getElementById("activity-toc-content");
+		const tocCard = document.getElementById("activity-toc-card");
+		if (!tocContent || !tocCard) return;
+
+		if (tocContent.textContent && tocContent.textContent.includes("暂无")) {
+			tocCard.classList.add("is-empty");
+		} else {
+			tocCard.classList.remove("is-empty");
+		}
+	}
+
+	function enhanceActivityContent(root) {
+		highlightCodeBlocks(root);
+		initImages(root);
+		initRevealAnimations(root);
+		requestAnimationFrame(initTOC);
+	}
+
+	function renderIntoContent(data) {
+		const content = document.getElementById("activity-detail-content");
+		if (!content) return;
+		content.innerHTML = renderActivityDetail(data);
+		content.style.display = "block";
+		enhanceActivityContent(content);
+	}
+
+	function setError(message) {
+		const error = document.getElementById("activity-detail-error");
+		const errorMessage = error ? error.querySelector("p") : null;
+		if (errorMessage) errorMessage.textContent = message || "加载失败，请稍后重试。";
+		if (error) error.style.display = "flex";
+	}
+
+	function getSlugMode() {
+		const page = document.querySelector(".activity-detail-page");
+		return page ? page.getAttribute("data-activity-slug-mode") || "query" : "query";
+	}
+
+	function loadActivityDetail(forceRefresh) {
+		const loading = document.getElementById("activity-detail-loading");
+		const error = document.getElementById("activity-detail-error");
+		const content = document.getElementById("activity-detail-content");
+		const slug = getActivitySlug(getSlugMode());
+
+		if (window._closeLive2DWidget) window._closeLive2DWidget();
+		cleanupActivityTOC();
+
+		if (activityDetailAbortController) {
+			activityDetailAbortController.abort();
+		}
+		activityDetailAbortController = new AbortController();
+
+		if (loading) loading.style.display = "flex";
+		if (error) error.style.display = "none";
+		if (content) content.style.display = "none";
+
+		if (!slug) {
+			if (loading) loading.style.display = "none";
+			setError("未找到动态标识。");
+			return;
+		}
+
+		const cached = !forceRefresh ? readDetailCache(slug) : null;
+		if (cached) {
+			if (loading) loading.style.display = "none";
+			renderIntoContent(cached);
+		}
+
+		fetchWithRetry("/api/activity/?slug=" + encodeURIComponent(slug), {
+			method: "GET",
+			signal: activityDetailAbortController.signal,
+		}, 8000, 2)
+			.then(function(res) {
+				if (!res.ok) throw new Error("Failed to load activity");
+				return res.json();
+			})
+			.then(function(data) {
+				writeDetailCache(slug, data);
+				if (loading) loading.style.display = "none";
+
+				if (data.error) {
+					setError(data.error);
+					return;
+				}
+
+				renderIntoContent(data);
+			})
+			.catch(function(err) {
+				if (err && err.name === "AbortError") return;
+				if (loading) loading.style.display = "none";
+				if (!cached) {
+					setError("加载失败，请稍后重试。");
+				}
+				console.error("[activity-detail] load failed:", err);
+			});
+	}
+
+	function initializeActivityDetailExperience(forceRefresh) {
+		loadActivityDetail(!!forceRefresh);
+	}
+
+	const retryButton = document.getElementById("activity-detail-retry");
+	if (retryButton) {
+		retryButton.addEventListener("click", function() {
+			initializeActivityDetailExperience(true);
+		});
+	}
+
+	initializeActivityDetailExperience(false);
+	if (window.__activityDetailPageLoadHandler) {
+		document.removeEventListener("astro:page-load", window.__activityDetailPageLoadHandler);
+	}
+	window.__activityDetailPageLoadHandler = function() {
+		initializeActivityDetailExperience(false);
+	};
+	document.addEventListener("astro:page-load", window.__activityDetailPageLoadHandler);
+</script>
+
+<style is:global>
+	.activity-detail-page {
+		width: 100%;
+		--activity-surface: #fff;
+		--activity-surface-soft: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,248,247,0.98) 100%);
+		--activity-line: color-mix(in oklch, var(--deep-text) 12%, transparent);
+		--activity-shadow: 0 26px 60px -34px color-mix(in oklch, var(--deep-text) 24%, transparent);
+	}
+
+	.activity-detail-page ~ #live2d-widget,
+	.activity-detail-page ~ #live2d-trigger,
+	.activity-detail-page ~ #pio-container,
+	body:has(.activity-detail-page) #live2d-widget,
+	body:has(.activity-detail-page) #live2d-trigger {
+		display: none !important;
+	}
+
+	.activity-back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.65rem 1rem;
+		margin-bottom: 1.25rem;
+		font-size: 0.85rem;
+		font-weight: 800;
+		color: var(--deep-text);
+		background: var(--activity-surface);
+		border: 1.5px solid var(--activity-line);
+		border-radius: 999px;
+		text-decoration: none;
+		box-shadow: 0 12px 32px -28px color-mix(in oklch, var(--deep-text) 24%, transparent);
+		transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+	}
+
+	.activity-back-link:hover {
+		transform: translateY(-2px);
+		border-color: var(--deep-text);
+		box-shadow: 0 16px 36px -26px color-mix(in oklch, var(--deep-text) 26%, transparent);
+	}
+
+	.activity-back-icon {
+		font-size: 1rem;
+	}
+
+	.activity-detail-shell {
+		position: relative;
+	}
+
+	.activity-detail-loading,
+	.activity-detail-error {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		gap: 0.9rem;
+		padding: 4rem 1.5rem;
+		border: 1.5px solid var(--activity-line);
+		border-radius: calc(var(--radius-large) + 0.25rem);
+		background: var(--activity-surface-soft);
+		box-shadow: var(--activity-shadow);
+	}
+
+	.activity-detail-loading {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.activity-detail-loading__copy {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.activity-detail-loading__copy strong {
+		font-size: 0.98rem;
+		color: var(--deep-text);
+	}
+
+	.activity-detail-loading__copy span,
+	.activity-detail-error p {
+		color: var(--content-meta);
+		font-size: 0.9rem;
+		line-height: 1.65;
+		margin: 0;
+	}
+
+	.activity-detail-loading-dot {
+		width: 0.85rem;
+		height: 0.85rem;
+		border-radius: 50%;
+		background: var(--deep-text);
+		animation: activity-bounce 1s infinite;
+	}
+
+	.activity-detail-error {
+		display: none;
+		text-align: center;
+	}
+
+	.activity-detail-error__retry {
+		padding: 0.65rem 1rem;
+		border-radius: 999px;
+		border: 1.5px solid var(--deep-text);
+		background: #fff;
+		color: var(--deep-text);
+		font-weight: 800;
+		cursor: pointer;
+	}
+
+	.activity-detail-content {
+		display: none;
+	}
+
+	.activity-detail-card {
+		border-radius: calc(var(--radius-large) + 0.25rem);
+		border: 1.5px solid var(--activity-line);
+		background: var(--activity-surface-soft);
+		box-shadow: var(--activity-shadow);
+		overflow: hidden;
+	}
+
+	.activity-detail-layout {
+		display: grid;
+		grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
+		gap: 1.5rem;
+		padding: 1.5rem;
+	}
+
+	.activity-detail-main {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		min-width: 0;
+	}
+
+	.activity-detail-aside {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.activity-detail-hero,
+	.activity-detail__article-card,
+	.activity-detail__aside-card,
+	.activity-detail__gallery-wrap {
+		border: 1.5px solid var(--activity-line);
+		border-radius: calc(var(--radius-large) - 0.1rem);
+		background: rgba(255, 255, 255, 0.92);
+		backdrop-filter: blur(10px);
+	}
+
+	.activity-detail-hero {
+		display: grid;
+		grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.8fr);
+		gap: 1.25rem;
+		padding: 1.65rem 1.75rem;
+		align-items: center;
+	}
+
+	.activity-detail-hero__content {
+		min-width: 0;
+	}
+
+	.activity-detail-hero__eyebrow,
+	.activity-detail__section-eyebrow {
+		display: inline-flex;
+		margin-bottom: 0.75rem;
+		font-size: 0.78rem;
+		font-weight: 800;
+		color: var(--content-meta);
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+	}
+
+	.activity-detail-hero__title {
+		margin: 0;
+		font-size: clamp(2rem, 4vw, 3rem);
+		line-height: 1.08;
+		font-weight: 900;
+		color: var(--deep-text);
+		text-wrap: balance;
+	}
+
+	.activity-detail-hero__excerpt {
+		margin: 1rem 0 0;
+		font-size: 1rem;
+		line-height: 1.9;
+		color: var(--content-meta);
+		max-width: 68ch;
+	}
+
+	.activity-detail-hero__meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.65rem;
+		margin-top: 1.2rem;
+	}
+
+	.activity-detail-hero__meta-item {
+		font-size: 0.82rem;
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+
+	.activity-detail-hero__meta-dot {
+		width: 0.32rem;
+		height: 0.32rem;
+		border-radius: 50%;
+		background: color-mix(in oklch, var(--deep-text) 28%, transparent);
+	}
+
+	.activity-detail-hero__visual {
+		position: relative;
+		min-height: 240px;
+		border-radius: 1.4rem;
+		overflow: hidden;
+		background: color-mix(in oklch, var(--deep-text) 4%, #fff);
+		border: 1px solid color-mix(in oklch, var(--deep-text) 10%, transparent);
+		box-shadow: inset 0 1px 0 rgba(255,255,255,0.42);
+	}
+
+	.activity-detail-hero__image {
+		width: 100%;
+		height: 100%;
+		display: block;
+		object-fit: cover;
+	}
+
+	.activity-detail__section-head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		padding: 1.3rem 1.35rem 0;
+	}
+
+	.activity-detail__section-title,
+	.activity-detail__aside-title {
+		margin: 0;
+		font-size: 1.15rem;
+		font-weight: 900;
+		color: var(--deep-text);
+	}
+
+	.activity-detail__article-card {
+		padding-bottom: 1rem;
+	}
+
+	.activity-detail__article {
+		padding: 1rem 1.35rem 0.25rem;
+	}
+
+	.activity-detail__article.custom-md {
+		font-size: 1rem;
+		line-height: 1.9;
+	}
+
+	.activity-rich-heading,
+	.activity-content-block,
+	.activity-code-block,
+	.activity-rich-image,
+	.activity-fade-section {
+		opacity: 0;
+		transform: translateY(16px);
+		transition: opacity 0.46s ease, transform 0.46s ease;
+		will-change: opacity, transform;
+	}
+
+	.activity-rich-heading.is-visible,
+	.activity-content-block.is-visible,
+	.activity-code-block.is-visible,
+	.activity-rich-image.is-visible,
+	.activity-fade-section.is-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.activity-rich-heading {
+		position: relative;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.55rem;
+		scroll-margin-top: 7rem;
+	}
+
+	.activity-rich-heading__anchor {
+		opacity: 0;
+		text-decoration: none;
+		color: var(--content-meta);
+		font-size: 0.8rem;
+		padding-top: 0.25rem;
+		transition: opacity 0.2s ease;
+	}
+
+	.activity-rich-heading:hover .activity-rich-heading__anchor {
+		opacity: 1;
+	}
+
+	.activity-content-block {
+		padding: 0.4rem 0.75rem;
+		margin-inline: -0.75rem;
+		border-radius: 1rem;
+		transition: background-color 0.24s ease, transform 0.24s ease;
+	}
+
+	.activity-content-block:hover {
+		background: color-mix(in oklch, var(--deep-text) 4%, #fff);
+		transform: translateX(4px);
+	}
+
+	.activity-content-list {
+		padding-left: 1.15rem;
+	}
+
+	.activity-content-list li {
+		margin-bottom: 0.4rem;
+	}
+
+	.activity-rich-divider {
+		margin: 1.5rem 0;
+		border: 0;
+		height: 1px;
+		background: color-mix(in oklch, var(--deep-text) 10%, transparent);
+	}
+
+	.activity-code-block {
+		margin: 1.2rem 0;
+		padding: 0;
+		overflow: hidden;
+		border-radius: 1.15rem;
+		border: 1px solid color-mix(in oklch, var(--deep-text) 12%, transparent);
+		background: linear-gradient(180deg, #101319 0%, #151923 100%);
+		box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+	}
+
+	.activity-code-block__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.75rem 1rem;
+		border-bottom: 1px solid rgba(255,255,255,0.08);
+		background: rgba(255,255,255,0.04);
+	}
+
+	.activity-code-block__label {
+		font-size: 0.78rem;
+		font-weight: 800;
+		color: rgba(255,255,255,0.7);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+	}
+
+	.activity-code-block code {
+		display: block;
+		padding: 1rem 1.1rem 1.15rem;
+		overflow-x: auto;
+		color: #eef2ff;
+		background: transparent !important;
+		font-size: 0.9rem;
+		line-height: 1.75;
+	}
+
+	.activity-code-block .tok-comment { color: #7c8599; }
+	.activity-code-block .tok-string { color: #f6c177; }
+	.activity-code-block .tok-number { color: #8bd5ca; }
+	.activity-code-block .tok-keyword { color: #c4b5fd; }
+	.activity-code-block .tok-type { color: #93c5fd; }
+
+	.activity-rich-image {
+		margin: 1.25rem 0;
+	}
+
+	.activity-rich-image img,
+	.activity-detail__gallery-item img {
+		width: 100%;
+		display: block;
+		border-radius: 1rem;
+		opacity: 0;
+		transform: scale(0.985);
+		transition: opacity 0.35s ease, transform 0.35s ease;
+	}
+
+	.activity-image-ready.is-loaded {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	.activity-rich-image figcaption {
+		margin-top: 0.75rem;
+		font-size: 0.82rem;
+		line-height: 1.6;
+		text-align: center;
+		color: var(--content-meta);
+	}
+
+	.activity-detail__gallery-wrap {
+		padding-bottom: 1.2rem;
+	}
+
+	.activity-detail__gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
+		padding: 1rem 1.35rem 0;
+	}
+
+	.activity-detail__gallery-item {
+		margin: 0;
+		padding: 0;
+		border-radius: 1rem;
+		background: color-mix(in oklch, var(--deep-text) 3%, #fff);
+	}
+
+	.activity-detail__gallery-item figcaption {
+		padding: 0.8rem 0.9rem 0.95rem;
+		font-size: 0.8rem;
+		line-height: 1.65;
+		color: var(--content-meta);
+	}
+
+	.activity-detail__aside-card {
+		position: sticky;
+		top: 6rem;
+		padding: 1.2rem;
+	}
+
+	.activity-detail__aside-card + .activity-detail__aside-card {
+		top: calc(6rem + 16rem);
+	}
+
+	.activity-detail__stats-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.75rem;
+		margin-top: 1rem;
+	}
+
+	.activity-detail__stat-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 0.9rem 1rem;
+		border-radius: 1rem;
+		background: color-mix(in oklch, var(--deep-text) 3%, #fff);
+		border: 1px solid color-mix(in oklch, var(--deep-text) 8%, transparent);
+	}
+
+	.activity-detail__stat-label {
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--content-meta);
+	}
+
+	.activity-detail__stat-value {
+		font-size: 0.96rem;
+		font-weight: 900;
+		color: var(--deep-text);
+		line-height: 1.4;
+	}
+
+	.activity-detail__toc-scroll {
+		max-height: min(56vh, 34rem);
+		margin-top: 1rem;
+		padding-right: 0.15rem;
+	}
+
+	.activity-detail__toc-content .toc-item {
+		border-radius: 0.85rem;
+	}
+
+	.activity-detail__aside-card.is-empty {
+		display: none;
+	}
+
+	@keyframes activity-bounce {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-0.5rem); }
+	}
+
+	@media (max-width: 1280px) {
+		.activity-detail-hero {
+			grid-template-columns: 1fr;
+		}
+
+		.activity-detail-layout {
+			grid-template-columns: 1fr;
+		}
+
+		.activity-detail-aside {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.activity-detail__aside-card,
+		.activity-detail__aside-card + .activity-detail__aside-card {
+			position: static;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.activity-detail-layout {
+			padding: 1rem;
+			gap: 1rem;
+		}
+
+		.activity-detail-hero,
+		.activity-detail__article-card,
+		.activity-detail__aside-card,
+		.activity-detail__gallery-wrap {
+			padding-left: 0;
+			padding-right: 0;
+		}
+
+		.activity-detail-hero {
+			padding: 1.25rem;
+		}
+
+		.activity-detail__section-head,
+		.activity-detail__article,
+		.activity-detail__gallery {
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
+
+		.activity-detail-hero__title {
+			font-size: 1.75rem;
+		}
+
+		.activity-detail-aside {
+			grid-template-columns: 1fr;
+		}
+
+		.activity-content-block {
+			margin-inline: -0.35rem;
+			padding-inline: 0.45rem;
+		}
+	}
+</style>

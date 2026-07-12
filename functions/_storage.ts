@@ -1,7 +1,8 @@
 /**
  * 持久化存储层
  * - dev 模式：文件存储 (data/store.json)
- * - 生产模式：Cloudflare D1 数据库
+ * - Vercel 生产：Vercel KV (@vercel/kv)
+ * - Cloudflare 生产：D1 数据库
  *
  * 统一接口：get / set / delete / list
  */
@@ -85,7 +86,7 @@ class FileStorage implements StorageAdapter {
 	}
 }
 
-// ============ D1 存储（生产模式） ============
+// ============ D1 存储（Cloudflare 生产模式） ============
 
 class D1Storage implements StorageAdapter {
 	private db: any;
@@ -125,12 +126,54 @@ class D1Storage implements StorageAdapter {
 	}
 }
 
+// ============ Vercel KV 存储（Vercel 生产模式） ============
+
+class VercelKVStorage implements StorageAdapter {
+	private kv: any;
+
+	constructor(kv: any) {
+		this.kv = kv;
+	}
+
+	async get(key: string): Promise<string | null> {
+		return (await this.kv.get(key)) ?? null;
+	}
+
+	async set(key: string, value: string): Promise<void> {
+		await this.kv.set(key, value);
+	}
+
+	async delete(key: string): Promise<void> {
+		await this.kv.del(key);
+	}
+
+	async list(prefix: string): Promise<{ key: string; value: string }[]> {
+		const keys = await this.kv.keys({ prefix });
+		const result: { key: string; value: string }[] = [];
+		for (const k of keys.keys ?? []) {
+			const value = await this.kv.get(k);
+			if (value !== null) result.push({ key: k, value });
+		}
+		return result;
+	}
+}
+
 // ============ 存储工厂 ============
 
 let fileStorageInstance: FileStorage | null = null;
+let vercelKVInstance: VercelKVStorage | null = null;
 
-export function getStorage(env?: any): StorageAdapter {
-	// 生产环境：使用 D1
+export async function getStorage(env?: any): Promise<StorageAdapter> {
+	// Vercel 生产环境：使用 Vercel KV
+	if (env?.KV_REST_API_URL && env?.KV_REST_API_TOKEN) {
+		if (!vercelKVInstance) {
+			const { kv } = await import("@vercel/kv");
+			vercelKVInstance = new VercelKVStorage(kv);
+		}
+		return vercelKVInstance;
+	}
+
+	// Cloudflare 生产环境：使用 D1
 	if (env?.DB) {
 		return new D1Storage(env.DB);
 	}

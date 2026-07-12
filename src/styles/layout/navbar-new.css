@@ -3,6 +3,16 @@
    左段（logo+标题→球）、中段（紧凑导航，不变）、右段（搜索+快捷键→球）
    ============================================ */
 
+/* ── 导航栏基础布局 ── */
+#navbar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 2.75rem;
+	position: relative;
+}
+
 /* ── 三段式容器 ── */
 .navbar-segments {
 	display: flex;
@@ -44,14 +54,22 @@
 }
 
 :root.dark .navbar-seg {
-	background: color-mix(in oklch, var(--card-bg) 55%, transparent);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	background: color-mix(in oklch, var(--card-bg) 70%, transparent);
+	box-shadow: 0 2px 12px rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* 首页 Hero 区域：亮色主题下使用半透明白色磨砂玻璃，避免透明背景叠加深色 Hero 图 */
 html:has(.home-hero):not(.dark) .navbar-seg {
 	background: color-mix(in oklch, var(--float-panel-bg) 72%, transparent);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 首页 Hero 区域：暗色主题下增强导航栏对比度 */
+html:has(.home-hero).dark .navbar-seg {
+	background: color-mix(in oklch, var(--float-panel-bg) 60%, transparent);
+	box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+	border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* 左段：默认贴最左 */

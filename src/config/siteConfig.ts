@@ -13,7 +13,7 @@ export const siteConfig: SiteConfig = {
 	subtitle: "kdssss",
 
 	// 站点 URL
-	site_url: "https://github.com/kdssss",
+	site_url: "https://blog-kdssss.vercel.app",
 
 	// 站点描述
 	description: "kdssss的博客，记录个人学习、工作、AI相关的内容",
@@ -33,7 +33,7 @@ export const siteConfig: SiteConfig = {
 	// 主题色
 	themeColor: {
 		// 主题色的默认色相，范围从 0 到 360。例如：红色：0，青色：200，蓝绿色：250，粉色：345
-		hue: 165,
+		hue: 0,
 		// 是否对访问者隐藏主题色选择器
 		fixed: false,
 		// 默认模式："light" 亮色，"dark" 暗色

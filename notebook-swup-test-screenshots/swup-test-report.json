@@ -1,0 +1,71 @@
+{
+  "test1_listPage": {
+    "count": 6,
+    "cards": [
+      {
+        "index": 0,
+        "name": "运动番",
+        "count": "2 篇"
+      },
+      {
+        "index": 1,
+        "name": "推理悬疑番",
+        "count": "2 篇"
+      },
+      {
+        "index": 2,
+        "name": "校园恋爱番",
+        "count": "2 篇"
+      },
+      {
+        "index": 3,
+        "name": "异世界番",
+        "count": "2 篇"
+      },
+      {
+        "index": 4,
+        "name": "热血战斗番",
+        "count": "2 篇"
+      },
+      {
+        "index": 5,
+        "name": "治愈日常番",
+        "count": "2 篇"
+      }
+    ]
+  },
+  "test2_firstDetailPage": {
+    "notebookName": "运动番",
+    "url": "http://localhost:4321/notebook/view/?name=%E8%BF%90%E5%8A%A8%E7%95%AA",
+    "listDisplay": "block",
+    "loadingDisplay": "none",
+    "countText": "2 篇笔记",
+    "entryCount": 2
+  },
+  "test3_secondDetailPage": {
+    "notebookName": "治愈日常番",
+    "url": "http://localhost:4321/notebook/view/?name=%E6%B2%BB%E6%84%88%E6%97%A5%E5%B8%B8%E7%95%AA",
+    "listDisplay": "block",
+    "loadingDisplay": "none",
+    "countText": "2 篇笔记",
+    "entryCount": 2
+  },
+  "consoleErrors": {
+    "listPage": [
+      {
+        "text": "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+        "url": "http://localhost:4321/@id/astro/runtime/client/dev-toolbar/entrypoint.js",
+        "line": 0
+      }
+    ],
+    "firstDetail": [],
+    "secondDetail": []
+  },
+  "summary": {
+    "has6Cards": true,
+    "firstDetailWorks": true,
+    "secondDetailWorks": true,
+    "totalConsoleErrors": 1,
+    "allPassed": true
+  }
+}

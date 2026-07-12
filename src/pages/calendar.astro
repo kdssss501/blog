@@ -25,13 +25,18 @@ const now = new Date();
 const years = [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1];
 
 // SSR 拉取节日数据 & 文章数据
-const [holidaysRes, postsRes] = await Promise.all([
-	fetch(new URL("/api/holidays.json", Astro.url)),
-	fetch(new URL("/api/allPostMeta.json", Astro.url)),
-]);
-
-const holidays = holidaysRes.ok ? await holidaysRes.json() : [];
-const posts = postsRes.ok ? await postsRes.json() : [];
+let holidays = [];
+let posts = [];
+try {
+	const [holidaysRes, postsRes] = await Promise.all([
+		fetch(new URL("/api/holidays.json", Astro.url)),
+		fetch(new URL("/api/allPostMeta.json", Astro.url)),
+	]);
+	holidays = holidaysRes.ok ? await holidaysRes.json() : [];
+	posts = postsRes.ok ? await postsRes.json() : [];
+} catch (err) {
+	console.warn("[calendar] Failed to fetch holiday/post data during build:", err);
+}
 
 const overviewProps = {
 	holidays,

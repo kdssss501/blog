@@ -1,0 +1,125 @@
+media:
+  input: src/content/posts
+  output: /src/content/posts
+  categories: [image]
+  rename: safe
+
+content:
+  - name: posts
+    label: 博客文章
+    type: collection
+    path: src/content/posts
+    format: yaml-frontmatter
+    subfolders: true
+    view:
+      primary: title
+      sort: published
+      order: desc
+    fields:
+      - name: title
+        label: 标题
+        type: string
+        required: true
+      - name: published
+        label: 发布日期
+        type: date
+        required: true
+      - name: updated
+        label: 更新日期
+        type: date
+      - name: draft
+        label: 草稿
+        type: boolean
+        default: false
+      - name: description
+        label: 描述
+        type: text
+      - name: category
+        label: 分类
+        type: string
+      - name: tags
+        label: 标签
+        type: string
+        list: true
+      - name: image
+        label: 封面图片
+        type: image
+      - name: lang
+        label: 语言
+        type: string
+      - name: pinned
+        label: 置顶
+        type: boolean
+        default: false
+      - name: author
+        label: 作者
+        type: string
+      - name: sourceLink
+        label: 原文链接
+        type: string
+      - name: licenseName
+        label: 许可证名称
+        type: string
+      - name: licenseUrl
+        label: 许可证链接
+        type: string
+      - name: comment
+        label: 开启评论
+        type: boolean
+        default: true
+      - name: password
+        label: 加密密码（留空不加密）
+        type: string
+      - name: passwordHint
+        label: 密码提示
+        type: string
+      - name: body
+        label: 正文
+        type: rich-text
+
+  - name: spec
+    label: 单页内容
+    type: group
+    items:
+      - name: about
+        label: 关于
+        type: file
+        path: src/content/spec/about.md
+        format: yaml-frontmatter
+        fields:
+          - name: body
+            label: 正文
+            type: rich-text
+      - name: friends
+        label: 友情链接页
+        type: file
+        path: src/content/spec/friends.mdx
+        format: yaml-frontmatter
+        fields:
+          - name: title
+            label: 标题
+            type: string
+          - name: description
+            label: 描述
+            type: text
+          - name: body
+            label: 正文
+            type: rich-text
+      - name: guestbook
+        label: 留言板页
+        type: file
+        path: src/content/spec/guestbook.md
+        format: yaml-frontmatter
+        fields:
+          - name: body
+            label: 正文
+            type: rich-text
+      - name: privacy
+        label: 隐私政策
+        type: file
+        path: src/content/spec/privacy.md
+        format: yaml-frontmatter
+        fields:
+          - name: body
+            label: 正文
+            type: rich-text

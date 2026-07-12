@@ -356,8 +356,8 @@ const description = "记录日常点滴，分享生活感悟。";
 		window.__activityPageLoadHandler = function() { initializeActivityPage(); };
 		window.__activityPageVisibilityHandler = handleVisibilityChange;
 		document.addEventListener("astro:page-load", window.__activityPageLoadHandler);
-		document.addEventListener("visibilitychange", handleVisibilityChange);
-		window.addEventListener("pageshow", function() {
+	document.addEventListener("visibilitychange", handleVisibilityChange);
+	window.addEventListener("pageshow", function() {
 			var list = document.getElementById("activity-list");
 			if (!list || !list.children.length) {
 				loadActivities(false, { preserveList: false });

@@ -120,4 +120,9 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 		url: "/activity/",
 		icon: "material-symbols:update",
 	},
+        [LinkPreset.Xiao]: {
+                name: "小爱",
+                url: "/xiao/",
+                icon: "material-symbols:auto-awesome",
+        },
 };

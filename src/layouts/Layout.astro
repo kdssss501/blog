@@ -367,6 +367,11 @@ const siteLang = lang.replace("_", "-");
         document.documentElement.setAttribute("data-theme", expectedTheme);
       }
       updateSidebarWidgetVisibility();
+      
+      // 触发全局 astro:page-load 事件，兼容 Astro Island 和其他脚本
+      // 在 page:view 触发可确保 DOM 已完全替换且新脚本已执行
+      document.dispatchEvent(new Event("astro:page-load"));
+      
       commentTimeout = setTimeout(() => {
         if (document.getElementById("tcomment")) {
           document.dispatchEvent(new CustomEvent("firefly:page:loaded", {

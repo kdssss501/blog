@@ -199,6 +199,7 @@ export enum LinkPreset {
 	Treehole = 20,
 	Notebook = 21,
 	Activity = 22,
+        Xiao = 23,
 }
 
 export type NavBarLink = {

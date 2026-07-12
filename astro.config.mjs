@@ -1,6 +1,7 @@
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
+import vercel from "@astrojs/vercel";
 import { setMaxListeners } from "node:events";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
@@ -50,6 +51,8 @@ export default defineConfig({
 	base: "/",
 	trailingSlash: "always",
 
+	adapter: vercel(),
+
 	// 图像优化配置
 	image: {
 		// 全局响应式布局
@@ -76,8 +79,8 @@ export default defineConfig({
 			cache: true,
 			preload: true,
 			accessibility: true,
-			updateHead: false,
-			updateBodyClass: false,
+			updateHead: true,
+			updateBodyClass: true,
 			globalInstance: true,
 			resolveUrl: (url) => url,
 			animateHistoryBrowsing: false,

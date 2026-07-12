@@ -1,6 +1,6 @@
 export const ACTIVITY_CACHE_TTL = 180000;
-export const ACTIVITY_LIST_CACHE_VERSION = "cards-v5";
-export const ACTIVITY_DETAIL_CACHE_VERSION = "detail-v5";
+export const ACTIVITY_LIST_CACHE_VERSION = "cards-v6";
+export const ACTIVITY_DETAIL_CACHE_VERSION = "detail-v6";
 
 export function getActivityCacheKey(version: string, key: string): string {
 	return `activity_${version}_${key}`;

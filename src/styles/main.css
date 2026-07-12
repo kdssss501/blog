@@ -105,7 +105,17 @@
 html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
 }
+
+* {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* 移除默认 focus 轮廓，防止点击时出现蓝色边框 */
+    button:focus, a:focus {
+        outline: none;
+    }
 
 /* 极简模式：顶部高光禁用 */
 .top-gradient-highlight { display: none; }
@@ -592,11 +602,11 @@ html {
 
     .btn-regular-dark {
         @apply flex items-center justify-center
-        bg-[oklch(0.45_0.01_var(--hue))] hover:bg-[oklch(0.50_0.01_var(--hue))] active:bg-[oklch(0.55_0.01_var(--hue))]
-        dark:bg-[oklch(0.30_0.02_var(--hue))] dark:hover:bg-[oklch(0.35_0.03_var(--hue))] dark:active:bg-[oklch(0.40_0.03_var(--hue))]
+        bg-[oklch(0.45_0_0)] hover:bg-[oklch(0.50_0_0)] active:bg-[oklch(0.55_0_0)]
+        dark:bg-[oklch(0.30_0_0)] dark:hover:bg-[oklch(0.35_0_0)] dark:active:bg-[oklch(0.40_0_0)]
     }
     .btn-regular-dark.success {
-        @apply bg-[oklch(0.75_0.14_var(--hue))] dark:bg-[oklch(0.75_0.14_var(--hue))]
+        @apply bg-[oklch(0.75_0_0)] dark:bg-[oklch(0.75_0_0)]
     }
 }
 

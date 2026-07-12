@@ -28,13 +28,13 @@
 	const cache = {
 		get: <T>(key: string): T | null => {
 			try {
-				const cached = sessionStorage.getItem("notebook_" + key);
+				const cached = sessionStorage.getItem("notebook_v2_" + key);
 				if (!cached) return null;
 				const parsed = JSON.parse(cached);
 				if (Date.now() - parsed.timestamp < 300000) {
 					return parsed.data;
 				}
-				sessionStorage.removeItem("notebook_" + key);
+				sessionStorage.removeItem("notebook_v2_" + key);
 				return null;
 			} catch {
 				return null;
@@ -42,7 +42,7 @@
 		},
 		set: <T>(key: string, data: T): void => {
 			try {
-				sessionStorage.setItem("notebook_" + key, JSON.stringify({
+				sessionStorage.setItem("notebook_v2_" + key, JSON.stringify({
 					data,
 					timestamp: Date.now()
 				}));

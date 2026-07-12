@@ -1,494 +1,554 @@
-<section class="xiao-module">
-	<header class="xiao-module__hero">
-		<div class="xiao-module__copy">
-			<span class="xiao-module__eyebrow">Xiao / Aemeath Creator</span>
-			<h1 class="xiao-module__title">小爱 · 爱米斯角色创建页</h1>
-			<p class="xiao-module__desc">
-				这是一个独立的顶层功能模块，只负责角色创建与预览，不接入当前站点的动态、笔记本或其他页面逻辑。
-			</p>
-		</div>
-		<div class="xiao-module__badge">
-			<span>独立模块</span>
-			<strong>Zero Side Effects</strong>
-		</div>
-	</header>
+---
+// c:\Users\41462\Desktop\blog\src\components\xiao\XiaoAemeathCreator.astro
+---
+<div class="mw-page-container">
+    <!-- 完美复刻 MediaWiki 的顶部标签栏 -->
+    <div class="vector-header-container">
+        <div class="vector-menu-tabs" id="wiki-tabs">
+            <ul>
+                <li class="selected" data-tab="read"><span><a>阅读</a></span></li>
+                <li data-tab="edit"><span><a>编辑源码 (Creator)</a></span></li>
+                <li data-tab="export"><span><a>导出 JSON</a></span></li>
+            </ul>
+        </div>
+    </div>
 
-	<div class="xiao-module__layout">
-		<section class="xiao-panel">
-			<div class="xiao-panel__head">
-				<span class="xiao-panel__eyebrow">Creator</span>
-				<h2 class="xiao-panel__title">角色参数</h2>
-			</div>
+    <div id="content" class="mw-body" role="main">
+        <h1 id="firstHeading" class="firstHeading" lang="zh-CN">爱弥斯</h1>
+        <div id="bodyContent" class="mw-body-content">
+            
+            <!-- ================= 阅读模式：纯净百科排版 ================= -->
+            <div id="mw-content-read" class="mw-content-ltr" lang="zh-CN" dir="ltr">
+                <div class="mw-parser-output">
+                    <!-- Infobox 资料卡 -->
+                    <table class="infobox">
+                        <tbody>
+                            <tr><th colspan="2" class="infobox-title" id="preview-infobox-title">爱弥斯</th></tr>
+                            <tr>
+                                <td colspan="2" class="infobox-image">
+                                    <img id="preview-cover" src="/gallery/xiao-figure.webp" alt="爱弥斯">
+                                </td>
+                            </tr>
+                            <tr><th colspan="2" class="infobox-header">基本资料</th></tr>
+                            <tr><th class="infobox-label">本名</th><td id="preview-name">爱弥斯</td></tr>
+                            <tr><th class="infobox-label">外文名</th><td id="preview-slug">Aemeath</td></tr>
+                            <tr><th class="infobox-label">别号</th><td id="preview-nickname">飞行雪绒、小爱同学</td></tr>
+                            <tr><th class="infobox-label">发色</th><td><a href="#">粉发</a></td></tr>
+                            <tr><th class="infobox-label">瞳色</th><td><a href="#">金瞳</a></td></tr>
+                            <tr><th class="infobox-label">共鸣属性</th><td id="preview-element">热熔</td></tr>
+                            <tr><th class="infobox-label">武器类型</th><td id="preview-weapon">迅刀</td></tr>
+                            <tr><th class="infobox-label">活动范围</th><td><a href="#">拉海洛</a></td></tr>
+                        </tbody>
+                    </table>
 
-			<form class="xiao-form" id="xiao-creator-form">
-				<label class="xiao-field">
-					<span>角色名称</span>
-					<input name="name" value="爱米斯 Aemeath" maxlength="36" />
-				</label>
+                    <!-- 顶部导语 -->
+                    <p><b>鸣潮往复，文明不屈。</b></p>
+                    <p class="moegirl-quote" id="preview-quote">“但愿我会让你感到骄傲，但愿我没有让你失望。”</p>
+                    <p><b id="preview-boldname">爱弥斯</b>是库洛制作的游戏《鸣潮》的登场角色。</p>
 
-				<label class="xiao-field">
-					<span>角色定位</span>
-					<input name="role" value="鸣潮角色 / 博客专题主角" maxlength="48" />
-				</label>
+                    <!-- 目录 (TOC) -->
+                    <div id="moegirl-toc" class="toc" role="navigation">
+                        <div class="toctitle">
+                            <h2>目录</h2>
+                        </div>
+                        <ul>
+                            <li><a href="#简介"><span class="tocnumber">1</span> <span class="toctext">简介</span></a></li>
+                            <li><a href="#角色经历"><span class="tocnumber">2</span> <span class="toctext">角色经历</span></a></li>
+                            <li><a href="#角色相关"><span class="tocnumber">3</span> <span class="toctext">角色相关</span></a></li>
+                            <li><a href="#轶闻趣事"><span class="tocnumber">4</span> <span class="toctext">轶闻趣事</span></a></li>
+                            <li><a href="#专属武器"><span class="tocnumber">5</span> <span class="toctext">专属武器</span></a></li>
+                            <li><a href="#技能"><span class="tocnumber">6</span> <span class="toctext">技能</span></a></li>
+                        </ul>
+                    </div>
 
-				<label class="xiao-field">
-					<span>角色标签</span>
-					<input name="tags" value="共鸣者, 纯白审美, 资料专题, 图文展示" maxlength="80" />
-				</label>
+                    <!-- 正文内容区 -->
+                    <h2><span class="mw-headline" id="简介">简介</span></h2>
+                    <div id="preview-summary">
+                        <p>爱弥斯，曾是星炬学院的隧者适格者，现已成为无人可见的“电子幽灵”。</p>
+                    </div>
 
-				<label class="xiao-field">
-					<span>主色调</span>
-					<input name="accent" type="color" value="#7f8cff" />
-				</label>
+                    <h2><span class="mw-headline" id="角色经历">角色经历</span></h2>
+                    <div id="preview-story">
+                        <p>爱弥斯的父母为磁暴研究员，在一次意外中被磁暴吞噬。为找回记忆，她前往冰原的渐湖，掉入湖中后被漂泊者救出。</p>
+                    </div>
+                    
+                    <h2><span class="mw-headline" id="角色相关">角色相关</span></h2>
+                    <div class="moegirl-blockquote">
+                        <p>“飞行雪绒，活跃于网络的校园人气歌手。”</p>
+                        <p class="author">——本期星炬推荐</p>
+                    </div>
+                    <ul>
+                        <li>爱弥斯的人设以及EP等相关的官方创作都有着高达系列的参考致敬。例如EP《纸飞机》的开头画面便致敬了《机动战士高达00》第二季ED《Trust you》结尾00高达的残骸长眠于废墟之中的画面。此外机甲+粉毛歌姬的人设也让人联想到了《机动战士高达SEED》中的拉克丝。</li>
+                        <li>其名称读音和“I miss”高度接近。</li>
+                    </ul>
 
-				<label class="xiao-field">
-					<span>封面图 URL</span>
-					<input name="cover" value="/gallery/gpt-img2-2026/6.webp" />
-				</label>
+                    <h2><span class="mw-headline" id="轶闻趣事">轶闻趣事</span></h2>
+                    <ul>
+                        <li>关于爱弥斯的歌姬身份，在《鸣潮》3.0版本期间便开始预热。星炬学院主题网站中完成分学部测试后，调频9072即可见到会唱歌的粉色像素小人。在新浪微博、BiliBili、抖音、快手等平台均开设有“飞行雪绒”的角色官号。多部PV的“演唱者”/“歌手”也标注为“飞行雪绒”。</li>
+                        <li>于2026年1月17日发布首部个人EP《靛青宇宙》。</li>
+                        <li>爱弥斯是《鸣潮》第三位拥有个人专属叙事动画短片的角色（前两位为今汐和卡提希娅）。</li>
+                        <li>《第三章·远航星》剧情中漂泊者曾陪伴小时候的爱弥斯并开导爱弥斯走出阴霾，且爱弥斯称呼自己和漂泊者为相互的“家人”，部分玩家群体将爱弥斯称为“女儿”，另一部分玩家群体为回应剧情中爱弥斯对漂泊者超越普通亲情的重力感情，将爱弥斯视为有“老婆”属性的角色，并诞生大量二创。</li>
+                        <li>根据「jixwang」的个人访谈，《第三章·远航星》剧情末尾的歌曲《那颗星梦见的春日》在剧情结束后仍没切断歌曲，而是处理后无缝转换成学院广播的立体点音源，直到歌曲播放完。</li>
+                    </ul>
 
-				<label class="xiao-field xiao-field--full">
-					<span>角色简介</span>
-					<textarea name="summary" rows="4">以安静、锋利、纯白的视觉语言来承接爱米斯角色专题，让角色资料页既有图鉴感，也保留博客式的呼吸感。</textarea>
-				</label>
+                    <h2><span class="mw-headline" id="专属武器">专属武器</span></h2>
+                    <p><b>永远的启明星（逐星）</b>：你在寂静的星海中飞行，星屑在身侧崩解，时间在身后消亡。漫漫孤寂并未消失，它只是被拉伸、稀释、重塑，最终成为你羽翼的一部分。宇宙以沉默考验你，而你持续前行，以明亮的辉光作答。</p>
+                    
+                    <h2><span class="mw-headline" id="技能">技能</span></h2>
+                    <table class="wikitable">
+                        <tbody>
+                            <tr><th>名称</th><th>类型</th><th>描述</th></tr>
+                            <tr><td><b>校准无垠</b></td><td>常态攻击</td><td>进行最多4段的连续攻击，造成热熔伤害。<br>重击：消耗耐力，蓄力后造成更高伤害。<br>空中攻击：消耗耐力进行下落攻击。<br>闪避反击：成功闪避后攻击目标。</td></tr>
+                            <tr><td><b>共赴长航</b></td><td>共鸣技能</td><td>构型切换：可在爱弥斯形态与机兵形态间切换，机兵继承爱弥斯属性，获得全新的战斗形态。<br>合击·突刺：特定攻击后短按共鸣技能施放。</td></tr>
+                            <tr><td><b>飞至启明之时</b></td><td>共鸣解放</td><td>造成热熔伤害，施放该技能后切换至机兵形态。<br>星屑共振状态：提升光翼共奏效果。<br>星辉破界而来·终结：同步率与共鸣率达到上限时施放，造成大量伤害。</td></tr>
+                            <tr><td><b>为寂静赋形</b></td><td>共鸣回路</td><td>光翼共奏之时：施放普攻第4段时获得。<br>光翼共奏·降临/登台：处于状态且同步率满时施放，造成共鸣解放伤害并切换形态。<br>共鸣模态：根据队伍响应附加震谐/聚爆轨迹。</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-				<label class="xiao-field xiao-field--full">
-					<span>核心能力</span>
-					<textarea name="skills" rows="4">高识别度角色卡, 专题文章 Hero, 图文混排资料区, 移动端优先适配</textarea>
-				</label>
+            <!-- ================= 编辑模式：表单配置 ================= -->
+            <div id="mw-content-edit" class="mw-content-ltr" style="display: none;">
+                <div class="wiki-editor-notice">
+                    <strong>提示：</strong>您正在编辑小爱同学的百科词条。修改将实时同步到“阅读”模式。
+                </div>
+                <form id="xiao-creator-form" class="wiki-form">
+                    <div class="wiki-form-grid">
+                        <label>
+                            <span>角色本名</span>
+                            <input name="name" value="爱弥斯" />
+                        </label>
+                        <label>
+                            <span>外文名</span>
+                            <input name="slug" value="Aemeath" />
+                        </label>
+                        <label>
+                            <span>别号</span>
+                            <input name="nickname" value="飞行雪绒、小爱同学" />
+                        </label>
+                        <label>
+                            <span>主色调</span>
+                            <input name="accent" type="color" value="#ffb6c1" />
+                        </label>
+                        <label>
+                            <span>共鸣属性</span>
+                            <input name="element" value="热熔" />
+                        </label>
+                        <label>
+                            <span>武器类型</span>
+                            <input name="weapon" value="迅刀" />
+                        </label>
+                        <label class="full-width">
+                            <span>封面图 URL (支持本地或网络链接)</span>
+                            <input name="cover" value="/gallery/xiao-figure.webp" />
+                        </label>
+                        <label class="full-width">
+                            <span>核心台词</span>
+                            <textarea name="quote" rows="2">“但愿我会让你感到骄傲，但愿我没有让你失望。”</textarea>
+                        </label>
+                        <label class="full-width">
+                            <span>简介</span>
+                            <textarea name="summary" rows="4">爱弥斯，曾是星炬学院的隧者适格者，现已成为无人可见的“电子幽灵”。&#10;她以活泼俏皮的姿态与身边的人们来往，既享受着校园生活，也喜爱和众人分享快乐。</textarea>
+                        </label>
+                        <label class="full-width">
+                            <span>角色经历</span>
+                            <textarea name="story" rows="4">早期：爱弥斯的父母为磁暴研究员，在一次意外中被磁暴吞噬。为找回记忆，她前往冰原的渐湖，掉入湖中后被漂泊者救出。&#10;长大后，她进入星炬学院，作为隧者适格者成绩优异，并在校内创办「飞行雪绒」。</textarea>
+                        </label>
+                    </div>
+                </form>
+            </div>
 
-				<label class="xiao-field xiao-field--full">
-					<span>角色台词</span>
-					<textarea name="quote" rows="3">“把角色页做得像一篇值得读完的内容，而不是一块只会堆信息的面板。”</textarea>
-				</label>
-			</form>
+            <!-- ================= 导出模式：JSON 数据 ================= -->
+            <div id="mw-content-export" class="mw-content-ltr" style="display: none;">
+                <div class="wiki-editor-notice">
+                    <strong>提示：</strong>以下是基于当前词条生成的标准 JSON 结构，可直接用于博客后台配置。
+                    <button id="copy-json-btn" class="wiki-btn">一键复制</button>
+                </div>
+                <pre id="xiao-schema-output" class="wiki-json"></pre>
+            </div>
 
-			<div class="xiao-actions">
-				<button type="button" class="xiao-btn xiao-btn--primary" id="xiao-fill-demo">填充示例</button>
-				<button type="button" class="xiao-btn" id="xiao-export-json">导出 JSON</button>
-				<button type="button" class="xiao-btn" id="xiao-reset-form">重置表单</button>
-			</div>
-		</section>
-
-		<section class="xiao-panel">
-			<div class="xiao-panel__head">
-				<span class="xiao-panel__eyebrow">Preview</span>
-				<h2 class="xiao-panel__title">实时预览</h2>
-			</div>
-
-			<article class="xiao-preview-card" id="xiao-preview-card">
-				<div class="xiao-preview-card__media">
-					<img id="xiao-preview-cover" src="/gallery/gpt-img2-2026/6.webp" alt="爱米斯角色封面" />
-				</div>
-				<div class="xiao-preview-card__body">
-					<span class="xiao-preview-card__eyebrow" id="xiao-preview-role">鸣潮角色 / 博客专题主角</span>
-					<h3 class="xiao-preview-card__title" id="xiao-preview-name">爱米斯 Aemeath</h3>
-					<p class="xiao-preview-card__summary" id="xiao-preview-summary"></p>
-					<div class="xiao-preview-card__chips" id="xiao-preview-tags"></div>
-					<blockquote class="xiao-preview-card__quote" id="xiao-preview-quote"></blockquote>
-				</div>
-			</article>
-
-			<div class="xiao-schema">
-				<div class="xiao-schema__head">
-					<span class="xiao-panel__eyebrow">Schema</span>
-					<strong>可落地数据结构</strong>
-				</div>
-				<pre class="xiao-schema__code" id="xiao-schema-output"></pre>
-			</div>
-		</section>
-	</div>
-</section>
+        </div>
+    </div>
+</div>
 
 <script>
-	// @ts-nocheck
-	const STORAGE_KEY = "xiao_aemeath_creator_v1";
-	const form = document.getElementById("xiao-creator-form");
-	const previewCard = document.getElementById("xiao-preview-card");
-	const output = document.getElementById("xiao-schema-output");
+    // @ts-nocheck
+    const STORAGE_KEY = "xiao_aemeath_creator_wiki_v3";
 
-	function safeText(value) {
-		return String(value == null ? "" : value).trim();
-	}
+    function initWikiCreator() {
+        const tabs = document.querySelectorAll("#wiki-tabs li");
+        const panels = {
+            read: document.getElementById("mw-content-read"),
+            edit: document.getElementById("mw-content-edit"),
+            export: document.getElementById("mw-content-export")
+        };
+        const form = document.getElementById("xiao-creator-form");
+        const output = document.getElementById("xiao-schema-output");
+        
+        if (!form || !output) return;
 
-	function getFormState() {
-		const formData = new FormData(form);
-		return {
-			name: safeText(formData.get("name")),
-			role: safeText(formData.get("role")),
-			tags: safeText(formData.get("tags")),
-			accent: safeText(formData.get("accent")) || "#7f8cff",
-			cover: safeText(formData.get("cover")) || "/gallery/gpt-img2-2026/6.webp",
-			summary: safeText(formData.get("summary")),
-			skills: safeText(formData.get("skills")),
-			quote: safeText(formData.get("quote")),
-		};
-	}
+        // 1. 标签页切换逻辑
+        tabs.forEach(tab => {
+            // 移除旧事件防泄漏
+            const newTab = tab.cloneNode(true);
+            tab.parentNode.replaceChild(newTab, tab);
+            
+            newTab.addEventListener("click", () => {
+                const target = newTab.getAttribute("data-tab");
+                // 激活标签样式
+                document.querySelectorAll("#wiki-tabs li").forEach(t => t.classList.remove("selected"));
+                newTab.classList.add("selected");
+                
+                // 切换面板
+                Object.values(panels).forEach(p => p.style.display = "none");
+                if (panels[target]) panels[target].style.display = "block";
+            });
+        });
 
-	function renderPreview(state) {
-		document.getElementById("xiao-preview-name").textContent = state.name || "未命名角色";
-		document.getElementById("xiao-preview-role").textContent = state.role || "待设定角色定位";
-		document.getElementById("xiao-preview-summary").textContent = state.summary || "暂无角色简介。";
-		document.getElementById("xiao-preview-quote").textContent = state.quote || "“等待填写角色台词。”";
+        // 2. 数据绑定与预览更新逻辑
+        function safeText(value) { return String(value == null ? "" : value).trim(); }
+        function setText(id, value) {
+            const node = document.getElementById(id);
+            if (node) node.textContent = value;
+        }
+        function setHtml(id, value) {
+            const node = document.getElementById(id);
+            if (node) node.innerHTML = value;
+        }
+        function escapeHtml(value) {
+            return safeText(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char] || char));
+        }
 
-		const cover = document.getElementById("xiao-preview-cover");
-		cover.src = state.cover;
-		cover.alt = state.name || "角色封面";
+        function syncPreview() {
+            const formData = new FormData(form);
+            const state = {
+                name: safeText(formData.get("name")),
+                slug: safeText(formData.get("slug")),
+                nickname: safeText(formData.get("nickname")),
+                accent: safeText(formData.get("accent")) || "#ffb6c1",
+                element: safeText(formData.get("element")),
+                weapon: safeText(formData.get("weapon")),
+                cover: safeText(formData.get("cover")) || "/gallery/xiao-figure.webp",
+                summary: safeText(formData.get("summary")),
+                story: safeText(formData.get("story")),
+                quote: safeText(formData.get("quote")),
+            };
 
-		const tagWrap = document.getElementById("xiao-preview-tags");
-		tagWrap.innerHTML = state.tags
-			.split(",")
-			.map((item) => item.trim())
-			.filter(Boolean)
-			.map((item) => '<span class="xiao-preview-card__chip">' + item + "</span>")
-			.join("");
+            // 更新 DOM
+            setText("firstHeading", state.name || "爱弥斯");
+            setText("preview-infobox-title", state.name || "爱弥斯");
+            setText("preview-name", state.name);
+            setText("preview-slug", state.slug);
+            setText("preview-nickname", state.nickname);
+            setText("preview-element", state.element);
+            setText("preview-weapon", state.weapon);
+            setText("preview-boldname", state.name || "爱弥斯");
+            setText("preview-quote", `“${state.quote}”`);
 
-		if (previewCard) {
-			previewCard.style.setProperty("--xiao-accent", state.accent);
-		}
+            const cover = document.getElementById("preview-cover");
+            if (cover) cover.src = state.cover;
 
-		output.textContent = JSON.stringify(
-			{
-				module: "xiao",
-				character: {
-					...state,
-					tags: state.tags
-						.split(",")
-						.map((item) => item.trim())
-						.filter(Boolean),
-					skills: state.skills
-						.split(",")
-						.map((item) => item.trim())
-						.filter(Boolean),
-				},
-			},
-			null,
-			2,
-		);
-	}
+            const infoboxTitle = document.getElementById("preview-infobox-title");
+            if (infoboxTitle) infoboxTitle.style.backgroundColor = state.accent;
 
-	function persistState(state) {
-		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-		} catch {
-			// ignore persistence failure
-		}
-	}
+            // 富文本处理
+            const summaryHtml = escapeHtml(state.summary).split('\n').filter(Boolean).map(line => `<p>${line}</p>`).join('');
+            setHtml("preview-summary", summaryHtml);
 
-	function restoreState() {
-		try {
-			const raw = localStorage.getItem(STORAGE_KEY);
-			if (!raw) return;
-			const parsed = JSON.parse(raw);
-			Object.entries(parsed).forEach(([key, value]) => {
-				const field = form.elements.namedItem(key);
-				if (field && "value" in field) {
-					field.value = String(value ?? "");
-				}
-			});
-		} catch {
-			// ignore restore failure
-		}
-	}
+            const storyHtml = escapeHtml(state.story).split('\n').filter(Boolean).map(line => `<p>${line}</p>`).join('');
+            setHtml("preview-story", storyHtml);
 
-	function syncAll() {
-		const state = getFormState();
-		renderPreview(state);
-		persistState(state);
-	}
+            // 更新 JSON
+            output.textContent = JSON.stringify({ module: "xiao-wiki", character: state }, null, 2);
 
-	restoreState();
-	syncAll();
+            // 保存到本地
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+        }
 
-	form.addEventListener("input", syncAll);
-	form.addEventListener("change", syncAll);
+        // 3. 恢复本地状态
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                Object.entries(parsed).forEach(([key, value]) => {
+                    const field = form.elements.namedItem(key);
+                    if (field && "value" in field) field.value = String(value ?? "");
+                });
+            }
+        } catch {}
 
-	document.getElementById("xiao-fill-demo").addEventListener("click", function() {
-		form.elements.namedItem("name").value = "爱米斯 Aemeath";
-		form.elements.namedItem("role").value = "鸣潮角色 / 白底极简专题页主角";
-		form.elements.namedItem("tags").value = "高辨识角色卡, 专题导语, 图鉴资料, 响应式适配";
-		form.elements.namedItem("accent").value = "#99a8ff";
-		form.elements.namedItem("cover").value = "/gallery/gpt-img2-2026/1.webp";
-		form.elements.namedItem("summary").value = "用更纯净的版式去承接爱米斯角色专题，让页面兼具内容阅读感和角色设定页的沉浸氛围。";
-		form.elements.namedItem("skills").value = "角色总览, 技能分区, 资料时间线, 可扩展图像资源";
-		form.elements.namedItem("quote").value = "“角色页不是资料仓库，而是把信息组织成值得停留的阅读体验。”";
-		syncAll();
-	});
+        // 4. 绑定表单输入事件
+        form.addEventListener("input", syncPreview);
+        form.addEventListener("change", syncPreview);
+        syncPreview(); // 初始渲染
 
-	document.getElementById("xiao-export-json").addEventListener("click", async function() {
-		const text = output.textContent || "";
-		try {
-			await navigator.clipboard.writeText(text);
-			this.textContent = "已复制 JSON";
-			setTimeout(() => {
-				this.textContent = "导出 JSON";
-			}, 1200);
-		} catch {
-			this.textContent = "复制失败";
-			setTimeout(() => {
-				this.textContent = "导出 JSON";
-			}, 1200);
-		}
-	});
+        // 5. 复制 JSON 功能
+        const copyBtn = document.getElementById("copy-json-btn");
+        if (copyBtn) {
+            const newCopyBtn = copyBtn.cloneNode(true);
+            copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
+            newCopyBtn.addEventListener("click", async function() {
+                try {
+                    await navigator.clipboard.writeText(output.textContent);
+                    this.textContent = "复制成功！";
+                    setTimeout(() => this.textContent = "一键复制", 1500);
+                } catch {
+                    this.textContent = "复制失败";
+                }
+            });
+        }
+    }
 
-	document.getElementById("xiao-reset-form").addEventListener("click", function() {
-		localStorage.removeItem(STORAGE_KEY);
-		form.reset();
-		form.elements.namedItem("name").value = "爱米斯 Aemeath";
-		form.elements.namedItem("role").value = "鸣潮角色 / 博客专题主角";
-		form.elements.namedItem("tags").value = "共鸣者, 纯白审美, 资料专题, 图文展示";
-		form.elements.namedItem("accent").value = "#7f8cff";
-		form.elements.namedItem("cover").value = "/gallery/gpt-img2-2026/6.webp";
-		form.elements.namedItem("summary").value = "以安静、锋利、纯白的视觉语言来承接爱米斯角色专题，让角色资料页既有图鉴感，也保留博客式的呼吸感。";
-		form.elements.namedItem("skills").value = "高识别度角色卡, 专题文章 Hero, 图文混排资料区, 移动端优先适配";
-		form.elements.namedItem("quote").value = "“把角色页做得像一篇值得读完的内容，而不是一块只会堆信息的面板。”";
-		syncAll();
-	});
+    initWikiCreator();
+    
+    if (window.__xiaoAstroHandler) {
+        document.removeEventListener("astro:page-load", window.__xiaoAstroHandler);
+    }
+    window.__xiaoAstroHandler = initWikiCreator;
+    document.addEventListener("astro:page-load", window.__xiaoAstroHandler);
 </script>
 
 <style is:global>
-	.xiao-module {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-	}
+    /* ==========================================================================
+       MediaWiki (Vector Skin) 核心排版复刻
+       ========================================================================== */
+    .mw-page-container {
+        width: 100%;
+        max-width: none;
+        margin: 0 auto;
+        background-color: #ffffff;
+        min-height: 100vh;
+        border-radius: var(--radius-large);
+        border: 1px solid color-mix(in oklch, var(--deep-text) 10%, transparent);
+        box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
 
-	.xiao-module__hero,
-	.xiao-panel,
-	.xiao-preview-card,
-	.xiao-schema {
-		border-radius: var(--radius-large);
-		border: 1.5px solid color-mix(in oklch, var(--deep-text) 12%, transparent);
-		background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(247,247,246,0.98) 100%);
-		box-shadow: 0 26px 60px -34px color-mix(in oklch, var(--deep-text) 22%, transparent);
-	}
+    /* 顶部标签栏 */
+    .vector-header-container {
+        background-color: #f6f6f6;
+        border-bottom: 1px solid #a7d7f9;
+        padding-top: 1rem;
+        padding-left: 1.5rem;
+    }
 
-	.xiao-module__hero {
-		display: flex;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 1.4rem;
-	}
+    .vector-menu-tabs {
+        display: inline-block;
+    }
 
-	.xiao-module__copy {
-		max-width: 48rem;
-	}
+    .vector-menu-tabs ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        gap: 0.2rem;
+    }
 
-	.xiao-module__eyebrow,
-	.xiao-panel__eyebrow {
-		display: inline-block;
-		font-size: 0.76rem;
-		font-weight: 800;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-		color: var(--content-meta);
-	}
+    .vector-menu-tabs li {
+        background-color: #f8f9fa;
+        border: 1px solid #a7d7f9;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+    }
 
-	.xiao-module__title,
-	.xiao-panel__title {
-		margin: 0.45rem 0 0;
-		color: var(--deep-text);
-		font-weight: 900;
-	}
+    .vector-menu-tabs li.selected {
+        background-color: #ffffff;
+        border: 1px solid #a7d7f9;
+        border-bottom: 1px solid #ffffff;
+        margin-bottom: -1px; /* 盖住底边框 */
+        position: relative;
+        z-index: 1;
+    }
 
-	.xiao-module__title {
-		font-size: clamp(2rem, 4vw, 3rem);
-		line-height: 1.06;
-	}
+    .vector-menu-tabs li a {
+        display: block;
+        padding: 0.6rem 1rem;
+        color: #0645ad;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: normal;
+    }
 
-	.xiao-module__desc {
-		margin: 0.8rem 0 0;
-		max-width: 44rem;
-		line-height: 1.9;
-		color: color-mix(in oklch, var(--deep-text) 82%, white);
-	}
+    .vector-menu-tabs li.selected a {
+        color: #202122;
+        font-weight: bold;
+    }
 
-	.xiao-module__badge {
-		min-width: 190px;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: flex-end;
-		gap: 0.25rem;
-		font-size: 0.82rem;
-		color: var(--content-meta);
-	}
+    /* 主内容区 */
+    .mw-body {
+        padding: 1.5rem 2.5rem 3.5rem;
+        font-family: sans-serif;
+        color: #202122;
+        line-height: 1.6;
+        font-size: 0.875rem; /* 14px */
+    }
 
-	.xiao-module__badge strong {
-		font-size: 1rem;
-		color: var(--deep-text);
-	}
+    .firstHeading {
+        font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
+        line-height: 1.3;
+        margin: 0 0 0.25em 0;
+        padding: 0;
+        font-size: 1.8em;
+        border-bottom: 1px solid #a2a9b1;
+        font-weight: normal;
+    }
 
-	.xiao-module__layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-		gap: 1.25rem;
-	}
+    .mw-parser-output h2 {
+        font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
+        font-size: 1.5em;
+        border-bottom: 1px solid #a2a9b1;
+        margin-top: 1.5em;
+        margin-bottom: 0.25em;
+        font-weight: normal;
+    }
 
-	.xiao-panel {
-		padding: 1.3rem;
-	}
+    .mw-parser-output p { margin: 0.5em 0; }
+    .mw-parser-output ul { margin: 0.3em 0 0 1.6em; padding: 0; }
+    .mw-parser-output li { margin-bottom: 0.1em; }
+    
+    .mw-page-container a { color: #0645ad; text-decoration: none; }
+    .mw-page-container a:hover { text-decoration: underline; }
 
-	.xiao-panel__head {
-		margin-bottom: 1rem;
-	}
+    /* Infobox 右侧信息框 */
+    .infobox {
+        border: 1px solid #a2a9b1;
+        background-color: #f8f9fa;
+        color: #202122;
+        margin: 0.5em 0 1em 1.5em;
+        padding: 0.2em;
+        float: right;
+        clear: right;
+        font-size: 88%;
+        line-height: 1.5em;
+        width: 320px;
+        border-collapse: collapse;
+    }
 
-	.xiao-form {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.95rem;
-	}
+    .infobox-title {
+        text-align: center;
+        font-size: 120%;
+        background-color: #ffb6c1; 
+        color: #000;
+        padding: 0.5em;
+        transition: background-color 0.3s ease;
+    }
 
-	.xiao-field {
-		display: flex;
-		flex-direction: column;
-		gap: 0.45rem;
-	}
+    .infobox-image {
+        text-align: center;
+        padding: 0.5em;
+        background: #fff;
+    }
 
-	.xiao-field--full {
-		grid-column: 1 / -1;
-	}
+    .infobox-image img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #c8ccd1;
+    }
 
-	.xiao-field span {
-		font-size: 0.84rem;
-		font-weight: 700;
-		color: var(--deep-text);
-	}
+    .infobox-header { background-color: #eaecf0; text-align: center; border: 1px solid #a2a9b1; padding: 0.2em; }
+    .infobox-label { background-color: #eaecf0; border: 1px solid #a2a9b1; padding: 0.2em 0.4em; width: 35%; text-align: left; }
+    .infobox td { border: 1px solid #a2a9b1; padding: 0.2em 0.4em; }
 
-	.xiao-field input,
-	.xiao-field textarea {
-		width: 100%;
-		border-radius: 1rem;
-		border: 1px solid color-mix(in oklch, var(--deep-text) 12%, transparent);
-		background: #fff;
-		color: var(--deep-text);
-		padding: 0.88rem 0.95rem;
-		line-height: 1.6;
-	}
+    /* 目录 (TOC) */
+    .toc {
+        display: inline-block;
+        border: 1px solid #a2a9b1;
+        background-color: #f8f9fa;
+        padding: 7px 15px;
+        font-size: 95%;
+        margin-top: 1em;
+        margin-bottom: 1em;
+    }
 
-	.xiao-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		margin-top: 1rem;
-	}
+    .toctitle { text-align: center; }
+    .toctitle h2 { display: inline; border: none; font-size: 100%; font-weight: bold; font-family: sans-serif; margin: 0; }
+    .toc ul { list-style-type: none; margin: 0; padding-left: 1.5em; }
+    .toc li { margin-bottom: 0.2em; }
+    .tocnumber { color: #202122; margin-right: 0.5em; }
 
-	.xiao-btn {
-		height: 2.8rem;
-		padding: 0 1rem;
-		border-radius: 999px;
-		border: 1px solid color-mix(in oklch, var(--deep-text) 14%, transparent);
-		background: #fff;
-		color: var(--deep-text);
-		font-weight: 800;
-	}
+    /* 引用块 */
+    .moegirl-quote { font-style: italic; color: #54595d; }
 
-	.xiao-btn--primary {
-		background: var(--deep-text);
-		color: #fff;
-	}
+    /* ==========================================================================
+       编辑模式与导出模式的特殊样式
+       ========================================================================== */
+    .wiki-editor-notice {
+        background-color: #eaf3ff;
+        border: 1px solid #a7d7f9;
+        padding: 0.8rem 1rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #0645ad;
+        font-size: 0.9rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-	.xiao-preview-card {
-		--xiao-accent: #7f8cff;
-		overflow: hidden;
-	}
+    .wiki-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.2rem;
+    }
 
-	.xiao-preview-card__media {
-		aspect-ratio: 16 / 9;
-		background: color-mix(in oklch, var(--xiao-accent) 18%, white);
-	}
+    .wiki-form-grid label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
 
-	.xiao-preview-card__media img {
-		width: 100%;
-		height: 100%;
-		display: block;
-		object-fit: cover;
-	}
+    .wiki-form-grid label.full-width {
+        grid-column: 1 / -1;
+    }
 
-	.xiao-preview-card__body {
-		padding: 1.1rem 1.15rem 1.2rem;
-	}
+    .wiki-form-grid input,
+    .wiki-form-grid textarea {
+        padding: 0.6rem;
+        border: 1px solid #a2a9b1;
+        border-radius: 2px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        background: #fdfdfd;
+    }
 
-	.xiao-preview-card__eyebrow {
-		display: inline-flex;
-		font-size: 0.78rem;
-		font-weight: 800;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: color-mix(in oklch, var(--xiao-accent) 66%, var(--deep-text));
-	}
+    .wiki-form-grid input:focus,
+    .wiki-form-grid textarea:focus {
+        outline: none;
+        border-color: #0645ad;
+        box-shadow: 0 0 0 1px #0645ad;
+    }
 
-	.xiao-preview-card__title {
-		margin: 0.55rem 0 0;
-		font-size: 1.65rem;
-		font-weight: 900;
-		color: var(--deep-text);
-	}
+    .wiki-json {
+        background: #f8f9fa;
+        border: 1px dashed #a2a9b1;
+        padding: 1rem;
+        font-family: monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+    }
 
-	.xiao-preview-card__summary {
-		margin: 0.8rem 0 0;
-		line-height: 1.85;
-		color: color-mix(in oklch, var(--deep-text) 82%, white);
-	}
+    .wiki-btn {
+        background: #0645ad;
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 2px;
+        cursor: pointer;
+        font-weight: bold;
+    }
 
-	.xiao-preview-card__chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.55rem;
-		margin-top: 0.95rem;
-	}
+    .wiki-btn:hover {
+        background: #0b50c5;
+    }
 
-	.xiao-preview-card__chip {
-		padding: 0.45rem 0.75rem;
-		border-radius: 999px;
-		background: color-mix(in oklch, var(--xiao-accent) 14%, white);
-		color: color-mix(in oklch, var(--xiao-accent) 70%, var(--deep-text));
-		font-size: 0.8rem;
-		font-weight: 800;
-	}
-
-	.xiao-preview-card__quote {
-		margin: 1rem 0 0;
-		padding: 0.95rem 1rem;
-		border-left: 4px solid var(--xiao-accent);
-		background: color-mix(in oklch, var(--xiao-accent) 8%, white);
-		border-radius: 0 1rem 1rem 0;
-		color: var(--deep-text);
-		line-height: 1.8;
-	}
-
-	.xiao-schema {
-		margin-top: 1rem;
-	}
-
-	.xiao-schema__head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1rem 1rem 0;
-		color: var(--deep-text);
-	}
-
-	.xiao-schema__code {
-		margin: 0;
-		padding: 1rem;
-		font-size: 0.86rem;
-		line-height: 1.75;
-		overflow-x: auto;
-		color: #eef2ff;
-		background: linear-gradient(180deg, #101319 0%, #151923 100%);
-		border-radius: 0 0 var(--radius-large) var(--radius-large);
-	}
-
-	@media (max-width: 960px) {
-		.xiao-module__hero,
-		.xiao-module__layout,
-		.xiao-form {
-			display: flex;
-			flex-direction: column;
-		}
-
-		.xiao-module__badge {
-			align-items: flex-start;
-		}
-	}
+    /* 移动端响应式 */
+    @media (max-width: 768px) {
+        .mw-body { padding: 1rem; }
+        .infobox { float: none; width: 100%; margin: 1em 0; }
+        .wiki-form-grid { grid-template-columns: 1fr; }
+        .vector-header-container { padding-left: 0; overflow-x: auto; }
+    }
 </style>

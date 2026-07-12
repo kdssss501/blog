@@ -1,0 +1,140 @@
+{
+  "test1_listPage": {
+    "count": 6,
+    "cards": [
+      {
+        "index": 0,
+        "name": "运动番",
+        "count": "2 篇",
+        "desc": "足球番但是设定很特别，300个前锋在封闭监狱里竞争，只有最后留下来的人能代表国家队。画风很潮，音乐也很燃，就是有点中二哈哈。",
+        "width": 285,
+        "height": 160,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "bgImage": "url(\"http://localhost:4321/assets/images/notebook-bg/bg-6.webp\")"
+      },
+      {
+        "index": 1,
+        "name": "推理悬疑番",
+        "count": "2 篇",
+        "desc": "用动物形象讲了一个非常写实的悬疑故事，编剧太强了。每一集都有伏笔，最后全部回收的时候非常爽快。不要被画风劝退，剧情真的很顶。",
+        "width": 285,
+        "height": 160,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "bgImage": "url(\"http://localhost:4321/assets/images/notebook-bg/bg-5.webp\")"
+      },
+      {
+        "index": 2,
+        "name": "校园恋爱番",
+        "count": "2 篇",
+        "desc": "青春期症候群这个设定很有意思，男主咲太的情商和台词功底都太强了。每个角色的故事都很感人，特别是麻衣学姐和翔子小姐的线。",
+        "width": 285,
+        "height": 160,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "bgImage": "url(\"http://localhost:4321/assets/images/notebook-bg/bg-4.webp\")"
+      },
+      {
+        "index": 3,
+        "name": "异世界番",
+        "count": "2 篇",
+        "desc": "非常治愈的奇幻番，讲述精灵魔法师芙莉莲在勇者死后的旅程。节奏很慢但是很有味道，每一集都有让人感动的地方。音乐也超好听，是那种需要静下心来看的作品。",
+        "width": 285,
+        "height": 160,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "bgImage": "url(\"http://localhost:4321/assets/images/notebook-bg/bg-3.webp\")"
+      },
+      {
+        "index": 4,
+        "name": "热血战斗番",
+        "count": "2 篇",
+        "desc": "完结篇后半终于看完了，结局虽然有争议但整体还是很震撼。艾伦这个角色太复杂了，到最后也说不清他到底是对是错。自由的代价是什么，这部番给出了它的答案。",
+        "width": 285,
+        "height": 160,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "bgImage": "url(\"http://localhost:4321/assets/images/notebook-bg/bg-2.webp\")"
+      },
+      {
+        "index": 5,
+        "name": "治愈日常番",
+        "count": "2 篇",
+        "desc": "职场恋爱番，画风很可爱。五十岚和武田前辈的互动超甜，还有其他CP也很好看。每集都很短但是信息量满满，推荐给喜欢轻松恋爱番的朋友。",
+        "width": 285,
+        "height": 160,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "bgImage": "url(\"http://localhost:4321/assets/images/notebook-bg/bg-1.webp\")"
+      }
+    ]
+  },
+  "test2_detailPage": {
+    "notebookName": "治愈日常番",
+    "url": "http://localhost:4321/notebook/view/?name=%E6%B2%BB%E6%84%88%E6%97%A5%E5%B8%B8%E7%95%AA",
+    "hasNameParam": true,
+    "count": 2,
+    "entries": [
+      {
+        "index": 0,
+        "title": "《擅长捉弄的高木同学》",
+        "date": "2026-07-09",
+        "preview": "很甜的日常番，高木同学和西片的互动太有趣了。每一集都让人会心一笑，是放松心情的好选择。最爱的角色是高",
+        "width": 442,
+        "height": 249,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "isExpanded": false
+      },
+      {
+        "index": 1,
+        "title": "《关于前辈很烦人的事》",
+        "date": "2026-07-05",
+        "preview": "职场恋爱番，画风很可爱。五十岚和武田前辈的互动超甜，还有其他CP也很好看。每集都很短但是信息量满满，",
+        "width": 442,
+        "height": 249,
+        "ratio": "1.778",
+        "hasRealBg": true,
+        "isExpanded": false
+      }
+    ],
+    "countText": "2 篇笔记",
+    "firstEntryExpanded": true
+  },
+  "test3_anotherNotebook": {
+    "notebookName": "热血战斗番",
+    "url": "http://localhost:4321/notebook/view/?name=%E7%83%AD%E8%A1%80%E6%88%98%E6%96%97%E7%95%AA",
+    "count": 2,
+    "countText": "2 篇笔记",
+    "entries": [
+      {
+        "index": 0,
+        "title": "《咒术回战》第二季"
+      },
+      {
+        "index": 1,
+        "title": "《进击的巨人》最终季"
+      }
+    ]
+  },
+  "test4_consoleErrors": {
+    "listPage": [
+      {
+        "text": "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+        "url": "http://localhost:4321/@id/astro/runtime/client/dev-toolbar/entrypoint.js",
+        "line": 0
+      }
+    ],
+    "detailPage": [
+      {
+        "text": "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+        "url": "http://localhost:4321/@id/astro/runtime/client/dev-toolbar/entrypoint.js",
+        "line": 0
+      }
+    ]
+  },
+  "notes": [
+    "发现问题：通过点击导航（swup页面转场）进入详情页后，内联脚本未重新执行，导致笔记列表未加载。直接访问详情页URL则正常。"
+  ]
+}

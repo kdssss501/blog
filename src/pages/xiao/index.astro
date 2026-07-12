@@ -1,11 +1,14 @@
 ---
+// c:\Users\41462\Desktop\blog\src\pages\xiao\index.astro
 import XiaoAemeathCreator from "@/components/xiao/XiaoAemeathCreator.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
-const title = "小爱";
-const description = "独立的爱米斯角色创建模块。";
+const title = "爱弥斯 - 萌娘百科";
+const description = "爱弥斯，曾是星炬学院的隧者适格者，现已成为无人可见的“电子幽灵”。";
 ---
 
-<MainGridLayout title={title} description={description} showSidebar={false}>
-	<XiaoAemeathCreator />
+<MainGridLayout title={title} description={description} showSidebar={true}>
+	<div style="margin-top: 1rem;">
+		<XiaoAemeathCreator />
+	</div>
 </MainGridLayout>
