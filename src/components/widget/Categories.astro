@@ -2,9 +2,9 @@
 import ButtonLink from "@/components/common/ButtonLink.astro";
 import WidgetLayout from "@/components/common/WidgetLayout.astro";
 import { sidebarLayoutConfig } from "@/config";
+import { getCategoryList } from "@/features/posts/server";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
-import { getCategoryList } from "@/utils/content-utils";
 
 const categories = await getCategoryList();
 

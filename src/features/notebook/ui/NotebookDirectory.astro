@@ -1,0 +1,62 @@
+---
+import Icon from "@/components/common/Icon.astro";
+import { siteConfig } from "@/config";
+import type { NotebookEntry } from "../model/types";
+
+interface Props {
+	title: string;
+	description: string;
+	initialEntries?: NotebookEntry[];
+}
+
+const { title, description, initialEntries = [] } = Astro.props;
+const ownerLabel = siteConfig.title.replace(/的博客$/, "");
+const initialPayload = JSON.stringify(initialEntries).replace(/</g, "\\u003c");
+---
+
+<notebook-directory class="notebook-page">
+	<script is:inline type="application/json" data-notebook-initial set:html={initialPayload}></script>
+	<section class="notebook-shell">
+		<header class="notebook-heading">
+			<div class="notebook-heading__main">
+				<div class="notebook-heading__title">
+					<Icon name="material-symbols:book-2-outline-rounded" />
+					<div>
+						<h2>{title}</h2>
+						<p>{description}</p>
+					</div>
+				</div>
+			</div>
+			<div class="notebook-heading__context">
+				<span class="notebook-heading__owner">
+					<Icon name="material-symbols:ink-pen-outline-rounded" />
+					{ownerLabel}
+				</span>
+				<span class="notebook-heading__featured" data-notebook-featured-name>最近更新主题</span>
+			</div>
+			<div class="notebook-heading__meta" aria-label="笔记本统计">
+				<span><Icon name="material-symbols:menu-book-outline-rounded" /><strong data-notebook-total-groups>0</strong> 本</span>
+				<i></i>
+				<span><Icon name="material-symbols:edit-note-rounded" /><strong data-notebook-total-entries>0</strong> 篇</span>
+				<i></i>
+				<span><Icon name="material-symbols:schedule-outline-rounded" /><strong data-notebook-last-updated>整理中</strong></span>
+			</div>
+		</header>
+
+		<div class="notebook-list-container">
+			<div class="notebook-loading" data-notebook-loading role="status">
+				<span class="notebook-loading-dot"></span>
+				<span>正在加载笔记本...</span>
+			</div>
+			<div class="notebook-empty" data-notebook-empty hidden>
+				<p>还没有任何笔记本。</p>
+				<button type="button" class="notebook-retry" data-notebook-retry hidden>重新加载</button>
+			</div>
+			<div class="notebook-grid" data-notebook-grid hidden></div>
+		</div>
+	</section>
+</notebook-directory>
+
+<script>
+	import "../client/notebook-directory";
+</script>

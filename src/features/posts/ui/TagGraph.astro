@@ -1,0 +1,21 @@
+---
+import type { TagGraphData } from "../model/tag-graph";
+
+interface Props {
+	graph: TagGraphData;
+}
+
+const { graph } = Astro.props;
+---
+
+<tag-graph class="tag-graph" data-graph={JSON.stringify(graph)}>
+	<header class="tag-graph__header">
+		<h2 class="tag-graph__title">标签关系图谱</h2>
+		<p class="tag-graph__meta">{graph.nodes.length} 个标签</p>
+	</header>
+	<div class="tag-graph__chart" data-tag-graph-chart aria-label="标签关系图谱"></div>
+</tag-graph>
+
+<script>
+	import "../client/tag-graph";
+</script>

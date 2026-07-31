@@ -1,0 +1,206 @@
+---
+import Icon from "@/components/common/Icon.astro";
+---
+
+<published-content-view>
+	<a class="published-view__back" data-published-back href="/posts/">
+		<Icon name="material-symbols:arrow-back-rounded" />
+		<span>返回内容列表</span>
+	</a>
+	<section class="published-view" aria-live="polite">
+		<div class="published-view__state" data-published-state role="status">
+			<span></span>
+			正在读取内容...
+		</div>
+		<article data-published-article hidden>
+			<header class="published-view__header">
+				<p data-published-kind></p>
+				<h1 data-published-title></h1>
+				<div class="published-view__meta">
+					<time data-published-date></time>
+					<span data-published-author hidden></span>
+					<span data-published-location hidden></span>
+				</div>
+				<p class="published-view__description" data-published-description hidden></p>
+				<div class="published-view__tags" data-published-tags></div>
+			</header>
+			<img class="published-view__cover" data-published-cover alt="" hidden />
+			<div class="published-view__body" data-published-body></div>
+		</article>
+	</section>
+</published-content-view>
+
+<script>
+	type ContentKind = "post" | "moment" | "notebook";
+	type PublishedDetail = {
+		kind: ContentKind;
+		title: string;
+		slug: string;
+		description: string;
+		tags: string[];
+		published: string;
+		cover: string;
+		location: string;
+		author: string;
+		html: string;
+	};
+
+	const destinations: Record<ContentKind, { href: string; label: string; kind: string }> = {
+		post: { href: "/posts/", label: "返回文章列表", kind: "ARTICLE" },
+		moment: { href: "/moments/", label: "返回动态", kind: "MOMENT" },
+		notebook: { href: "/life/notebooks/", label: "返回笔记本", kind: "NOTEBOOK" },
+	};
+
+	function readDetail(value: unknown): PublishedDetail | null {
+		if (!value || typeof value !== "object") return null;
+		const content = value as Partial<PublishedDetail>;
+		return (
+			typeof content.kind === "string" &&
+			content.kind in destinations &&
+			typeof content.title === "string" &&
+			typeof content.slug === "string" &&
+			typeof content.description === "string" &&
+			Array.isArray(content.tags) &&
+			typeof content.published === "string" &&
+			typeof content.cover === "string" &&
+			typeof content.location === "string" &&
+			typeof content.author === "string" &&
+			typeof content.html === "string"
+		)
+			? (content as PublishedDetail)
+			: null;
+	}
+
+	class PublishedContentViewElement extends HTMLElement {
+		private controller?: AbortController;
+
+		connectedCallback() {
+			void this.load();
+		}
+
+		disconnectedCallback() {
+			this.controller?.abort();
+		}
+
+		private async load() {
+			const query = new URLSearchParams(window.location.search);
+			const kind = query.get("kind") as ContentKind | null;
+			const slug = query.get("slug") || "";
+			if (!kind || !(kind in destinations) || !slug || slug.length > 96) {
+				this.fail("查看地址无效，请从内容列表重新进入。");
+				return;
+			}
+
+			const destination = destinations[kind];
+			const back = this.querySelector<HTMLAnchorElement>("[data-published-back]");
+			if (back) {
+				back.href = destination.href;
+				const label = back.querySelector("span");
+				if (label) label.textContent = destination.label;
+			}
+
+			this.controller = new AbortController();
+			try {
+				const path = `/api/content/published/${encodeURIComponent(kind)}/${encodeURIComponent(slug)}/`;
+				const response = await fetch(path, {
+					signal: this.controller.signal,
+					headers: { Accept: "application/json" },
+				});
+				const payload = (await response.json().catch(() => ({}))) as {
+					content?: unknown;
+					error?: string;
+				};
+				const content = readDetail(payload.content);
+				if (!response.ok || !content || content.kind !== kind || content.slug !== slug) {
+					this.fail(response.status === 404 ? "这篇内容不存在或尚未发布。" : "内容暂时无法读取，请稍后重试。");
+					return;
+				}
+				this.render(content, destination.kind);
+			} catch {
+				if (!this.controller.signal.aborted) this.fail("内容暂时无法读取，请稍后重试。");
+			}
+		}
+
+		private render(content: PublishedDetail, kindLabel: string) {
+			this.setText("[data-published-kind]", kindLabel);
+			this.setText("[data-published-title]", content.title);
+			this.setText("[data-published-date]", content.published);
+			this.setOptionalText("[data-published-author]", content.author);
+			this.setOptionalText("[data-published-location]", content.location);
+			this.setOptionalText("[data-published-description]", content.description);
+
+			const tags = this.querySelector<HTMLElement>("[data-published-tags]");
+			if (tags) {
+				tags.replaceChildren(
+					...content.tags.map((tag) => {
+						const span = document.createElement("span");
+						span.textContent = `#${tag}`;
+						return span;
+					}),
+				);
+			}
+
+			const cover = this.querySelector<HTMLImageElement>("[data-published-cover]");
+			if (cover && /^(?:https:\/\/|\/[^/])/i.test(content.cover)) {
+				cover.src = content.cover;
+				cover.alt = `${content.title}封面`;
+				cover.hidden = false;
+			}
+			const body = this.querySelector<HTMLElement>("[data-published-body]");
+			if (body) body.innerHTML = content.html;
+
+			const state = this.querySelector<HTMLElement>("[data-published-state]");
+			const article = this.querySelector<HTMLElement>("[data-published-article]");
+			if (state) state.hidden = true;
+			if (article) article.hidden = false;
+			document.title = `${content.title} - ${document.title.split(" - ").at(-1) || "博客"}`;
+		}
+
+		private fail(message: string) {
+			const state = this.querySelector<HTMLElement>("[data-published-state]");
+			if (!state) return;
+			state.classList.add("is-error");
+			state.replaceChildren(message);
+		}
+
+		private setText(selector: string, value: string) {
+			const element = this.querySelector<HTMLElement>(selector);
+			if (element) element.textContent = value;
+		}
+
+		private setOptionalText(selector: string, value: string) {
+			const element = this.querySelector<HTMLElement>(selector);
+			if (!element || !value) return;
+			element.textContent = value;
+			element.hidden = false;
+		}
+	}
+
+	if (!customElements.get("published-content-view")) {
+		customElements.define("published-content-view", PublishedContentViewElement);
+	}
+</script>
+
+<style>
+	published-content-view { display:block; width:min(100%,54rem); margin:1rem auto 0; }
+	.published-view__back { display:inline-flex; align-items:center; gap:.4rem; margin-bottom:1rem; color:var(--content-meta); font-size:.78rem; font-weight:750; text-decoration:none; }
+	.published-view__back:hover { color:var(--primary); }
+	.published-view { overflow:hidden; border:1px solid var(--line-divider); border-radius:8px; background:var(--card-bg); }
+	.published-view__state { display:flex; min-height:24rem; align-items:center; justify-content:center; gap:.65rem; color:var(--content-meta); font-size:.8rem; }
+	.published-view__state span { width:.55rem; height:.55rem; border-radius:50%; background:var(--primary); animation:published-pulse 1s ease-in-out infinite alternate; }
+	.published-view__state.is-error { color:#b34e49; }
+	.published-view__header { padding:clamp(1.35rem,4vw,2.5rem); border-bottom:1px solid var(--line-divider); }
+	.published-view__header > p:first-child { margin:0 0 .7rem; color:var(--primary); font:800 .68rem/1 ui-monospace,monospace; }
+	.published-view__header h1 { margin:0; color:var(--deep-text); font-size:clamp(1.7rem,5vw,2.7rem); line-height:1.18; overflow-wrap:anywhere; }
+	.published-view__meta { display:flex; flex-wrap:wrap; gap:.4rem 1rem; margin-top:1rem; color:var(--content-meta); font-size:.72rem; }
+	.published-view__description { max-width:44rem; margin:1rem 0 0; color:var(--content-meta); line-height:1.7; }
+	.published-view__tags { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:1rem; color:var(--primary); font-size:.7rem; font-weight:750; }
+	.published-view__cover { display:block; width:100%; max-height:32rem; object-fit:cover; border-bottom:1px solid var(--line-divider); }
+	.published-view__body { padding:clamp(1.35rem,4vw,2.5rem); color:var(--content-text); line-height:1.85; overflow-wrap:anywhere; }
+	.published-view__body :global(img) { display:block; max-width:100%; height:auto; margin:1.25rem auto; border-radius:6px; }
+	.published-view__body :global(pre) { max-width:100%; overflow:auto; padding:1rem; border-radius:6px; background:#12151b; color:#eef2f1; }
+	.published-view__body :global(a) { color:var(--primary); text-underline-offset:.2em; }
+	.published-view__body :global(blockquote) { margin-inline:0; padding:.1rem 1rem; border-left:3px solid var(--primary); color:var(--content-meta); }
+	@keyframes published-pulse { to { opacity:.25; transform:scale(.8); } }
+	@media (prefers-reduced-motion:reduce) { .published-view__state span { animation:none; } }
+</style>

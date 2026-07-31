@@ -1,6 +1,112 @@
 /* ===== 工具导航页样式 ===== */
 
 /* Tab 外层 */
+.collections-page {
+  width: 100%;
+  padding: 1rem 0 2rem;
+}
+
+.collections-page__header {
+  margin-bottom: 2rem;
+}
+
+.collections-page__header > p {
+  max-width: 52rem;
+  margin: 0.75rem 0 0;
+  color: var(--content-meta);
+  line-height: 1.7;
+}
+
+.tools-directory-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: var(--content-meta);
+  font-size: 0.8125rem;
+}
+
+.tools-directory-meta__label {
+  color: var(--deep-text);
+  font-weight: 700;
+}
+
+.tools-directory-meta time {
+  font-variant-numeric: tabular-nums;
+}
+
+collection-directory {
+  display: block;
+}
+
+.tools-category-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 2rem 0 1rem;
+}
+
+.tools-category-heading__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--deep-text);
+}
+
+.tools-category-heading__label svg {
+  color: var(--primary);
+}
+
+.tools-category-heading__label span {
+  color: var(--content-meta);
+  font-size: 0.75rem;
+}
+
+.tools-category-heading__rule {
+  height: 1px;
+  flex: 1;
+  background: var(--line-color);
+}
+
+.tools-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tools-card__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 auto;
+  color: var(--primary);
+  object-fit: contain;
+}
+
+.tools-card__title-row h3 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--deep-text);
+  font-size: 1rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tools-empty {
+  display: grid;
+  min-height: 12rem;
+  place-items: center;
+  gap: 0.5rem;
+  color: var(--content-meta);
+}
+
+.tools-empty p {
+  margin: 0;
+}
+
 .tools-tab-wrapper {
   margin-bottom: 1.5rem;
 }
@@ -11,19 +117,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
-  padding: 0.375rem;
-  border-radius: 1rem;
-  border: 1.5px solid #000;
+  padding: 0.25rem;
+  border-radius: var(--radius-medium);
+  border: 1px solid var(--line-color);
+  background: var(--card-bg);
 }
 :root.dark .tools-tab-pill {
-  border-color: #fff;
+  border-color: var(--line-color);
 }
 
 /* 滑动指示条（填充胶囊背景） */
 .tools-tab-indicator {
   position: absolute;
-  border-radius: 9999px;
-  background: #000;
+  border-radius: var(--radius-small);
+  background: var(--deep-text);
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -33,7 +140,7 @@
   z-index: 0;
 }
 :root.dark .tools-tab-indicator {
-  background: #fff;
+  background: var(--deep-text);
 }
 
 /* Tab 按钮 */
@@ -45,7 +152,7 @@
   gap: 0.375rem;
   padding: 0.375rem 0.875rem;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--radius-small);
   font-size: 0.8125rem;
   font-weight: 500;
   white-space: nowrap;
@@ -57,36 +164,36 @@
 
 /* 激活态：指示条覆盖时白色文字 */
 .tools-tab-btn-active {
-  color: #fff;
+  color: var(--page-bg);
   cursor: default;
 }
 :root.dark .tools-tab-btn-active {
-  color: #000;
+  color: var(--page-bg);
 }
 
 /* 未激活态：黑色文字 */
 .tools-tab-btn-inactive {
-  color: #000;
+  color: var(--deep-text);
 }
 .tools-tab-btn-inactive:hover {
   opacity: 0.7;
 }
 :root.dark .tools-tab-btn-inactive {
-  color: #fff;
+  color: var(--deep-text);
 }
 
 /* 数量徽章 */
 .tools-tab-badge {
   font-size: 0.65rem;
   padding: 0.0625rem 0.375rem;
-  border-radius: 9999px;
-  background: oklch(0.92 0 0);
-  color: oklch(0.35 0 0);
+  border-radius: var(--radius-small);
+  background: var(--btn-card-bg-hover);
+  color: var(--content-meta);
   line-height: 1.4;
 }
 :root.dark .tools-tab-badge {
-  background: oklch(0.25 0 0);
-  color: oklch(0.65 0 0);
+  background: var(--btn-card-bg-hover);
+  color: var(--content-meta);
 }
 
 /* 激活态徽章反转 */
@@ -127,9 +234,9 @@
   display: flex;
   flex-direction: column;
   padding: 1.25rem;
-  border-radius: var(--radius-large, 0.75rem);
-  border: 2px solid #000;
-  background: #fff;
+  border-radius: var(--radius-medium);
+  border: 1px solid var(--line-color);
+  background: var(--card-bg);
   text-decoration: none;
   overflow: hidden;
   opacity: 0;
@@ -138,16 +245,16 @@
   transition: border-color 300ms ease, box-shadow 300ms ease, transform 300ms ease, background-color 300ms ease;
 }
 :root.dark .tools-card {
-  border-color: #fff;
-  background: #000;
+  border-color: var(--line-color);
+  background: var(--card-bg);
 }
 .tools-card:hover {
-  border-color: #000;
+  border-color: var(--primary);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
 :root.dark .tools-card:hover {
-  border-color: #fff;
+  border-color: var(--primary);
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }

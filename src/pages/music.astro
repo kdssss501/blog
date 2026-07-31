@@ -1,8 +1,11 @@
 ---
-import MusicVisualizer from "@components/features/music-visualizer/MusicVisualizer.svelte";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { siteConfig } from "@/config";
+import { MusicVisualizer } from "@/features/music";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+
+if (!siteConfig.pages.musicPage) return Astro.redirect("/404/");
 ---
 
 <MainGridLayout title={i18n(I18nKey.music) + " - 3D可视化"} description="音乐地形可视化，沉浸式音乐体验">

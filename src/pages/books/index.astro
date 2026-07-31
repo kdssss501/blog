@@ -1,0 +1,15 @@
+---
+import { siteConfig } from "@/config";
+import { BangumiDirectory } from "@/features/records";
+import { getBangumiEntries } from "@/features/records/server";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.books) return Astro.redirect("/404/");
+const title = "我的书架";
+const description = "记录正在阅读、已经读完和准备阅读的书。";
+const entries = await getBangumiEntries(["book"]);
+---
+
+<MainGridLayout {title} {description} showSidebar={true}>
+	<BangumiDirectory client:load {title} {description} {entries} categories={["book"]} emptyLabel="书架还是空的" />
+</MainGridLayout>

@@ -1,0 +1,76 @@
+---
+import { getCollection } from "astro:content";
+import Icon from "@components/common/Icon.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const [notebooks, routines, places, bangumi] = await Promise.all([
+	getCollection("notebooks"),
+	getCollection("routines"),
+	getCollection("places"),
+	getCollection("bangumi"),
+]);
+const sections = [
+	{
+		title: "笔记本",
+		description: "按主题整理生活与学习记录",
+		href: "/life/notebooks/",
+		icon: "material-symbols:book-2-outline-rounded",
+		count: notebooks.length,
+	},
+	{
+		title: "规划",
+		description: "记录习惯、目标与行动方案",
+		href: "/life/routines/",
+		icon: "material-symbols:schedule-outline-rounded",
+		count: routines.length,
+	},
+	{
+		title: "足迹",
+		description: "保存去过的地方与旅行片段",
+		href: "/life/places/",
+		icon: "material-symbols:location-on-outline-rounded",
+		count: places.length,
+	},
+	{
+		title: "书架",
+		description: "阅读中的作品和书单",
+		href: "/books/",
+		icon: "material-symbols:local-library-outline-rounded",
+		count: bangumi.filter((item) => item.data.category === "book").length,
+	},
+	{
+		title: "影视游戏",
+		description: "动画、影视和游戏记录",
+		href: "/movies-games/",
+		icon: "material-symbols:movie-outline-rounded",
+		count: bangumi.filter(
+			(item) => !["book", "music"].includes(item.data.category),
+		).length,
+	},
+];
+---
+
+<MainGridLayout title="生活" description="记录生活中的长期轨迹。" showSidebar={true}>
+	<section class="life-directory" data-pagefind-body>
+		<header><p>LIFE ARCHIVE</p><h1 data-pagefind-meta="title">生活记录</h1><span>把日常、计划、旅途和喜爱的作品整理在一起。</span></header>
+		<div>{sections.map((section) => <a href={section.href}><Icon name={section.icon} /><h2>{section.title}</h2><p>{section.description}</p><strong>{section.count}</strong></a>)}</div>
+	</section>
+</MainGridLayout>
+
+<style>
+	.life-directory { display:grid; gap:1.4rem; }
+	.life-directory header { padding-bottom:1.2rem; border-bottom:1px solid var(--line-divider); }
+	.life-directory header p { margin:0; color:var(--primary); font:700 .68rem/1 ui-monospace,monospace; }
+	.life-directory header h1 { margin:.35rem 0; font-size:2rem; }
+	.life-directory header span { color:var(--content-meta); }
+	.life-directory > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.85rem; }
+	.life-directory a { position:relative; display:grid; min-height:10rem; align-content:end; padding:1rem; overflow:hidden; border:1px solid var(--line-divider); border-radius:var(--radius-large); background:var(--card-bg); color:inherit; text-decoration:none; transition:transform .2s ease,border-color .2s ease; }
+	.life-directory a:hover { border-color:var(--primary); transform:translateY(-2px); }
+	.life-directory a > :global(svg) { position:absolute; top:1rem; left:1rem; color:var(--primary); font-size:2rem; }
+	.life-directory h2,.life-directory p { margin:0; }
+	.life-directory h2 { font-size:1rem; }
+	.life-directory p { margin-top:.25rem; color:var(--content-meta); font-size:.72rem; }
+	.life-directory strong { position:absolute; top:1rem; right:1rem; color:var(--content-meta); font-size:.75rem; }
+	@media (max-width:800px) { .life-directory > div { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+	@media (max-width:520px) { .life-directory > div { grid-template-columns:1fr; } }
+</style>

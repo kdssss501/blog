@@ -65,6 +65,20 @@
 	cursor: grabbing;
 }
 
+/* 首页内容滚动到 Hero 之外时，模型让出卡片与侧栏；入口仍保留。 */
+:root[data-home-hero-visible="false"] .live2d-widget {
+	opacity: 0 !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
+/* 内页保留入口，避免全尺寸模型盖住侧栏与文章内容。 */
+:root:not(:has(#home-hero)) .live2d-widget {
+	opacity: 0 !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
 .live2d-toolbar {
 	position: absolute;
 	right: -2.5rem;
@@ -219,6 +233,9 @@
 	position: fixed;
 	left: 0;
 	bottom: 60px;
+	padding: 0;
+	border: 0;
+	background: transparent;
 	transform: translateX(-100%);
 	z-index: 998;
 	pointer-events: auto;
@@ -282,9 +299,27 @@
 }
 
 @media (max-width: 480px) {
-	/* 移动端不加载 Live2D，直接隐藏 widget 和 trigger */
-	.live2d-widget,
-	.live2d-trigger {
-		display: none !important;
+	.live2d-widget {
+		width: min(255px, 70vw) !important;
+		height: 230px !important;
+		bottom: 4.75rem !important;
 	}
+
+	.live2d-trigger {
+		bottom: 5.25rem;
+	}
+
+	.live2d-trigger.visible {
+		transform: translateX(0);
+	}
+
+	.live2d-toolbar {
+		right: 0.25rem;
+		top: -2.5rem;
+		flex-direction: row;
+	}
+}
+
+html[data-live2d="off"] :is(.live2d-widget, .live2d-trigger) {
+	display: none !important;
 }

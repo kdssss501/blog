@@ -1,0 +1,97 @@
+---
+import { getCollection } from "astro:content";
+import Icon from "@components/common/Icon.astro";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { getSortedPosts } from "@/features/posts/server";
+import { getPostUrlBySlug } from "@/utils/url-utils";
+
+const fallbackCovers = [
+	"/assets/illustrations/fate-throne/98522947-p0.webp",
+	"/assets/illustrations/fate-throne/89514781-p0.webp",
+	"/assets/illustrations/fate-throne/84782057-p0.webp",
+	"/assets/illustrations/fate-throne/87446888-p0.webp",
+	"/assets/illustrations/fate-throne/101297457-p0.webp",
+];
+const usableCover = (value: string | undefined, index: number) =>
+	value &&
+	value !== "api" &&
+	(/^(?:https?:)?\/\//.test(value) || value.startsWith("/"))
+		? value
+		: fallbackCovers[index % fallbackCovers.length];
+const [posts, moments, notebooks] = await Promise.all([
+	getSortedPosts(),
+	getCollection("moments"),
+	getCollection("notebooks"),
+]);
+const updates = [
+	...posts.slice(0, 8).map((post, index) => ({
+		title: post.data.title,
+		url: getPostUrlBySlug(post.id),
+		date: post.data.updated || post.data.published,
+		cover: usableCover(post.data.image, index),
+		type: post.data.updated ? "更新文章" : "最新文章",
+	})),
+	...moments.map((moment, index) => ({
+		title: moment.data.tags[0]
+			? `${moment.data.tags[0]} · 新动态`
+			: "发布了一条新动态",
+		url: "/moments/",
+		date: moment.data.published,
+		cover: usableCover(
+			Array.isArray(moment.data.images)
+				? moment.data.images[0]
+				: moment.data.images,
+			index + 2,
+		),
+		type: "最新动态",
+	})),
+	...notebooks.map((notebook, index) => ({
+		title: notebook.data.name,
+		url: `/life/notebooks/${encodeURIComponent(notebook.data.name)}/`,
+		date: notebook.data.date || new Date(0),
+		cover: usableCover(notebook.data.cover, index + 4),
+		type: "笔记",
+	})),
+]
+	.filter((item) => item.date.getTime() > 0)
+	.sort((a, b) => b.date.getTime() - a.date.getTime())
+	.slice(0, 8);
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+	year: "numeric",
+	month: "2-digit",
+	day: "2-digit",
+});
+---
+
+<WidgetLayout name="最近更新" id="recent-posts">
+	<Icon slot="title-icon" name="material-symbols:history-rounded" class="recent-posts__history" />
+	<div class="recent-posts">
+		{updates.map((update) => (
+			<a href={update.url} class="recent-posts__item">
+				<img src={update.cover} alt="" width="42" height="42" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+				<span class="recent-posts__copy">
+					<strong>{update.title}</strong>
+					<small>
+						<Icon name="material-symbols:calendar-month-outline-rounded" />
+						<time datetime={update.date.toISOString()}>{dateFormatter.format(update.date)}</time>
+					</small>
+				</span>
+				<em>{update.type}</em>
+			</a>
+		))}
+	</div>
+</WidgetLayout>
+
+<style>
+	.recent-posts__history { width:1.1rem; height:1.1rem; color:var(--deep-text); }
+	.recent-posts { display:grid; gap:.38rem; }
+	.recent-posts__item { display:grid; min-width:0; grid-template-columns:2.65rem minmax(0,1fr) auto; align-items:center; gap:.55rem; color:var(--deep-text); text-decoration:none; }
+	.recent-posts__item:hover strong,
+	.recent-posts__item:focus-visible strong { color:var(--primary); }
+	.recent-posts__item img { width:2.65rem; height:2.65rem; border:1.5px solid var(--deep-text); border-radius:7px; object-fit:cover; }
+	.recent-posts__copy { display:grid; min-width:0; gap:.16rem; }
+	.recent-posts__copy strong { overflow:hidden; font-size:.74rem; font-weight:950; text-overflow:ellipsis; white-space:nowrap; transition:color .18s ease; }
+	.recent-posts__copy small { display:flex; align-items:center; gap:.22rem; color:var(--content-meta); font-size:.58rem; }
+	.recent-posts__copy small :global(svg) { width:.7rem; height:.7rem; }
+	.recent-posts__item em { align-self:end; margin-bottom:.2rem; padding:.14rem .28rem; border-radius:3px; background:var(--btn-regular-bg); color:var(--content-meta); font-size:.5rem; font-style:normal; font-weight:800; white-space:nowrap; }
+</style>

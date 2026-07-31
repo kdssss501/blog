@@ -1,0 +1,5 @@
+The input image is the EDIT TARGET for frame 24, the final empty landscape of an existing cinematic anime sequence. Re-render this exact moment as a polished 4K cinematic anime still on a 2.40:1 widescreen canvas, extending the environment naturally to the left and right only.
+
+Preserve zero people and zero characters. The frame must remain a completely empty spring grassland after Artoria has left: no person, dress, foot, face, body, silhouette, shadow, reflection, animal, prop, or distant figure. Preserve the blue-white sky, cloud masses, low bright horizon, yellow-green grass, foreground white plants, sunlight direction, airy exposure, and quiet lingering farewell mood of the edit target. Keep the original scene structure and empty visual pause; do not invent landmarks or foreground objects.
+
+Use refined anime-film rendering, detailed grass and clouds, restrained cinematic color grading, and crisp 4K detail consistent with the preceding sequence. Remove any source subtitle, label, logo, or watermark. Generate no text, black bars, border, frame, UI, signature, or watermark.

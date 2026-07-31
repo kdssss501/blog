@@ -1,0 +1,806 @@
+---
+import { homeConfig } from "@/config";
+import { normalizeShutterPanels } from "../model/portfolio-shutter.js";
+
+const displayConfig = homeConfig.displayLayer;
+const shutterConfig = homeConfig.portfolioShutter;
+const panels = normalizeShutterPanels(shutterConfig.panels);
+const cinematicStory = shutterConfig.cinematicStory;
+const interlude = shutterConfig.interlude;
+const transparentPixel =
+	"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+---
+
+<section
+	class="home-display-layer"
+	id="home-display-layer"
+	aria-hidden="true"
+	data-display
+	data-display-enabled={displayConfig.enabled ? "true" : "false"}
+	data-shutter-enabled={shutterConfig.enabled ? "true" : "false"}
+	data-shutter-scroll-distance={String(shutterConfig.scrollDistance)}
+	data-cinematic-scroll-distance={String(shutterConfig.scrollDistance)}
+>
+	<div class="home-display-layer__viewport" data-display-viewport>
+		<div class="home-display-layer__backdrop" data-display-backdrop>
+			<p>{displayConfig.kicker}</p>
+			<h2>{displayConfig.title}</h2>
+			<span>VISUAL INDEX / 01-05</span>
+		</div>
+		<div class="home-portfolio-shutter__rail" aria-hidden="true">
+			{panels.map((panel) => (
+				<article
+					class="home-portfolio-shutter__panel"
+					data-shutter-panel
+					data-direction={panel.direction}
+					data-panel-index={String(panel.index)}
+					style={`--panel-index: ${panel.index}; --shutter-panel-progress: 0;`}
+				>
+					<img
+						class="home-portfolio-shutter__panel-image home-portfolio-shutter__panel-image--clear"
+						data-shutter-image
+						data-src={panel.image}
+						src={transparentPixel}
+						alt=""
+						loading="eager"
+						decoding="async"
+					/>
+					<div class="home-portfolio-shutter__panel-copy" data-shutter-panel-copy>
+						<div class="home-portfolio-shutter__panel-title-bar">
+							<span class="home-portfolio-shutter__panel-label">{panel.english}</span>
+							<strong>{panel.title}</strong>
+							<span class="home-portfolio-shutter__panel-description">{panel.description}</span>
+						</div>
+					</div>
+				</article>
+			))}
+		</div>
+
+		<div
+			class="home-scroll-cinematic"
+			data-scroll-cinematic
+			data-frame-count={String(cinematicStory.frames.length)}
+			data-source-video={cinematicStory.sourceVideo}
+			aria-hidden="true"
+		>
+			<div class="home-scroll-cinematic__frames">
+				{cinematicStory.frames.map((frame, index) => (
+					<img
+						class="home-scroll-cinematic__frame"
+						data-scroll-cinematic-frame
+						data-frame-index={String(index)}
+						data-source-time={String(frame.sourceTime)}
+						data-src={frame.image}
+						src={transparentPixel}
+						alt=""
+						width="3840"
+						height="1600"
+						loading="eager"
+						decoding="async"
+					/>
+				))}
+			</div>
+			<div class="home-scroll-cinematic__grade" data-scroll-cinematic-grade></div>
+			<div class="home-scroll-cinematic__texture" data-scroll-cinematic-texture></div>
+			<div class="home-scroll-cinematic__vignette"></div>
+			<div class="home-scroll-cinematic__letterbox"></div>
+			<div class="home-scroll-cinematic__captions" data-scroll-cinematic-captions>
+				{cinematicStory.frames.map((frame, index) => (
+					<p
+						class="home-scroll-cinematic__caption"
+						data-scroll-cinematic-caption
+						data-caption-index={String(index)}
+					>
+						{frame.caption}
+					</p>
+				))}
+			</div>
+		</div>
+
+		<div
+			class="home-portfolio-shutter__interlude"
+			data-shutter-interlude
+			style={`--shutter-interlude-foreground-width: ${interlude.foregroundWidth ?? "min(56vw, 70rem)"};`}
+		>
+			<div class="home-portfolio-shutter__interlude-bg" data-shutter-interlude-bg></div>
+			<div class="home-portfolio-shutter__interlude-aura" data-shutter-interlude-aura></div>
+			<div class="home-portfolio-shutter__interlude-strips">
+				<img
+					class="home-portfolio-shutter__interlude-strip home-portfolio-shutter__interlude-strip--left"
+					data-shutter-interlude-strip-left
+					data-src={interlude.stripLeft}
+					src={transparentPixel}
+					alt=""
+					loading="lazy"
+					decoding="async"
+				/>
+				<img
+					class="home-portfolio-shutter__interlude-strip home-portfolio-shutter__interlude-strip--right"
+					data-shutter-interlude-strip-right
+					data-src={interlude.stripRight}
+					src={transparentPixel}
+					alt=""
+					loading="lazy"
+					decoding="async"
+				/>
+			</div>
+			<div class="home-portfolio-shutter__interlude-copy">
+				<span class="home-portfolio-shutter__interlude-copy-text home-portfolio-shutter__interlude-copy-text--left">
+					{interlude.copyLeft}
+				</span>
+				<span class="home-portfolio-shutter__interlude-copy-text home-portfolio-shutter__interlude-copy-text--right">
+					{interlude.copyRight}
+				</span>
+			</div>
+			<img
+				class="home-portfolio-shutter__interlude-fg"
+				data-shutter-interlude-fg
+				data-src={interlude.foreground}
+				src={transparentPixel}
+				alt={interlude.foregroundAlt ?? ""}
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
+
+		<div class="home-portfolio-shutter__mask" data-shutter-mask></div>
+		<video
+			class="home-portfolio-shutter__final-video"
+			data-shutter-final-video
+			data-src={shutterConfig.finalImage.backgroundVideo}
+			muted
+			loop
+			playsinline
+			preload="none"
+		></video>
+		<img
+			class="home-portfolio-shutter__final-image home-portfolio-shutter__final-image--midground"
+			data-shutter-final-midground
+			data-src={shutterConfig.finalImage.midgroundImage}
+			src={transparentPixel}
+			alt={shutterConfig.finalImage.alt}
+			loading="lazy"
+			decoding="async"
+		/>
+		<img
+			class="home-portfolio-shutter__final-image home-portfolio-shutter__final-image--foreground"
+			data-shutter-final-foreground
+			data-src={shutterConfig.finalImage.foregroundImage}
+			src={transparentPixel}
+			alt=""
+			loading="lazy"
+			decoding="async"
+		/>
+		<div class="home-portfolio-shutter__final-copy" data-shutter-final-copy>
+			<p>{shutterConfig.kicker}</p>
+			<h2>{shutterConfig.title}</h2>
+			<span>{shutterConfig.description}</span>
+		</div>
+	</div>
+</section>
+
+<script>
+	import { gsap } from "gsap";
+	import { ScrollTrigger } from "gsap/ScrollTrigger";
+	import { waitForPageLoaderHidden } from "@/app/shell/client/page-loader-controller.js";
+	import {
+		DESKTOP_MEDIA_QUERY,
+		getShutterPinEndDistance,
+	} from "../model/portfolio-shutter.js";
+
+	type Cleanup = () => void;
+
+	const TRANSPARENT_PIXEL =
+		"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+	const PANEL_START_OFFSET = 102;
+	const PANEL_STEP = 0.52;
+	const PANEL_DURATION = 0.52;
+	const STORY_START = 2.62;
+	const STORY_FRAME_START = 2.76;
+	const STORY_FRAME_STEP = 0.32;
+	const STORY_CROSSFADE_DURATION = 0.12;
+	const STORY_CAPTION_FADE_DURATION = 0.06;
+	const STORY_END = 10.8;
+	const STORY_OUT_START = 10.5;
+	const INTERLUDE_BG_START = STORY_OUT_START;
+	const STRIPS_START = STORY_END;
+	const STRIPS_DURATION = 1.8;
+	const FOREGROUND_START = 11.4;
+	const INTERLUDE_COPY_START = 12.24;
+	const MERGE_START = 13.95;
+	const FINAL_MIDGROUND_START = 14.02;
+	const FINAL_FOREGROUND_START = 14.22;
+	const FINAL_VIDEO_START = 14.6;
+	const FINAL_COPY_START = 15.35;
+	const TIMELINE_END = 16.8;
+
+	let activeCleanup: Cleanup | null = null;
+	let mediaCleanup: Cleanup | null = null;
+	let bootToken = 0;
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	function matchesDesktop() {
+		return window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+	}
+
+	function getRoot() {
+		return document.getElementById("home-display-layer");
+	}
+
+	function isHomeRoute() {
+		return window.location.pathname === "/";
+	}
+
+	function getLazyAssets(root: HTMLElement) {
+		return Array.from(
+			root.querySelectorAll<HTMLImageElement | HTMLVideoElement>(
+				"img[data-src], video[data-src]",
+			),
+		);
+	}
+
+	function hydrateAsset(asset: HTMLImageElement | HTMLVideoElement) {
+		const src = asset.dataset.src;
+		if (!src) return Promise.resolve();
+		if (asset instanceof HTMLVideoElement) {
+			if (asset.getAttribute("src") !== src) {
+				asset.setAttribute("src", src);
+				asset.load();
+			}
+			return Promise.resolve();
+		}
+		if (asset.getAttribute("src") !== src) asset.setAttribute("src", src);
+		return asset.decode?.().catch(() => undefined) ?? Promise.resolve();
+	}
+
+	function hydrateLazyAssets(root: HTMLElement) {
+		const cinematicFrames = Array.from(
+			root.querySelectorAll<HTMLImageElement>("[data-scroll-cinematic-frame]"),
+		);
+		const cinematicFrameSet = new Set(cinematicFrames);
+		for (const asset of getLazyAssets(root)) {
+			if (asset instanceof HTMLImageElement && cinematicFrameSet.has(asset)) {
+				continue;
+			}
+			void hydrateAsset(asset);
+		}
+
+		let cancelled = false;
+		let batchTimer = 0;
+		const hydrateBatches = async () => {
+			for (let index = 0; index < cinematicFrames.length; index += 4) {
+				if (cancelled) return;
+				await Promise.all(
+					cinematicFrames.slice(index, index + 4).map(hydrateAsset),
+				);
+				if (index + 4 >= cinematicFrames.length) return;
+				await new Promise<void>((resolve) => {
+					batchTimer = window.setTimeout(resolve, 32);
+				});
+			}
+		};
+		void hydrateBatches();
+
+		return () => {
+			cancelled = true;
+			window.clearTimeout(batchTimer);
+		};
+	}
+
+	function hydrateCinematicNeighborhood(
+		frames: HTMLImageElement[],
+		activeIndex: number,
+	) {
+		const start = Math.max(0, activeIndex - 2);
+		const end = Math.min(frames.length, activeIndex + 4);
+		for (let index = start; index < end; index += 1) {
+			void hydrateAsset(frames[index]);
+		}
+	}
+
+	function resetLazyAssets(root: HTMLElement) {
+		for (const asset of getLazyAssets(root)) {
+			if (asset instanceof HTMLVideoElement) {
+				asset.pause();
+				asset.removeAttribute("src");
+				asset.load();
+				continue;
+			}
+			asset.setAttribute("src", TRANSPARENT_PIXEL);
+		}
+	}
+
+	function teardownDisplay() {
+		bootToken += 1;
+		document.documentElement.removeAttribute("data-home-cinematic");
+		activeCleanup?.();
+		activeCleanup = null;
+		const root = getRoot();
+		if (!root) return;
+		root.removeAttribute("data-display-ready");
+		root.removeAttribute("data-cinematic-progress");
+		root.removeAttribute("data-cinematic-story-active");
+		root.removeAttribute("data-cinematic-story-frame");
+		if (!matchesDesktop()) resetLazyAssets(root);
+	}
+
+	function initHomeDisplayLayer() {
+		activeCleanup?.();
+		activeCleanup = null;
+		if (!isHomeRoute()) return;
+
+		const root = getRoot();
+		if (!root) return;
+		root.dataset.cinematicProgress = "0.0000";
+
+		if (
+			root.dataset.displayEnabled !== "true" ||
+			root.dataset.shutterEnabled !== "true"
+		) {
+			root.dataset.displayReady = "disabled";
+			resetLazyAssets(root);
+			return;
+		}
+
+		if (!matchesDesktop()) {
+			root.dataset.displayReady = "disabled";
+			resetLazyAssets(root);
+			return;
+		}
+
+		const viewport = root.querySelector<HTMLElement>("[data-display-viewport]");
+		const backdrop = root.querySelector<HTMLElement>("[data-display-backdrop]");
+		const rail = root.querySelector<HTMLElement>(".home-portfolio-shutter__rail");
+		const panels = Array.from(
+			root.querySelectorAll<HTMLElement>("[data-shutter-panel]"),
+		);
+		const panelCopies = Array.from(
+			root.querySelectorAll<HTMLElement>("[data-shutter-panel-copy]"),
+		);
+		const cinematicStory = root.querySelector<HTMLElement>(
+			"[data-scroll-cinematic]",
+		);
+		const cinematicFrames = Array.from(
+			root.querySelectorAll<HTMLElement>("[data-scroll-cinematic-frame]"),
+		);
+		const cinematicCaptions = Array.from(
+			root.querySelectorAll<HTMLElement>("[data-scroll-cinematic-caption]"),
+		);
+		const cinematicGrade = root.querySelector<HTMLElement>(
+			"[data-scroll-cinematic-grade]",
+		);
+		const cinematicTexture = root.querySelector<HTMLElement>(
+			"[data-scroll-cinematic-texture]",
+		);
+		const interlude = root.querySelector<HTMLElement>("[data-shutter-interlude]");
+		const interludeBg = root.querySelector<HTMLElement>("[data-shutter-interlude-bg]");
+		const interludeAura = root.querySelector<HTMLElement>("[data-shutter-interlude-aura]");
+		const interludeFg = root.querySelector<HTMLElement>("[data-shutter-interlude-fg]");
+		const copyLeft = root.querySelector<HTMLElement>(
+			".home-portfolio-shutter__interlude-copy-text--left",
+		);
+		const copyRight = root.querySelector<HTMLElement>(
+			".home-portfolio-shutter__interlude-copy-text--right",
+		);
+		const stripLeft = root.querySelector<HTMLElement>(
+			"[data-shutter-interlude-strip-left]",
+		);
+		const stripRight = root.querySelector<HTMLElement>(
+			"[data-shutter-interlude-strip-right]",
+		);
+		const mask = root.querySelector<HTMLElement>("[data-shutter-mask]");
+		const finalVideo = root.querySelector<HTMLVideoElement>(
+			"[data-shutter-final-video]",
+		);
+		const finalMidground = root.querySelector<HTMLElement>(
+			"[data-shutter-final-midground]",
+		);
+		const finalForeground = root.querySelector<HTMLElement>(
+			"[data-shutter-final-foreground]",
+		);
+		const finalCopy = root.querySelector<HTMLElement>("[data-shutter-final-copy]");
+
+		if (
+			!viewport ||
+			!backdrop ||
+			!rail ||
+			panels.length !== 5 ||
+			!cinematicStory ||
+			cinematicFrames.length < 2 ||
+			cinematicFrames.length !== Number(cinematicStory.dataset.frameCount) ||
+			cinematicCaptions.length !== cinematicFrames.length ||
+			!cinematicGrade ||
+			!cinematicTexture ||
+			!interlude ||
+			!interludeBg ||
+			!interludeAura ||
+			!interludeFg ||
+			!copyLeft ||
+			!copyRight ||
+			!stripLeft ||
+			!stripRight ||
+			!mask ||
+			!finalVideo ||
+			!finalMidground ||
+			!finalForeground ||
+			!finalCopy
+		) return;
+
+		gsap.set(backdrop, { autoAlpha: 1 });
+		gsap.set(rail, { autoAlpha: 1 });
+		gsap.set(panelCopies, { autoAlpha: 0, y: 48 });
+		panels.forEach((panel, index) => {
+			const startY = `${(index % 2 === 0 ? 1 : -1) * PANEL_START_OFFSET}%`;
+			gsap.set(panel, {
+				autoAlpha: 1,
+				"--shutter-panel-y": startY,
+				"--shutter-panel-progress": 0,
+			});
+		});
+		gsap.set(cinematicStory, { autoAlpha: 0 });
+		gsap.set(cinematicFrames, { autoAlpha: 0 });
+		gsap.set(cinematicCaptions, { autoAlpha: 0, y: 6 });
+		gsap.set(cinematicFrames[0], { autoAlpha: 1 });
+		gsap.set(cinematicCaptions[0], { autoAlpha: 1, y: 0 });
+		gsap.set(cinematicGrade, { autoAlpha: 0.3 });
+		gsap.set(cinematicTexture, { xPercent: -0.2, yPercent: -0.15 });
+
+		gsap.set(interlude, { autoAlpha: 1 });
+		gsap.set(interludeBg, { autoAlpha: 0 });
+		gsap.set(interludeAura, { autoAlpha: 0, xPercent: -50, scale: 0.9 });
+		gsap.set(interludeFg, {
+			autoAlpha: 0,
+			xPercent: -50,
+			yPercent: 8,
+			scale: 1.04,
+		});
+		gsap.set([copyLeft, copyRight], { autoAlpha: 0 });
+		gsap.set(stripLeft, { xPercent: -108 });
+		gsap.set(stripRight, { xPercent: 108 });
+		gsap.set(mask, { scaleY: 0, transformOrigin: "50% 100%" });
+		gsap.set(finalVideo, { autoAlpha: 0 });
+		gsap.set(finalMidground, { autoAlpha: 0, yPercent: -35, scale: 1.06 });
+		gsap.set(finalForeground, {
+			autoAlpha: 0,
+			xPercent: -50,
+			scale: 1.04,
+		});
+		gsap.set(finalCopy, { autoAlpha: 0, y: 80 });
+		finalVideo.pause();
+		finalVideo.dataset.cinematicVideoActive = "false";
+		root.dataset.cinematicStoryActive = "false";
+		root.dataset.cinematicStoryFrame = "0";
+
+		const syncFinalVideoPlayback = (timelineProgress: number) => {
+			const shouldPlay = timelineProgress >= FINAL_VIDEO_START / TIMELINE_END;
+			if (shouldPlay) {
+				if (finalVideo.paused) void finalVideo.play().catch(() => undefined);
+				finalVideo.dataset.cinematicVideoActive = "true";
+				return;
+			}
+
+			if (!finalVideo.paused) finalVideo.pause();
+			finalVideo.dataset.cinematicVideoActive = "false";
+		};
+
+		const timeline = gsap.timeline({ paused: true, defaults: { ease: "none" } });
+		timeline.to(
+			backdrop,
+			{ autoAlpha: 0, duration: 0.52, ease: "none" },
+			2.08,
+		);
+		panels.forEach((panel, index) => {
+			const at = index * PANEL_STEP;
+			const copy = panel.querySelector<HTMLElement>("[data-shutter-panel-copy]");
+			timeline.to(
+				panel,
+				{
+					"--shutter-panel-y": "0%",
+					"--shutter-panel-progress": 1,
+					duration: PANEL_DURATION,
+					ease: "none",
+				},
+				at,
+			);
+			if (copy) {
+				timeline.to(
+					copy,
+					{ autoAlpha: 1, y: 0, duration: 0.18, ease: "power2.out" },
+					at + 0.3,
+				);
+			}
+		});
+
+		timeline.to(
+			panelCopies,
+			{ autoAlpha: 0, y: -36, duration: 0.22, stagger: 0.015, ease: "power2.out" },
+			STORY_START,
+		);
+		timeline.to(
+			rail,
+			{ autoAlpha: 0, duration: 0.24, ease: "power2.inOut" },
+			STORY_START,
+		);
+		timeline.to(
+			cinematicStory,
+			{ autoAlpha: 1, duration: 0.24, ease: "power2.inOut" },
+			STORY_START,
+		);
+		timeline.to(
+			cinematicGrade,
+			{ autoAlpha: 0.2, duration: STORY_END - STORY_START, ease: "sine.inOut" },
+			STORY_START,
+		);
+		timeline.to(
+			cinematicTexture,
+			{
+				xPercent: 0.2,
+				yPercent: 0.15,
+				duration: STORY_END - STORY_START,
+				ease: "none",
+			},
+			STORY_START,
+		);
+
+		cinematicFrames.forEach((frame, index) => {
+			const transitionAt = STORY_FRAME_START + index * STORY_FRAME_STEP;
+			if (index === 0) return;
+			timeline.to(
+				cinematicFrames[index - 1],
+				{
+					autoAlpha: 0,
+					duration: STORY_CROSSFADE_DURATION,
+					ease: "sine.inOut",
+				},
+				transitionAt,
+			);
+			timeline.to(
+				frame,
+				{
+					autoAlpha: 1,
+					duration: STORY_CROSSFADE_DURATION,
+					ease: "sine.inOut",
+				},
+				transitionAt,
+			);
+			timeline.to(
+				cinematicCaptions[index - 1],
+				{
+					autoAlpha: 0,
+					y: -6,
+					duration: STORY_CAPTION_FADE_DURATION,
+					ease: "sine.inOut",
+				},
+				transitionAt,
+			);
+			timeline.to(
+				cinematicCaptions[index],
+				{
+					autoAlpha: 1,
+					y: 0,
+					duration: STORY_CAPTION_FADE_DURATION,
+					ease: "sine.inOut",
+				},
+				transitionAt + STORY_CAPTION_FADE_DURATION,
+			);
+		});
+
+		timeline.to(
+			cinematicStory,
+			{ autoAlpha: 0, duration: STORY_END - STORY_OUT_START, ease: "power2.inOut" },
+			STORY_OUT_START,
+		);
+		timeline.to(
+			interludeBg,
+			{ autoAlpha: 1, duration: 0.28, ease: "power2.inOut" },
+			INTERLUDE_BG_START,
+		);
+		timeline.to(
+			stripLeft,
+			{ xPercent: 0, duration: STRIPS_DURATION, ease: "none" },
+			STRIPS_START,
+		);
+		timeline.to(
+			stripRight,
+			{ xPercent: 0, duration: STRIPS_DURATION, ease: "none" },
+			STRIPS_START,
+		);
+		timeline.to(
+			interludeFg,
+			{ autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.82, ease: "power3.out" },
+			FOREGROUND_START,
+		);
+		timeline.to(
+			interludeAura,
+			{ autoAlpha: 1, scale: 1, duration: 0.82, ease: "power2.out" },
+			FOREGROUND_START,
+		);
+		timeline.to(
+			[copyLeft, copyRight],
+			{ autoAlpha: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" },
+			INTERLUDE_COPY_START,
+		);
+
+		timeline.to(
+			mask,
+			{ scaleY: 1, duration: 0.9, ease: "power3.inOut" },
+			MERGE_START,
+		);
+		timeline.to(
+			finalMidground,
+			{ autoAlpha: 1, yPercent: 0, scale: 1, duration: 1.4, ease: "power3.inOut" },
+			FINAL_MIDGROUND_START,
+		);
+		timeline.to(
+			finalVideo,
+			{ autoAlpha: 1, duration: 0.8, ease: "power2.out" },
+			FINAL_VIDEO_START,
+		);
+		timeline.to(
+			finalForeground,
+			{ autoAlpha: 1, scale: 1, duration: 1, ease: "power3.out" },
+			FINAL_FOREGROUND_START,
+		);
+		timeline.to(
+			finalCopy,
+			{ autoAlpha: 1, y: 0, duration: 0.46, ease: "power3.out" },
+			FINAL_COPY_START,
+		);
+		timeline.to(
+			{},
+			{ duration: TIMELINE_END - (FINAL_COPY_START + 0.46), ease: "none" },
+			FINAL_COPY_START + 0.46,
+		);
+
+		const getPinEnd = () => {
+			const distance = getShutterPinEndDistance(
+				root.dataset.shutterScrollDistance,
+				window.innerHeight,
+			);
+			root.dataset.cinematicScrollDistance = String(distance);
+			return `+=${distance}`;
+		};
+
+		getPinEnd();
+		root.dataset.displayReady = "ready";
+		const scrollTrigger = ScrollTrigger.create({
+			id: "home-display-layer-pin",
+			animation: timeline,
+			trigger: root,
+			start: "top top",
+			end: getPinEnd,
+			pin: root,
+			pinReparent: true,
+			pinSpacing: true,
+			scrub: true,
+			invalidateOnRefresh: true,
+			anticipatePin: 1,
+			onUpdate: (self) => {
+				root.dataset.cinematicProgress = self.progress.toFixed(4);
+				const timelineTime = self.progress * TIMELINE_END;
+				const storyActive =
+					timelineTime >= STORY_START && timelineTime < STORY_END;
+				const storyFrame = Math.max(
+					0,
+					Math.min(
+						cinematicFrames.length - 1,
+						Math.floor(
+							Math.max(0, timelineTime - STORY_FRAME_START) /
+								STORY_FRAME_STEP,
+						),
+					),
+				);
+				root.dataset.cinematicStoryActive = String(storyActive);
+				root.dataset.cinematicStoryFrame = String(storyFrame);
+				hydrateCinematicNeighborhood(
+					cinematicFrames as HTMLImageElement[],
+					storyFrame,
+				);
+				syncFinalVideoPlayback(self.progress);
+			},
+			onToggle: (self) => {
+				if (self.isActive) {
+					document.documentElement.dataset.homeCinematic = "true";
+				} else {
+					document.documentElement.removeAttribute("data-home-cinematic");
+				}
+			},
+		});
+
+		const cancelAssetHydration = hydrateLazyAssets(root);
+		hydrateCinematicNeighborhood(
+			cinematicFrames as HTMLImageElement[],
+			0,
+		);
+		ScrollTrigger.refresh();
+
+		activeCleanup = () => {
+			document.documentElement.removeAttribute("data-home-cinematic");
+			cancelAssetHydration();
+			finalVideo.pause();
+			delete finalVideo.dataset.cinematicVideoActive;
+			delete root.dataset.cinematicStoryActive;
+			delete root.dataset.cinematicStoryFrame;
+			scrollTrigger.kill();
+			timeline.kill();
+			gsap.set(
+				[
+					backdrop,
+					rail,
+					...panels,
+					...panelCopies,
+					cinematicStory,
+					...cinematicFrames,
+					...cinematicCaptions,
+					cinematicGrade,
+					cinematicTexture,
+					interlude,
+					interludeBg,
+					interludeAura,
+					interludeFg,
+					copyLeft,
+					copyRight,
+					stripLeft,
+					stripRight,
+					mask,
+					finalVideo,
+					finalMidground,
+					finalForeground,
+					finalCopy,
+				],
+				{ clearProps: "all" },
+			);
+		};
+	}
+
+	function setupMediaWatchers() {
+		if (mediaCleanup) return;
+		const desktopQuery = window.matchMedia(DESKTOP_MEDIA_QUERY);
+		const handleChange = () => void bootHomeDisplayLayer();
+		let resizeTimer: number | undefined;
+		const handleResize = () => {
+			window.clearTimeout(resizeTimer);
+			resizeTimer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+		};
+
+		desktopQuery.addEventListener("change", handleChange);
+		window.addEventListener("resize", handleResize);
+		mediaCleanup = () => {
+			desktopQuery.removeEventListener("change", handleChange);
+			window.removeEventListener("resize", handleResize);
+			window.clearTimeout(resizeTimer);
+		};
+	}
+
+	async function bootHomeDisplayLayer() {
+		const token = ++bootToken;
+		if (!isHomeRoute()) {
+			teardownDisplay();
+			return;
+		}
+		setupMediaWatchers();
+		await waitForPageLoaderHidden();
+		if (token !== bootToken || !isHomeRoute() || !getRoot()) return;
+		initHomeDisplayLayer();
+		requestAnimationFrame(() => ScrollTrigger.refresh());
+	}
+
+	function bindSwupCleanup() {
+		let bound = false;
+		const bind = () => {
+			if (bound || !window.swup?.hooks) return;
+			bound = true;
+			window.swup.hooks.on("visit:start", () => {
+				if (isHomeRoute()) teardownDisplay();
+			});
+		};
+
+		bind();
+		document.addEventListener("swup:enable", bind, { once: true });
+	}
+
+	bindSwupCleanup();
+	void bootHomeDisplayLayer();
+	document.addEventListener("astro:page-load", () => void bootHomeDisplayLayer());
+</script>

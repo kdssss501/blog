@@ -350,7 +350,7 @@ LLM 后端由 `aiSearchConfig` 决定：配置了 `apiUrl` + `modelName` + `AI_A
 
 ## 前端组件
 
-`src/components/controls/AISearch.svelte`，Svelte 5 + runes。
+`src/features/search/ui/AISearch.svelte`，Svelte 5 + runes。
 
 核心交互：
 
@@ -542,7 +542,7 @@ onMount(() => {
 | `scripts/build-vectorize-index.js` | 向量索引构建脚本 |
 | `src/worker.js` → `handleAIChat` | Worker 端 RAG 问答 API |
 | `src/config/aiSearchConfig.ts` | AI 搜索统一配置中心 |
-| `src/components/controls/AISearch.svelte` | 前端聊天 UI |
+| `src/features/search/ui/AISearch.svelte` | 前端聊天 UI |
 | `.env.example` | 环境变量模板（含获取说明） |
 | `wrangler.toml` | Vectorize + AI 绑定配置 |
 | `.vectorize-manifest.json` | 增量更新 manifest（gitignored） |

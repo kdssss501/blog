@@ -1,0 +1,237 @@
+---
+import Icon from "@components/common/Icon.astro";
+import {
+	DESKTOP_EXPANDED_COMMANDS,
+	DESKTOP_PINNED_COMMANDS,
+	type DockCommandId,
+	dockCommands,
+} from "@/app/shell/model/dock-command";
+import { announcementConfig, spineModelConfig } from "@/config";
+import { musicPlayerConfig } from "@/config/musicConfig";
+import { GuestbookBoard } from "@/features/guestbook";
+import { MusicPlayer } from "@/features/music";
+import { getTagList } from "@/features/posts/server";
+import { DisplaySettings } from "@/features/settings";
+import { getTagUrl } from "@/utils/url-utils";
+
+const tags = await getTagList();
+const isGuestbookPage = ["/guestbook/", "/life/guestbook/"].includes(
+	Astro.url.pathname,
+);
+const available = (id: DockCommandId) => {
+	if (id === "announcement") return announcementConfig.items.length > 0;
+	if (id === "music") return musicPlayerConfig.showInNavbar !== false;
+	if (id === "spine") return Boolean(spineModelConfig?.enable);
+	return true;
+};
+const expandedCommands = DESKTOP_EXPANDED_COMMANDS.filter(available).map(
+	(id) => dockCommands[id],
+);
+const pinnedCommands = DESKTOP_PINNED_COMMANDS.map((id) => dockCommands[id]);
+---
+
+<div class="floating-dock" id="floating-dock" aria-label="页面工具">
+	<div class="dock-stack" id="dock-stack" data-expanded="false">
+		<div class="dock-buttons">
+			{expandedCommands.map((command) => (
+				<button
+					class:list={[
+						"dock-btn",
+						`dock-btn-${command.id}`,
+						command.visibility !== "always" && "hide",
+					]}
+					type="button"
+					data-dock-command={command.id}
+					data-tooltip={command.label}
+					aria-label={command.label}
+				>
+					<span class="dock-btn-icon"><Icon name={command.icon} class="text-3xl" /></span>
+					<span class="dock-btn-label">{command.label}</span>
+				</button>
+			))}
+		</div>
+
+		<div class="dock-pinned">
+			{pinnedCommands.map((command) => (
+				<button
+					class:list={["dock-btn", `dock-btn-${command.id}`]}
+					type="button"
+					hidden={command.id === "guestbook" && isGuestbookPage}
+					disabled={command.id === "guestbook" && isGuestbookPage}
+					aria-disabled={command.id === "guestbook" ? isGuestbookPage : undefined}
+					data-dock-command={command.id}
+					data-tooltip={command.label}
+					aria-label={command.label}
+					aria-expanded={command.id === "toggle" ? "false" : undefined}
+				>
+					<span class="dock-btn-icon">
+						{command.id === "theme" ? (
+							<>
+								<Icon name="material-symbols:wb-sunny-outline-rounded" class="text-3xl" data-theme-icon="light" />
+								<Icon name="material-symbols:dark-mode-outline-rounded" class="text-3xl hidden" data-theme-icon="dark" />
+							</>
+						) : command.id === "toggle" ? (
+							<>
+								<Icon name="material-symbols:more-horiz" class="text-3xl" data-surface-icon="closed" />
+								<Icon name="material-symbols:close-rounded" class="text-3xl hidden" data-surface-icon="open" />
+							</>
+						) : (
+							<Icon name={command.icon} class="text-3xl" />
+						)}
+					</span>
+					<span class="dock-btn-label">{command.label}</span>
+				</button>
+			))}
+		</div>
+	</div>
+</div>
+
+{announcementConfig.items.length > 0 && (
+	<section
+		class="dock-drawer dock-drawer-closed"
+		data-dock-drawer="announcement"
+		aria-label="公告"
+		aria-hidden="true"
+		role="dialog"
+		tabindex="-1"
+		inert
+	>
+		<header class="dock-drawer-title">
+			<Icon name="material-symbols:notifications-outline-rounded" class="dock-drawer-title-icon" />
+			<span>{announcementConfig.title || "公告"}</span>
+			<button type="button" class="dock-drawer-close" data-dock-close aria-label="关闭公告">
+				<Icon name="material-symbols:close-rounded" />
+			</button>
+		</header>
+		<div class="dock-announcement-list">
+			{announcementConfig.items
+				.slice()
+				.sort((a, b) => b.sort - a.sort)
+				.map((item) => (
+					<article class="dock-announcement-card">
+						<div class="dock-announcement-card__header">
+							<span class="dock-announcement-card__tag">{item.tag}</span>
+							<strong class="dock-announcement-card__title">{item.title}</strong>
+						</div>
+						<time class="dock-announcement-card__time">{item.time}</time>
+						<p class="dock-announcement-card__content">{item.content}</p>
+						{item.link && (
+							<a href={item.link} class="dock-announcement-card__link btn-line text-sm">
+								查看详情
+								<Icon name="fa7-solid:arrow-right" class="ml-2 text-xs" />
+							</a>
+						)}
+					</article>
+				))}
+		</div>
+	</section>
+)}
+
+{musicPlayerConfig.showInNavbar !== false && (
+	<section
+		class="dock-drawer dock-drawer-closed"
+		data-dock-drawer="music"
+		aria-label="音乐"
+		aria-hidden="true"
+		role="dialog"
+		tabindex="-1"
+		inert
+	>
+		<header class="dock-drawer-title">
+			<Icon name="material-symbols:music-note-rounded" class="dock-drawer-title-icon" />
+			<span>音乐</span>
+			<button type="button" class="dock-drawer-close" data-dock-close aria-label="关闭音乐">
+				<Icon name="material-symbols:close-rounded" />
+			</button>
+		</header>
+		<MusicPlayer lazy />
+	</section>
+)}
+
+<section
+	class="dock-drawer dock-drawer-closed"
+	data-dock-drawer="settings"
+	aria-label="主题设置"
+	aria-hidden="true"
+	role="dialog"
+	tabindex="-1"
+	inert
+>
+	<header class="dock-drawer-title">
+		<Icon name="material-symbols:palette-outline" class="dock-drawer-title-icon" />
+		<span>主题设置</span>
+		<button type="button" class="dock-drawer-close" data-dock-close aria-label="关闭主题设置">
+			<Icon name="material-symbols:close-rounded" />
+		</button>
+	</header>
+	<DisplaySettings client:idle />
+</section>
+
+	<section
+		class="dock-drawer dock-drawer--guestbook dock-drawer-closed"
+		data-dock-drawer="guestbook"
+		aria-label="留言板"
+		aria-hidden="true"
+		role="dialog"
+		tabindex="-1"
+		inert
+	>
+		<header class="dock-drawer-title" data-dock-drag-handle>
+			<Icon name="material-symbols:edit-note-rounded" class="dock-drawer-title-icon" />
+			<div class="dock-drawer-title__copy"><span>留言板</span><small>有什么想说的，留个言吧</small></div>
+			<a class="dock-drawer-popout" href="/guestbook/" aria-label="在完整页面打开留言板">
+				<Icon name="material-symbols:open-in-new-rounded" />
+			</a>
+			<button type="button" class="dock-drawer-close" data-dock-close aria-label="关闭留言板">
+				<Icon name="material-symbols:close-rounded" />
+			</button>
+		</header>
+		<div class="dock-guestbook-content">
+			<GuestbookBoard mode="dialog" client:idle />
+		</div>
+	</section>
+
+<section
+	class="dock-drawer dock-drawer-closed"
+	data-dock-drawer="tags"
+	aria-label="标签"
+	aria-hidden="true"
+	role="dialog"
+	tabindex="-1"
+	inert
+>
+	<header class="dock-drawer-title">
+		<Icon name="material-symbols:label-outline-rounded" class="dock-drawer-title-icon" />
+		<span>标签</span>
+		<button type="button" class="dock-drawer-close" data-dock-close aria-label="关闭标签">
+			<Icon name="material-symbols:close-rounded" />
+		</button>
+	</header>
+	<div class="dock-tags-list">
+		{tags.map((tag) => (
+			<a href={getTagUrl(tag.name)} class="dock-tag-item">
+				<span class="dock-tag-name"># {tag.name.trim()}</span>
+				<span class="dock-tag-count">{tag.count}</span>
+			</a>
+		))}
+	</div>
+</section>
+
+<section
+	class="dock-drawer dock-drawer-closed"
+	data-dock-drawer="toc"
+	aria-label="文章目录"
+	aria-hidden="true"
+	role="dialog"
+	tabindex="-1"
+	inert
+>
+	<header class="dock-drawer-title">
+		<Icon name="material-symbols:format-list-bulleted-rounded" class="dock-drawer-title-icon" />
+		<span>文章目录</span>
+		<button type="button" class="dock-drawer-close" data-dock-close aria-label="关闭文章目录">
+			<Icon name="material-symbols:close-rounded" />
+		</button>
+	</header>
+	<div id="dock-toc-content" class="text-sm leading-relaxed"></div>
+</section>

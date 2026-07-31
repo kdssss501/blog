@@ -1,0 +1,62 @@
+---
+import Icon from "@components/common/Icon.astro";
+import type { RoutineEntry } from "../model/types";
+
+interface Props {
+	entries: RoutineEntry[];
+}
+const { entries } = Astro.props;
+---
+
+<div class="routine-directory" data-pagefind-body>
+	<header class="routine-directory__header">
+		<p>DAILY ROUTINES</p>
+		<h1 data-pagefind-meta="title">规划</h1>
+		<span>把长期目标拆成可以持续执行的日常节奏。</span>
+	</header>
+	{entries.length > 0 ? (
+		<div class="routine-directory__list">
+			{entries.map((entry) => (
+				<article class="routine-entry" style={entry.color ? `--routine-accent:${entry.color}` : undefined}>
+					<div class="routine-entry__icon" aria-hidden="true">
+						{entry.icon.includes(":") ? <Icon name={entry.icon} /> : <span>{entry.icon}</span>}
+					</div>
+					<div class="routine-entry__content">
+						<div class="routine-entry__title"><h2>{entry.name}</h2>{entry.time && <time>{entry.time}</time>}</div>
+						{entry.description && <p>{entry.description}</p>}
+						{entry.updatedAt && <small>更新于 {entry.updatedAt.slice(0, 10)}</small>}
+					</div>
+				</article>
+			))}
+		</div>
+	) : (
+		<div class="record-empty">
+			<Icon name="material-symbols:event-note-outline-rounded" class="record-empty__icon" />
+			<strong>暂无规划</strong>
+			<span>在 `src/content/life/routines/` 添加 Markdown 后会显示在这里。</span>
+		</div>
+	)}
+</div>
+
+<style>
+	.routine-directory { display: grid; gap: 1.5rem; max-width: 52rem; margin: 0 auto; }
+	.routine-directory__header { display: grid; gap: 0.35rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line-divider); }
+	.routine-directory__header p { margin: 0; color: var(--content-meta); font: 700 0.6875rem/1.2 ui-monospace, monospace; }
+	.routine-directory__header h1 { margin: 0; color: var(--deep-text); font-size: 2rem; }
+	.routine-directory__header span { color: var(--content-meta); }
+	.routine-directory__list { display: grid; gap: 0.75rem; }
+	.routine-entry { --routine-accent: var(--primary); display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: 0.875rem; padding: 1rem; border: 1px solid var(--line-divider); border-left: 3px solid var(--routine-accent); border-radius: 0.5rem; }
+	.routine-entry__icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 0.375rem; background: color-mix(in oklch, var(--routine-accent) 10%, transparent); color: var(--routine-accent); font-size: 1.5rem; }
+	.routine-entry__content { min-width: 0; }
+	.routine-entry__title { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+	.routine-entry h2, .routine-entry p { margin: 0; }
+	.routine-entry h2 { color: var(--deep-text); font-size: 1rem; }
+	.routine-entry time, .routine-entry small, .routine-entry p { color: var(--content-meta); }
+	.routine-entry time { flex: 0 0 auto; font: 700 0.75rem/1 ui-monospace, monospace; }
+	.routine-entry p { margin-top: 0.35rem; line-height: 1.55; }
+	.routine-entry small { display: block; margin-top: 0.5rem; }
+	.record-empty { display: grid; place-items: center; gap: 0.5rem; min-height: 17rem; border: 1px dashed var(--line-divider); border-radius: 0.5rem; color: var(--content-meta); text-align: center; }
+	.record-empty__icon { width: 3rem; height: 3rem; }
+	.record-empty strong { color: var(--deep-text); }
+	@media (max-width: 640px) { .routine-directory__header h1 { font-size: 1.6rem; } }
+</style>

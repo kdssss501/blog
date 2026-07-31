@@ -1,0 +1,180 @@
+---
+import type { ContentKind } from "../model/content-document";
+
+interface Props {
+	kind: ContentKind;
+	limit?: number;
+}
+
+const { kind, limit = 6 } = Astro.props;
+---
+
+<runtime-content-shelf data-kind={kind} data-limit={limit} hidden>
+	<section class="runtime-shelf" aria-labelledby={`runtime-${kind}-title`}>
+		<header class="runtime-shelf__header">
+			<div>
+				<span>LIVE</span>
+				<h2 id={`runtime-${kind}-title`}>刚刚发布</h2>
+			</div>
+			<p data-runtime-total></p>
+		</header>
+		<div class="runtime-shelf__list" data-runtime-list></div>
+	</section>
+</runtime-content-shelf>
+
+<script>
+	type RuntimeItem = {
+		kind: "post" | "moment" | "notebook";
+		title: string;
+		slug: string;
+		description: string;
+		tags: string[];
+		published: string;
+		url: string;
+	};
+
+	const allowedKinds = new Set(["post", "moment", "notebook"]);
+
+	function isRuntimeItem(value: unknown): value is RuntimeItem {
+		if (!value || typeof value !== "object") return false;
+		const item = value as Partial<RuntimeItem>;
+		return (
+			typeof item.kind === "string" &&
+			allowedKinds.has(item.kind) &&
+			typeof item.title === "string" &&
+			typeof item.slug === "string" &&
+			typeof item.description === "string" &&
+			Array.isArray(item.tags) &&
+			typeof item.published === "string" &&
+			typeof item.url === "string"
+		);
+	}
+
+	function textElement<K extends keyof HTMLElementTagNameMap>(
+		tag: K,
+		className: string,
+		text: string,
+	) {
+		const element = document.createElement(tag);
+		element.className = className;
+		element.textContent = text;
+		return element;
+	}
+
+	class RuntimeContentShelfElement extends HTMLElement {
+		private controller?: AbortController;
+
+		connectedCallback() {
+			void this.load();
+		}
+
+		disconnectedCallback() {
+			this.controller?.abort();
+		}
+
+		private async load() {
+			const kind = this.dataset.kind || "";
+			if (!allowedKinds.has(kind)) return;
+			const limit = Math.max(1, Math.min(12, Number(this.dataset.limit) || 6));
+			this.controller?.abort();
+			this.controller = new AbortController();
+			try {
+				const query = new URLSearchParams({ kind, limit: String(limit) });
+				const response = await fetch(`/api/content/published/?${query}`, {
+					signal: this.controller.signal,
+					headers: { Accept: "application/json" },
+				});
+				if (!response.ok) return;
+				const payload = (await response.json()) as {
+					items?: unknown[];
+					total?: number;
+				};
+				const items = Array.isArray(payload.items)
+					? payload.items.filter(isRuntimeItem).filter((item) => item.kind === kind)
+					: [];
+				if (!items.length) return;
+				this.render(items, payload.total ?? items.length);
+				this.hidden = false;
+			} catch (error) {
+				if (!this.controller.signal.aborted) {
+					console.warn("[runtime-content] Published list unavailable", error);
+				}
+			}
+		}
+
+		private render(items: RuntimeItem[], total: number) {
+			const list = this.querySelector<HTMLElement>("[data-runtime-list]");
+			const totalElement = this.querySelector<HTMLElement>("[data-runtime-total]");
+			if (!list) return;
+			if (totalElement) totalElement.textContent = `${total} 条`;
+			list.replaceChildren(
+				...items.map((item) => {
+					const link = document.createElement("a");
+					const fallbackQuery = new URLSearchParams({
+						kind: item.kind,
+						slug: item.slug,
+					});
+					link.href = item.url.startsWith("/content/view/?")
+						? item.url
+						: `/content/view/?${fallbackQuery}`;
+					link.className = "runtime-shelf__item";
+
+					const copy = document.createElement("div");
+					copy.append(
+						textElement("time", "runtime-shelf__date", item.published),
+						textElement("h3", "runtime-shelf__title", item.title),
+					);
+					if (item.description) {
+						copy.append(
+							textElement("p", "runtime-shelf__description", item.description),
+						);
+					}
+					const tags = document.createElement("div");
+					tags.className = "runtime-shelf__tags";
+					tags.replaceChildren(
+						...item.tags.slice(0, 3).map((tag) => textElement("span", "", `#${tag}`)),
+					);
+					copy.append(tags);
+
+					const arrow = document.createElement("span");
+					arrow.className = "runtime-shelf__arrow";
+					arrow.setAttribute("aria-hidden", "true");
+					arrow.textContent = "→";
+					link.append(copy, arrow);
+					return link;
+				}),
+			);
+		}
+	}
+
+	if (!customElements.get("runtime-content-shelf")) {
+		customElements.define("runtime-content-shelf", RuntimeContentShelfElement);
+	}
+</script>
+
+<style is:global>
+	runtime-content-shelf { display:block; margin-top:2.5rem; }
+	runtime-content-shelf[hidden] { display:none; }
+	.runtime-shelf { padding-top:1.25rem; border-top:1px solid var(--line-divider); }
+	.runtime-shelf__header { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin-bottom:.85rem; }
+	.runtime-shelf__header div { display:flex; align-items:baseline; gap:.6rem; }
+	.runtime-shelf__header span { color:var(--primary); font:800 .62rem/1 ui-monospace,monospace; }
+	.runtime-shelf__header h2 { margin:0; color:var(--deep-text); font-size:1rem; }
+	.runtime-shelf__header p { margin:0; color:var(--content-meta); font-size:.7rem; }
+	.runtime-shelf__list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border-top:1px solid var(--line-divider); }
+	.runtime-shelf__item { display:flex; min-width:0; align-items:center; justify-content:space-between; gap:.8rem; padding:1rem .15rem; border-bottom:1px solid var(--line-divider); color:var(--deep-text); text-decoration:none; }
+	.runtime-shelf__item:nth-child(odd) { padding-right:1rem; border-right:1px solid var(--line-divider); }
+	.runtime-shelf__item:nth-child(even) { padding-left:1rem; }
+	.runtime-shelf__item > div { min-width:0; }
+	.runtime-shelf__date { display:block; color:var(--content-meta); font:700 .65rem/1.2 ui-monospace,monospace; }
+	.runtime-shelf__title { margin:.35rem 0 0; overflow:hidden; font-size:.9rem; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+	.runtime-shelf__description { display:-webkit-box; margin:.35rem 0 0; overflow:hidden; color:var(--content-meta); font-size:.72rem; line-height:1.5; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; }
+	.runtime-shelf__tags { display:flex; gap:.45rem; margin-top:.45rem; overflow:hidden; color:var(--content-meta); font-size:.64rem; white-space:nowrap; }
+	.runtime-shelf__arrow { flex:0 0 auto; color:var(--primary); font-size:1.1rem; transition:transform 160ms ease; }
+	.runtime-shelf__item:hover .runtime-shelf__arrow, .runtime-shelf__item:focus-visible .runtime-shelf__arrow { transform:translateX(.2rem); }
+	@media (max-width:700px) {
+		.runtime-shelf__list { grid-template-columns:1fr; }
+		.runtime-shelf__item:nth-child(n) { padding:.9rem 0; border-right:0; }
+	}
+	@media (prefers-reduced-motion:reduce) { .runtime-shelf__arrow { transition:none; } }
+</style>

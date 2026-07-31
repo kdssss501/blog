@@ -1,0 +1,88 @@
+---
+import Icon from "@components/common/Icon.astro";
+import {
+	type CollectionDirectoryGroup,
+	getBeijingClockSnapshot,
+	normalizeCollectionGroups,
+} from "../model/directory";
+
+interface Props {
+	groups: CollectionDirectoryGroup[];
+	emptyLabel: string;
+}
+
+const { groups: inputGroups, emptyLabel } = Astro.props;
+const groups = normalizeCollectionGroups(inputGroups);
+const total = groups.reduce((sum, group) => sum + group.items.length, 0);
+const clock = getBeijingClockSnapshot();
+const hostname = (value: string) => {
+	try {
+		return new URL(value).hostname;
+	} catch {
+		return value;
+	}
+};
+---
+
+<collection-directory>
+	<div class="tools-directory-meta" aria-label="工具目录状态">
+		<span class="tools-directory-meta__label">工具目录</span>
+		<time data-tools-clock datetime={clock.iso}>{clock.dateLabel} {clock.timeLabel}</time>
+	</div>
+	{total > 0 && groups.length > 1 && (
+		<nav class="tools-tab-wrapper" aria-label="工具分类">
+			<div class="tools-tab-pill" data-tools-tab-nav role="tablist">
+				<div class="tools-tab-indicator" data-tools-tab-indicator aria-hidden="true"></div>
+				<button type="button" role="tab" id="tools-tab-all" data-tools-tab="all" aria-controls="tools-group-all" tabindex="0" class="tools-tab-btn tools-tab-btn-active" aria-selected="true">
+					全部 <span class="tools-tab-badge">{total}</span>
+				</button>
+				{groups.map((group, index) => (
+					<button type="button" role="tab" id={`tools-tab-${index}`} data-tools-tab={group.category} aria-controls={`tools-group-${index}`} tabindex="-1" class="tools-tab-btn tools-tab-btn-inactive" aria-selected="false">
+						{group.category} <span class="tools-tab-badge">{group.items.length}</span>
+					</button>
+				))}
+			</div>
+		</nav>
+	)}
+
+	{total > 0 ? (
+		<div id="tools-group-all" data-tools-section="all" role="tabpanel" aria-labelledby="tools-tab-all">
+			{groups.map((group, index) => (
+				<section id={`tools-group-${index}`} class="tools-category-group" data-tools-category-group={group.category} aria-labelledby={`tools-tab-${index}`}>
+					<header class="tools-category-heading">
+						<div class="tools-category-heading__label">
+							<Icon name="material-symbols:label-outline-rounded" />
+							<strong>{group.category}</strong>
+							<span>{group.items.length}</span>
+						</div>
+						<div class="tools-category-heading__rule" aria-hidden="true"></div>
+					</header>
+					<div class="tools-card-grid">
+						{group.items.map((api, index) => (
+							<a href={api.url} target="_blank" rel="noopener noreferrer" class="tools-card" style={`animation-delay: ${index * 60}ms`}>
+								<span class="tools-card-jump-icon" aria-hidden="true"><Icon name="material-symbols:arrow-outward-rounded" /></span>
+								<div class="tools-card__title-row">
+									{api.icon?.startsWith("http") ? (
+										<img src={api.icon} alt="" loading="lazy" decoding="async" class="tools-card__icon" />
+									) : <Icon name={api.icon || "material-symbols:api-rounded"} class="tools-card__icon" />}
+									<h3>{api.name}</h3>
+								</div>
+								<p class="tools-card-desc">{api.description}</p>
+								<footer class="tools-card-footer">{hostname(api.url)}</footer>
+							</a>
+						))}
+					</div>
+				</section>
+			))}
+		</div>
+	) : (
+		<div class="tools-empty">
+			<Icon name="material-symbols:bookmark-outline-rounded" class="text-5xl" />
+			<p>{emptyLabel}</p>
+		</div>
+	)}
+</collection-directory>
+
+<script>
+	import "../client/collections-directory";
+</script>

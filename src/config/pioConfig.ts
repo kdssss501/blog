@@ -54,7 +54,7 @@ export const spineModelConfig: SpineModelConfig = {
 			"今天也要加油哦！✨",
 			"想要一起去看星空吗？🌟",
 			"记得要好好休息呢~",
-			"站长爸爸不再哦，有什么想对我说的吗？💫",
+			"站长暂时不在哦，有什么想对我说的吗？💫",
 			"让我们一起探索未知的世界吧！🚀",
 			"每一颗星星都有自己的故事~⭐",
 			"希望能带给你温暖和快乐！💖",
@@ -85,6 +85,7 @@ export const spineModelConfig: SpineModelConfig = {
 // Live2D 看板娘配置
 export const live2dModelConfig: Live2DModelConfig = {
 	// Live2D 看板娘开关
+	// 模型仍在历史资源审计范围内，完成许可登记前不进入公开运行时。
 	enable: true,
 	// 首次访问默认不加载模型，点击入口后再加载
 	defaultVisible: true,
@@ -114,7 +115,7 @@ export const live2dModelConfig: Live2DModelConfig = {
 
 	// 渲染分辨率倍率，默认自动使用 window.devicePixelRatio（上限2）
 	// 在高DPI屏幕上设为2可显著提升清晰度，值越大越耗性能
-	resolution: 3,
+	resolution: 1.5,
 
 	// 交互配置
 	interactive: {
@@ -133,7 +134,7 @@ export const live2dModelConfig: Live2DModelConfig = {
 			"爱弥斯今天也很乖哦，有没有奖励？",
 			"雪绒豹豹说它也想跟你打招呼~喵！",
 			"看我雷霆大雪绒，嘻嘻，吓到你了吧",
-			"雪绒豹豹今天又在打瞌睡了，跟爸爸一样~",
+			"雪绒豹豹今天又在打瞌睡了，也太会享受啦~",
 			"爱弥斯和雪绒豹豹要去冒险啦！要不要一起？",
 		],
 		// 随机显示的文字消息显示时间（毫秒）

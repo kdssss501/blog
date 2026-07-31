@@ -1,0 +1,29 @@
+---
+import type { ImageMetadata } from "astro";
+import { siteConfig } from "@/config";
+import { ArticleDirectory, PostPagination } from "@/features/posts";
+import { getArticleListPosts } from "@/features/posts/server";
+import { RuntimeContentShelf } from "@/features/writing";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "文章列表";
+const description = "按整页滚动浏览所有文章。";
+const articleImageFiles = import.meta.glob<ImageMetadata>(
+	"../../**/*.{png,jpg,jpeg,webp,avif}",
+	{ import: "default" },
+);
+const posts = await getArticleListPosts(articleImageFiles);
+const pageSize = siteConfig.pagination.postsPerPage;
+const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+const pagePosts = posts.slice(0, pageSize);
+---
+
+<MainGridLayout {title} {description} showSidebar={true} sidebarVariant="posts">
+	<ArticleDirectory
+		{title}
+		posts={pagePosts}
+		postsPerPage={pageSize}
+	/>
+	<PostPagination page={1} {totalPages} />
+	<RuntimeContentShelf kind="post" />
+</MainGridLayout>

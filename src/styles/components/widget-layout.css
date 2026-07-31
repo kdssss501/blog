@@ -1,56 +1,71 @@
-/* ============================================
-   侧边栏组件容器 — 来自 WidgetLayout.astro
-   卡片边框交互效果
-   ============================================ */
-
-.collapsed {
-	height: var(--collapsedHeight, 0);
-}
-
-widget-layout[data-is-collapsed="true"][data-expanded="true"][data-use-expanded-button-spacing="true"] .expand-btn {
-	padding-top: 0.5rem;
-}
-
-/* 卡片边框：黑白实线，无背景 */
 widget-layout {
-	position: relative;
-	border-top: 2px solid oklch(0.15 0 0);
-	border-right: 2px solid oklch(0.15 0 0);
-	border-bottom: 2px solid oklch(0.15 0 0);
-	border-left: 2px solid oklch(0.15 0 0);
+	display: block;
+	overflow: hidden;
+	border: 1px solid var(--line-divider);
+	border-radius: 8px;
+	background: var(--card-bg);
+	box-shadow: 0 5px 18px rgb(0 0 0 / 6%);
+}
+
+.widget-card__header {
+	display: flex;
+	min-height: 3.1rem;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.8rem 1rem 0.45rem;
+}
+
+.widget-card__header h2 {
+	display: flex;
+	align-items: center;
+	gap: 0.55rem;
+	margin: 0;
+	color: var(--deep-text);
+	font-size: 1.02rem;
+	font-weight: 900;
+	line-height: 1.25;
+}
+
+.widget-card__header h2::before {
+	width: 3px;
+	height: 1.05em;
+	background: currentColor;
+	content: "";
+}
+
+.widget-card__content {
+	padding: 0.55rem 1rem 1rem;
+}
+
+.widget-card__content.collapsed {
+	max-height: var(--collapsed-height, 0);
+	overflow: hidden;
+}
+
+.widget-card__expand {
+	padding: 0 1rem 0.85rem;
+}
+
+.widget-card__expand button {
+	display: flex;
+	width: 100%;
+	height: 2rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.3rem;
+	border: 1px solid var(--line-divider);
+	border-radius: 5px;
 	background: transparent;
-	transition:
-		border-top-style 0.15s ease,
-		border-right-style 0.15s ease,
-		border-bottom-style 0.15s ease,
-		border-left-style 0.15s ease;
+	color: var(--content-meta);
+	font: inherit;
+	font-size: 0.7rem;
+	font-weight: 750;
+	cursor: pointer;
 }
 
-:root.dark widget-layout {
-	border-top-color: oklch(0.85 0 0);
-	border-right-color: oklch(0.85 0 0);
-	border-bottom-color: oklch(0.85 0 0);
-	border-left-color: oklch(0.85 0 0);
-}
-
-/* hover 时四条边全部变虚线 */
-widget-layout:hover {
-	border-top-style: dashed;
-	border-right-style: dashed;
-	border-bottom-style: dashed;
-	border-left-style: dashed;
-}
-
-/* 鼠标靠近哪条边，那条边恢复实线 */
-widget-layout[data-hover-edge="top"]:hover {
-	border-top-style: solid;
-}
-widget-layout[data-hover-edge="right"]:hover {
-	border-right-style: solid;
-}
-widget-layout[data-hover-edge="bottom"]:hover {
-	border-bottom-style: solid;
-}
-widget-layout[data-hover-edge="left"]:hover {
-	border-left-style: solid;
+.widget-card__expand button:hover,
+.widget-card__expand button:focus-visible {
+	border-color: var(--deep-text);
+	color: var(--deep-text);
 }

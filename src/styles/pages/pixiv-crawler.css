@@ -1,0 +1,213 @@
+.pixiv-studio {
+	display: grid;
+	gap: 1.6rem;
+	color: var(--deep-text);
+}
+
+.pixiv-studio__back {
+	display: inline-flex;
+	width: fit-content;
+	align-items: center;
+	gap: 0.35rem;
+	color: var(--content-meta);
+	font-size: 0.78rem;
+	text-decoration: none;
+}
+
+.pixiv-studio__back:hover { color: var(--primary); }
+
+.pixiv-studio__header {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 1.5rem;
+	padding-bottom: 1.25rem;
+	border-bottom: 2px solid var(--deep-text);
+}
+
+.pixiv-studio__header p {
+	margin: 0 0 0.4rem;
+	color: var(--primary);
+	font: 800 0.67rem/1 "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+.pixiv-studio__header h1 {
+	margin: 0;
+	font-size: clamp(2rem, 4vw, 3.5rem);
+	line-height: 1;
+}
+
+.pixiv-studio__header > div > span {
+	display: block;
+	margin-top: 0.65rem;
+	color: var(--content-meta);
+	font-size: 0.8rem;
+}
+
+.pixiv-studio__status {
+	display: grid;
+	min-width: 8.5rem;
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	gap: 0.1rem 0.5rem;
+	padding: 0.7rem 0.85rem;
+	border: 1px solid var(--line-divider);
+	border-radius: 6px;
+	background: var(--card-bg);
+}
+
+.pixiv-studio__status i {
+	grid-row: 1 / 3;
+	width: 0.55rem;
+	height: 0.55rem;
+	border-radius: 50%;
+	background: #a1a1aa;
+}
+
+.pixiv-studio__status.status-online i { background: #22c55e; box-shadow: 0 0 0 4px rgb(34 197 94 / 12%); }
+.pixiv-studio__status.is-running i { background: #f59e0b; animation: pixiv-status-pulse 1.2s ease infinite; }
+.pixiv-studio__status.is-failed i { background: #ef4444; }
+.pixiv-studio__status strong { font-size: 0.75rem; }
+.pixiv-studio__status small { color: var(--content-meta); font: 0.58rem/1 "JetBrains Mono Variable", monospace; }
+
+.pixiv-studio__workspace {
+	display: grid;
+	grid-template-columns: minmax(0, 1.08fr) minmax(18rem, 0.92fr);
+	border: 2px solid var(--deep-text);
+	border-radius: 6px;
+	background: var(--card-bg);
+	box-shadow: 7px 7px 0 color-mix(in oklch, var(--primary) 30%, var(--line-divider));
+}
+
+.pixiv-studio__form,
+.pixiv-studio__monitor { min-width: 0; padding: clamp(1.15rem, 2.5vw, 2rem); }
+.pixiv-studio__monitor { border-left: 1px solid var(--line-divider); background: color-mix(in oklch, var(--card-bg) 93%, var(--primary)); }
+
+.pixiv-studio__section-heading { display: flex; align-items: center; gap: 0.75rem; }
+.pixiv-studio__section-heading > span { color: var(--primary); font: 900 0.7rem/1 "JetBrains Mono Variable", monospace; }
+.pixiv-studio__section-heading > div { display: grid; gap: 0.15rem; }
+.pixiv-studio__section-heading strong { font-size: 0.92rem; }
+.pixiv-studio__section-heading small { color: var(--content-meta); font-size: 0.68rem; }
+
+.pixiv-studio__modes {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	margin-top: 1.35rem;
+	border: 1px solid var(--deep-text);
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.pixiv-studio__modes button {
+	display: inline-flex;
+	min-height: 3.25rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	border: 0;
+	border-right: 1px solid var(--deep-text);
+	background: transparent;
+	color: var(--deep-text);
+	font: inherit;
+	font-size: 0.76rem;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.pixiv-studio__modes button:last-child { border-right: 0; }
+.pixiv-studio__modes button:hover { background: var(--btn-plain-bg-hover); }
+.pixiv-studio__modes button.is-active { background: var(--deep-text); color: var(--page-bg); }
+
+.pixiv-studio__fields { display: grid; grid-template-columns: minmax(0, 1fr) 8rem; gap: 0.8rem; margin-top: 1rem; }
+.pixiv-studio__fields label { display: grid; gap: 0.35rem; color: var(--content-meta); font-size: 0.67rem; font-weight: 700; }
+.pixiv-studio__fields input {
+	width: 100%;
+	height: 2.75rem;
+	padding: 0 0.75rem;
+	border: 1px solid var(--line-divider);
+	border-radius: 5px;
+	background: var(--page-bg);
+	color: var(--deep-text);
+	font: inherit;
+	font-size: 0.78rem;
+	outline: 0;
+}
+.pixiv-studio__fields input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 18%, transparent); }
+
+.pixiv-studio__command {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 2.5rem;
+	align-items: stretch;
+	margin-top: 1rem;
+	border: 1px dashed var(--line-divider);
+	border-radius: 5px;
+	background: var(--page-bg);
+}
+.pixiv-studio__command > div { display: grid; min-width: 0; gap: 0.3rem; padding: 0.65rem 0.75rem; }
+.pixiv-studio__command span { color: var(--content-meta); font-size: 0.6rem; }
+.pixiv-studio__command code { overflow: hidden; font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
+.pixiv-studio__command button { border: 0; border-left: 1px solid var(--line-divider); background: transparent; color: var(--content-meta); cursor: pointer; }
+.pixiv-studio__command button:hover { color: var(--primary); }
+
+.pixiv-studio__error,
+.pixiv-studio__notice { display: flex; align-items: center; gap: 0.4rem; margin: 0.85rem 0 0; font-size: 0.7rem; }
+.pixiv-studio__error { color: #dc2626; }
+.pixiv-studio__notice { color: var(--content-meta); }
+
+.pixiv-studio__actions { display: flex; gap: 0.55rem; margin-top: 1.2rem; }
+.pixiv-studio__actions button {
+	display: inline-flex;
+	min-height: 2.6rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	padding: 0 1rem;
+	border: 1px solid var(--deep-text);
+	border-radius: 5px;
+	background: var(--deep-text);
+	color: var(--page-bg);
+	font: inherit;
+	font-size: 0.75rem;
+	font-weight: 900;
+	cursor: pointer;
+}
+.pixiv-studio__actions button.is-secondary { background: transparent; color: var(--deep-text); }
+.pixiv-studio__actions button:disabled { cursor: not-allowed; opacity: 0.4; }
+
+.pixiv-studio__monitor dl { display: grid; gap: 0; margin: 1.35rem 0 0; border-top: 1px solid var(--line-divider); }
+.pixiv-studio__monitor dl > div { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: 0.8rem; padding: 0.65rem 0; border-bottom: 1px solid var(--line-divider); }
+.pixiv-studio__monitor dt { color: var(--content-meta); font-size: 0.65rem; }
+.pixiv-studio__monitor dd { min-width: 0; margin: 0; overflow-wrap: anywhere; font: 700 0.66rem/1.5 "JetBrains Mono Variable", monospace; }
+.pixiv-studio__monitor pre { min-height: 8.5rem; max-height: 13rem; margin: 1rem 0 0; padding: 0.75rem; overflow: auto; border: 1px solid var(--line-divider); border-radius: 5px; background: var(--deep-text); color: var(--page-bg); font: 0.64rem/1.65 "JetBrains Mono Variable", monospace; white-space: pre-wrap; }
+.pixiv-studio__monitor footer { display: flex; gap: 0.6rem; margin-top: 1rem; color: var(--content-meta); }
+.pixiv-studio__monitor footer > svg { flex: 0 0 auto; color: var(--primary); }
+.pixiv-studio__monitor footer p { display: grid; gap: 0.15rem; margin: 0; font-size: 0.66rem; line-height: 1.55; }
+.pixiv-studio__monitor footer strong { color: var(--deep-text); }
+
+.pixiv-studio__workflow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; border-top: 1px solid var(--line-divider); border-bottom: 1px solid var(--line-divider); list-style: none; }
+.pixiv-studio__workflow li { display: flex; align-items: center; gap: 0.65rem; padding: 0.9rem; border-right: 1px solid var(--line-divider); }
+.pixiv-studio__workflow li:last-child { border-right: 0; }
+.pixiv-studio__workflow li > span { display: grid; width: 1.6rem; height: 1.6rem; place-items: center; border: 1px solid var(--deep-text); border-radius: 50%; font: 800 0.62rem/1 monospace; }
+.pixiv-studio__workflow div { display: grid; gap: 0.12rem; }
+.pixiv-studio__workflow strong { font-size: 0.72rem; }
+.pixiv-studio__workflow small { color: var(--content-meta); font-size: 0.62rem; }
+
+@keyframes pixiv-status-pulse { 50% { opacity: 0.35; transform: scale(0.78); } }
+
+@media (max-width: 760px) {
+	.pixiv-studio__header { align-items: start; flex-direction: column; }
+	.pixiv-studio__workspace { grid-template-columns: minmax(0, 1fr); box-shadow: 4px 4px 0 color-mix(in oklch, var(--primary) 30%, var(--line-divider)); }
+	.pixiv-studio__monitor { border-top: 1px solid var(--line-divider); border-left: 0; }
+	.pixiv-studio__workflow { grid-template-columns: 1fr; }
+	.pixiv-studio__workflow li { border-right: 0; border-bottom: 1px solid var(--line-divider); }
+	.pixiv-studio__workflow li:last-child { border-bottom: 0; }
+}
+
+@media (max-width: 430px) {
+	.pixiv-studio__modes button { min-height: 3rem; flex-direction: column; gap: 0.15rem; }
+	.pixiv-studio__fields { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixiv-studio__status.is-running i { animation: none; }
+}

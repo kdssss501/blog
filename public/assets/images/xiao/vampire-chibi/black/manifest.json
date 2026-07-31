@@ -1,0 +1,171 @@
+{
+  "title": "Vampire chibi wobble reactions - black form",
+  "variant": "black",
+  "generatedAt": "2026-07-26T15:15:18.906Z",
+  "workbench": {
+    "operationId": "58ad9be9-303b-4817-92e9-69bdc19fa58a",
+    "taskId": 4309,
+    "modelName": "gpt-image-2",
+    "size": "3840x1280",
+    "quality": "high",
+    "transparentRequested": true,
+    "upstreamReturnedAlpha": false,
+    "localChromaKeyApplied": true
+  },
+  "canvas": {
+    "width": 1280,
+    "height": 1280
+  },
+  "animation": {
+    "enabled": true,
+    "format": "animated WebP",
+    "frameCount": 16,
+    "frameDelayMs": 90,
+    "durationMs": 1440,
+    "maxAngleDegrees": 4.8,
+    "loop": true
+  },
+  "expressions": [
+    {
+      "id": "happy",
+      "label": "delighted greeting",
+      "static": "static/vampire-chibi-happy.png",
+      "animation": "animation/vampire-chibi-happy-wobble.webp",
+      "sequence": [
+        "sequence/happy/frame-01.png",
+        "sequence/happy/frame-02.png",
+        "sequence/happy/frame-03.png",
+        "sequence/happy/frame-04.png",
+        "sequence/happy/frame-05.png",
+        "sequence/happy/frame-06.png",
+        "sequence/happy/frame-07.png",
+        "sequence/happy/frame-08.png",
+        "sequence/happy/frame-09.png",
+        "sequence/happy/frame-10.png",
+        "sequence/happy/frame-11.png",
+        "sequence/happy/frame-12.png",
+        "sequence/happy/frame-13.png",
+        "sequence/happy/frame-14.png",
+        "sequence/happy/frame-15.png",
+        "sequence/happy/frame-16.png"
+      ],
+      "pivot": {
+        "x": 640,
+        "y": 1235
+      },
+      "shift": {
+        "x": -66,
+        "y": 12
+      },
+      "bounds": {
+        "minX": 324,
+        "minY": 38,
+        "maxX": 1000,
+        "maxY": 1259
+      },
+      "transparentPixels": 1133837,
+      "visiblePixels": 504562,
+      "greenResidualPixels": 0,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "shy",
+      "label": "bashful pout",
+      "static": "static/vampire-chibi-shy.png",
+      "animation": "animation/vampire-chibi-shy-wobble.webp",
+      "sequence": [
+        "sequence/shy/frame-01.png",
+        "sequence/shy/frame-02.png",
+        "sequence/shy/frame-03.png",
+        "sequence/shy/frame-04.png",
+        "sequence/shy/frame-05.png",
+        "sequence/shy/frame-06.png",
+        "sequence/shy/frame-07.png",
+        "sequence/shy/frame-08.png",
+        "sequence/shy/frame-09.png",
+        "sequence/shy/frame-10.png",
+        "sequence/shy/frame-11.png",
+        "sequence/shy/frame-12.png",
+        "sequence/shy/frame-13.png",
+        "sequence/shy/frame-14.png",
+        "sequence/shy/frame-15.png",
+        "sequence/shy/frame-16.png"
+      ],
+      "pivot": {
+        "x": 640,
+        "y": 1235
+      },
+      "shift": {
+        "x": 31,
+        "y": 15
+      },
+      "bounds": {
+        "minX": 301,
+        "minY": 62,
+        "maxX": 997,
+        "maxY": 1262
+      },
+      "transparentPixels": 1137568,
+      "visiblePixels": 500830,
+      "greenResidualPixels": 0,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "startled",
+      "label": "startled hungry vampire",
+      "static": "static/vampire-chibi-startled.png",
+      "animation": "animation/vampire-chibi-startled-wobble.webp",
+      "sequence": [
+        "sequence/startled/frame-01.png",
+        "sequence/startled/frame-02.png",
+        "sequence/startled/frame-03.png",
+        "sequence/startled/frame-04.png",
+        "sequence/startled/frame-05.png",
+        "sequence/startled/frame-06.png",
+        "sequence/startled/frame-07.png",
+        "sequence/startled/frame-08.png",
+        "sequence/startled/frame-09.png",
+        "sequence/startled/frame-10.png",
+        "sequence/startled/frame-11.png",
+        "sequence/startled/frame-12.png",
+        "sequence/startled/frame-13.png",
+        "sequence/startled/frame-14.png",
+        "sequence/startled/frame-15.png",
+        "sequence/startled/frame-16.png"
+      ],
+      "pivot": {
+        "x": 640,
+        "y": 1235
+      },
+      "shift": {
+        "x": 113,
+        "y": 14
+      },
+      "bounds": {
+        "minX": 300,
+        "minY": 60,
+        "maxX": 998,
+        "maxY": 1261
+      },
+      "transparentPixels": 1135508,
+      "visiblePixels": 502887,
+      "greenResidualPixels": 0,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

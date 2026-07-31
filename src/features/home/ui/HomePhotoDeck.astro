@@ -1,0 +1,374 @@
+---
+import Icon from "@components/common/Icon.astro";
+import { homeConfig } from "@/config";
+import "@/styles/components/home-photo-deck.css";
+
+const deck = homeConfig.photoDeck;
+const photos = deck?.photos ?? [];
+const enabled = Boolean(deck?.enabled && photos.length >= 3);
+---
+
+{
+	enabled && deck && (
+		<section
+			class="home-photo-deck"
+			id="home-photo-deck"
+			data-photo-deck
+			data-autoplay-ms={String(deck.autoplayMs ?? 5200)}
+			aria-labelledby="home-photo-deck-title"
+		>
+			<div class="home-photo-deck__inner">
+				<header class="home-photo-deck__header">
+					<p>VISUAL ARCHIVE</p>
+					<h2 id="home-photo-deck-title">{deck.title}</h2>
+					{deck.subtitle && <span>{deck.subtitle}</span>}
+				</header>
+
+				<div
+					class="home-photo-deck__stage"
+					data-photo-deck-stage
+					role="group"
+					aria-roledescription="carousel"
+					aria-label="鸣潮横幅插画轮播"
+					tabindex="0"
+				>
+					<div class="home-photo-deck__track" data-photo-deck-track>
+						{photos.map((photo, index) => (
+							<button
+								type="button"
+								class="home-photo-deck__card"
+								data-photo-deck-card
+								data-index={String(index)}
+								aria-label={`查看第 ${index + 1} 张：${photo.alt}`}
+								aria-current={index === 0 ? "true" : undefined}
+								tabindex={index === 0 ? 0 : -1}
+							>
+								<span class="home-photo-deck__frame">
+									<img
+										src={photo.src}
+										alt={photo.alt}
+										loading={index < 2 ? "eager" : "lazy"}
+										fetchpriority={index === 0 ? "high" : "low"}
+										decoding="async"
+										data-home-motion-image
+										style={`object-position: ${photo.position ?? "center"};`}
+									/>
+								</span>
+								<span class="home-photo-deck__caption">
+									<b>{photo.label ?? String(index + 1).padStart(2, "0")}</b>
+									<small>{String(index + 1).padStart(2, "0")}</small>
+								</span>
+							</button>
+						))}
+					</div>
+
+					<button
+						type="button"
+						class="home-photo-deck__control home-photo-deck__control--prev"
+						data-photo-deck-prev
+						aria-label="上一张"
+						title="上一张"
+					>
+						<Icon name="material-symbols:chevron-left-rounded" aria-hidden="true" />
+					</button>
+					<button
+						type="button"
+						class="home-photo-deck__control home-photo-deck__control--next"
+						data-photo-deck-next
+						aria-label="下一张"
+						title="下一张"
+					>
+						<Icon name="material-symbols:chevron-right-rounded" aria-hidden="true" />
+					</button>
+				</div>
+
+				<div class="home-photo-deck__pagination" aria-label="选择照片">
+					{photos.map((photo, index) => (
+						<button
+							type="button"
+							data-photo-deck-dot
+							data-index={String(index)}
+							aria-label={`转到第 ${index + 1} 张：${photo.alt}`}
+							aria-current={index === 0 ? "true" : undefined}
+						></button>
+					))}
+				</div>
+				<p class="home-photo-deck__status" data-photo-deck-status aria-live="polite"></p>
+			</div>
+		</section>
+	)
+}
+
+<script>
+	type Cleanup = () => void;
+
+	let photoDeckCleanup: Cleanup | null = null;
+
+	function initHomePhotoDeck() {
+		photoDeckCleanup?.();
+		photoDeckCleanup = null;
+
+		const root = document.querySelector<HTMLElement>("[data-photo-deck]");
+		if (!root) return;
+		const deckRoot = root;
+
+		const stage = root.querySelector<HTMLElement>("[data-photo-deck-stage]");
+		const track = root.querySelector<HTMLElement>("[data-photo-deck-track]");
+		const previous = root.querySelector<HTMLButtonElement>("[data-photo-deck-prev]");
+		const next = root.querySelector<HTMLButtonElement>("[data-photo-deck-next]");
+		const status = root.querySelector<HTMLElement>("[data-photo-deck-status]");
+		const cards = Array.from(
+			root.querySelectorAll<HTMLButtonElement>("[data-photo-deck-card]"),
+		);
+		const dots = Array.from(
+			root.querySelectorAll<HTMLButtonElement>("[data-photo-deck-dot]"),
+		);
+		if (!stage || !track || !previous || !next || cards.length < 3) return;
+		const deckStage = stage;
+
+		const cleanups: Cleanup[] = [];
+		const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const mobile = window.matchMedia("(max-width: 680px)");
+		const autoplayMs = Math.max(3000, Number(root.dataset.autoplayMs) || 5200);
+		let activeIndex = 0;
+		let autoplayTimer: number | undefined;
+		let hovering = false;
+		let focusWithin = false;
+		let dragging = false;
+		let inViewport = true;
+		let pointerId = -1;
+		let dragStartX = 0;
+		let dragDeltaX = 0;
+		let suppressCardClickUntil = 0;
+		let pointerCardIndex: number | null = null;
+
+		const normalizeIndex = (index: number) =>
+			((index % cards.length) + cards.length) % cards.length;
+
+		const signedDistance = (index: number) => {
+			let distance = normalizeIndex(index - activeIndex);
+			if (distance > cards.length / 2) distance -= cards.length;
+			return distance;
+		};
+
+		function autoplayAllowed() {
+			return (
+				!reduceMotion.matches &&
+				!hovering &&
+				!focusWithin &&
+				!dragging &&
+				!document.hidden &&
+				inViewport
+			);
+		}
+
+		function stopAutoplay() {
+			window.clearTimeout(autoplayTimer);
+			autoplayTimer = undefined;
+			deckRoot.removeAttribute("data-autoplay-running");
+		}
+
+		function scheduleAutoplay() {
+			stopAutoplay();
+			if (!autoplayAllowed()) return;
+			deckRoot.dataset.autoplayRunning = "true";
+			autoplayTimer = window.setTimeout(() => {
+				setActive(activeIndex + 1, false);
+			}, autoplayMs);
+		}
+
+		function render() {
+			const stageWidth = deckStage.clientWidth;
+			const cardWidth = cards[0]?.getBoundingClientRect().width ?? 280;
+			const isMobile = mobile.matches;
+			const step = isMobile
+				? Math.min(stageWidth * 0.54, cardWidth * 0.76)
+				: Math.min(stageWidth * 0.37, cardWidth * 0.7);
+			const visibleRadius = isMobile ? 1 : 2;
+
+			cards.forEach((card, index) => {
+				const distance = signedDistance(index);
+				const depth = Math.abs(distance);
+				const visible = depth <= visibleRadius;
+				const scale = isMobile
+					? depth === 0
+						? 1
+						: 0.72
+					: Math.max(0.62, 1 - depth * 0.19);
+				const translateZ = -depth * (isMobile ? 110 : 175) - depth * depth * 16;
+				const rotateY = distance * (isMobile ? -24 : -23);
+				const rotateZ = distance * (isMobile ? -0.5 : -0.7);
+				const opacity = !visible ? 0 : depth === 0 ? 1 : Math.max(0.28, 0.78 - depth * 0.2);
+				const blur = depth === 0 ? 0 : isMobile ? 1.2 : Math.max(0.7, depth * 1.25);
+
+				card.style.transform = `translate3d(calc(-50% + ${distance * step}px), -50%, ${translateZ}px) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg) scale(${scale})`;
+				card.style.opacity = String(opacity);
+				card.style.filter = `blur(${blur}px) saturate(${depth === 0 ? 1 : 0.74}) brightness(${depth === 0 ? 1 : 0.82})`;
+				card.style.zIndex = String(20 - depth);
+				card.style.pointerEvents = visible ? "auto" : "none";
+				card.dataset.position = String(distance);
+				card.dataset.active = depth === 0 ? "true" : "false";
+				card.tabIndex = depth === 0 ? 0 : -1;
+				card.setAttribute("aria-current", depth === 0 ? "true" : "false");
+				card.setAttribute("aria-hidden", visible ? "false" : "true");
+			});
+
+			dots.forEach((dot, index) => {
+				dot.setAttribute("aria-current", index === activeIndex ? "true" : "false");
+			});
+
+			if (status) status.textContent = `第 ${activeIndex + 1} 张，共 ${cards.length} 张`;
+		}
+
+		function setActive(index: number, restartAutoplay = true) {
+			activeIndex = normalizeIndex(index);
+			render();
+			if (restartAutoplay || autoplayAllowed()) scheduleAutoplay();
+		}
+
+		function addListener<K extends keyof HTMLElementEventMap>(
+			element: HTMLElement,
+			type: K,
+			listener: (event: HTMLElementEventMap[K]) => void,
+			options?: AddEventListenerOptions,
+		) {
+			element.addEventListener(type, listener as EventListener, options);
+			cleanups.push(() => element.removeEventListener(type, listener as EventListener, options));
+		}
+
+		addListener(previous, "click", () => setActive(activeIndex - 1));
+		addListener(next, "click", () => setActive(activeIndex + 1));
+
+		cards.forEach((card, index) => {
+			addListener(card, "click", () => {
+				if (
+					!dragging &&
+					performance.now() >= suppressCardClickUntil &&
+					index !== activeIndex
+				) {
+					setActive(index);
+				}
+			});
+		});
+
+		dots.forEach((dot, index) => {
+			addListener(dot, "click", () => setActive(index));
+		});
+
+		addListener(stage, "keydown", (event) => {
+			if (event.key === "ArrowLeft") {
+				event.preventDefault();
+				setActive(activeIndex - 1);
+			}
+			if (event.key === "ArrowRight") {
+				event.preventDefault();
+				setActive(activeIndex + 1);
+			}
+		});
+
+		addListener(stage, "pointerdown", (event) => {
+			if (event.pointerType === "mouse" && event.button !== 0) return;
+			const target = event.target instanceof Element ? event.target : null;
+			if (target?.closest("[data-photo-deck-prev], [data-photo-deck-next]")) return;
+			const pointerCard = target?.closest<HTMLButtonElement>("[data-photo-deck-card]");
+			pointerCardIndex = pointerCard ? Number(pointerCard.dataset.index) : null;
+			dragging = true;
+			pointerId = event.pointerId;
+			dragStartX = event.clientX;
+			dragDeltaX = 0;
+			deckStage.setPointerCapture(event.pointerId);
+			root.dataset.dragging = "true";
+			stopAutoplay();
+		});
+
+		addListener(stage, "pointermove", (event) => {
+			if (!dragging || event.pointerId !== pointerId) return;
+			dragDeltaX = event.clientX - dragStartX;
+			const damped = Math.max(-90, Math.min(90, dragDeltaX * 0.24));
+			track.style.transform = `translate3d(${damped}px, 0, 0) rotateY(${damped * -0.025}deg)`;
+		});
+
+		const endDrag = (event: PointerEvent) => {
+			if (!dragging || event.pointerId !== pointerId) return;
+			dragging = false;
+			root.removeAttribute("data-dragging");
+			track.style.removeProperty("transform");
+			if (deckStage.hasPointerCapture(event.pointerId)) {
+				deckStage.releasePointerCapture(event.pointerId);
+			}
+			if (Math.abs(dragDeltaX) >= 42) {
+				suppressCardClickUntil = performance.now() + 400;
+				setActive(activeIndex + (dragDeltaX < 0 ? 1 : -1));
+			} else if (pointerCardIndex !== null && pointerCardIndex !== activeIndex) {
+				setActive(pointerCardIndex);
+			} else {
+				scheduleAutoplay();
+			}
+			pointerId = -1;
+			pointerCardIndex = null;
+			dragDeltaX = 0;
+		};
+
+		addListener(stage, "pointerup", endDrag);
+		addListener(stage, "pointercancel", endDrag);
+		addListener(root, "pointerenter", () => {
+			hovering = true;
+			stopAutoplay();
+		});
+		addListener(root, "pointerleave", () => {
+			hovering = false;
+			scheduleAutoplay();
+		});
+		addListener(root, "focusin", () => {
+			focusWithin = true;
+			stopAutoplay();
+		});
+		addListener(root, "focusout", (event) => {
+			const nextTarget = event.relatedTarget;
+			focusWithin = nextTarget instanceof Node && root.contains(nextTarget);
+			if (!focusWithin) scheduleAutoplay();
+		});
+
+		const handlePreferenceChange = () => {
+			render();
+			scheduleAutoplay();
+		};
+		reduceMotion.addEventListener("change", handlePreferenceChange);
+		mobile.addEventListener("change", handlePreferenceChange);
+		cleanups.push(() => {
+			reduceMotion.removeEventListener("change", handlePreferenceChange);
+			mobile.removeEventListener("change", handlePreferenceChange);
+		});
+
+		const handleVisibility = () => scheduleAutoplay();
+		document.addEventListener("visibilitychange", handleVisibility);
+		cleanups.push(() => document.removeEventListener("visibilitychange", handleVisibility));
+
+		const resizeObserver = new ResizeObserver(render);
+		resizeObserver.observe(stage);
+		cleanups.push(() => resizeObserver.disconnect());
+
+		const intersectionObserver = new IntersectionObserver(
+			(entries) => {
+				inViewport = Boolean(entries[0]?.isIntersecting);
+				scheduleAutoplay();
+			},
+			{ threshold: 0.2 },
+		);
+		intersectionObserver.observe(root);
+		cleanups.push(() => intersectionObserver.disconnect());
+
+		render();
+		scheduleAutoplay();
+
+		photoDeckCleanup = () => {
+			stopAutoplay();
+			cleanups.forEach((cleanup) => cleanup());
+			track.style.removeProperty("transform");
+		};
+	}
+
+	initHomePhotoDeck();
+	document.addEventListener("astro:page-load", initHomePhotoDeck);
+	document.addEventListener("swup:willReplaceContent", () => photoDeckCleanup?.());
+</script>

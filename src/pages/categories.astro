@@ -1,9 +1,8 @@
 ---
-import CategoryRose from "@components/widget/CategoryRose.astro";
-import TagGraph from "@components/widget/TagGraph.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import PageTitle from "@/components/common/PageTitle.astro";
-import { getCategoryList, getTagGraphData } from "@/utils/content-utils";
+import { CategoryRose, TagGraph } from "@/features/posts";
+import { getCategoryList, getTagGraphData } from "@/features/posts/server";
 
 const categories = await getCategoryList();
 const tagGraph = await getTagGraphData();

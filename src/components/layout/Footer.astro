@@ -1,9 +1,9 @@
 ---
 import Icon from "@components/common/Icon.astro";
 import { footerConfig, homeConfig, siteConfig } from "@/config";
+import { getSortedPosts } from "@/features/posts/server";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
-import { getSortedPosts } from "@/utils/content-utils";
 import { url } from "@/utils/url-utils";
 
 const currentYear = new Date().getFullYear();

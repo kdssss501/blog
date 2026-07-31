@@ -1,0 +1,56 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Icon from "@components/common/Icon.astro";
+
+interface Props {
+	items: CollectionEntry<"navigation">[];
+}
+
+const { items } = Astro.props;
+const sorted = [...items].sort(
+	(left, right) => left.data.order - right.data.order,
+);
+const categories = [...new Set(sorted.map((item) => item.data.category))];
+---
+
+<section class="project-directory" data-pagefind-body>
+	<header>
+		<p>RESOURCE DIRECTORY</p>
+		<h1 data-pagefind-meta="title">网站导航</h1>
+		<span>常用工具、文档与项目入口</span>
+	</header>
+	{categories.map((category) => (
+		<section class="project-group">
+			<h2>{category}</h2>
+			<div>
+				{sorted.filter((item) => item.data.category === category).map((item) => (
+					<a href={item.data.url} target="_blank" rel="noopener noreferrer">
+						<span>{item.data.icon ? <Icon name={item.data.icon} /> : <Icon name="material-symbols:public" />}</span>
+						<div><h3>{item.data.name}</h3><p>{item.data.description}</p></div>
+						<Icon name="material-symbols:arrow-outward-rounded" />
+					</a>
+				))}
+			</div>
+		</section>
+	))}
+</section>
+
+<style>
+	.project-directory { display:grid; gap:1.5rem; }
+	.project-directory > header { padding-bottom:1.25rem; border-bottom:1px solid var(--line-divider); }
+	.project-directory > header p { margin:0; color:var(--primary); font:700 .68rem/1 ui-monospace,monospace; }
+	.project-directory > header h1 { margin:.35rem 0; font-size:2rem; }
+	.project-directory > header span { color:var(--content-meta); }
+	.project-group { display:grid; gap:.75rem; }
+	.project-group h2 { margin:0; font-size:1rem; }
+	.project-group > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+	.project-group a { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.7rem; min-height:5rem; padding:.8rem; border:1px solid var(--line-divider); border-radius:var(--radius-large); background:var(--card-bg); color:inherit; text-decoration:none; transition:transform .2s ease,border-color .2s ease; }
+	.project-group a:hover { border-color:var(--primary); transform:translateY(-2px); }
+	.project-group a > span { display:grid; width:2.3rem; height:2.3rem; place-items:center; border-radius:.55rem; background:var(--btn-regular-bg); color:var(--primary); }
+	.project-group h3,.project-group p { margin:0; }
+	.project-group h3 { font-size:.88rem; }
+	.project-group p { margin-top:.2rem; overflow:hidden; color:var(--content-meta); font-size:.7rem; text-overflow:ellipsis; white-space:nowrap; }
+	.project-group a > :global(svg:last-child) { color:var(--content-meta); }
+	@media (max-width:900px) { .project-group > div { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+	@media (max-width:560px) { .project-group > div { grid-template-columns:1fr; } }
+</style>

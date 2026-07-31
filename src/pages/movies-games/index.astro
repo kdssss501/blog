@@ -1,0 +1,23 @@
+---
+import { siteConfig } from "@/config";
+import { BangumiDirectory } from "@/features/records";
+import { getBangumiEntries } from "@/features/records/server";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.moviesGames) return Astro.redirect("/404/");
+const title = "影视游戏";
+const description = "记录看过的作品、正在追的内容与玩过的游戏。";
+const categories = [
+	"anime",
+	"movie",
+	"tv",
+	"documentary",
+	"game",
+	"real",
+] as const;
+const entries = await getBangumiEntries([...categories]);
+---
+
+<MainGridLayout {title} {description} showSidebar={true}>
+	<BangumiDirectory client:load {title} {description} {entries} categories={[...categories]} emptyLabel="暂无影视或游戏记录" />
+</MainGridLayout>

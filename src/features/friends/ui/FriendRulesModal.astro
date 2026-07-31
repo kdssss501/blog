@@ -1,0 +1,248 @@
+---
+import Icon from "@components/common/Icon.astro";
+import { friendsPageConfig } from "@/config";
+
+interface Props {
+	applyLink?: string;
+}
+
+const { applyLink = friendsPageConfig.applyLink } = Astro.props;
+const site = friendsPageConfig.siteInfo;
+const notes = friendsPageConfig.notes ?? [];
+const applicationTemplate = [
+	"站点名称：您的站点名称",
+	"站点描述：您的站点描述",
+	"站点链接：您的站点链接",
+	"头像链接：您的站点头像",
+].join("\n");
+const manualApplyHref = site?.email
+	? `mailto:${site.email}?subject=${encodeURIComponent("友链申请")}&body=${encodeURIComponent(applicationTemplate)}`
+	: undefined;
+---
+
+<friend-rules-modal>
+	<dialog class="fr-modal" data-friend-rules-dialog aria-labelledby="friend-rules-title">
+		<div class="fr-overlay" data-close-friend-rules></div>
+		<div class="fr-panel">
+			<header class="fr-header">
+				<h2 id="friend-rules-title" class="fr-title">友链申请指南</h2>
+				<button type="button" class="fr-close" data-close-friend-rules aria-label="关闭友链申请指南">
+					<Icon name="material-symbols:close-rounded" class="text-xl" />
+				</button>
+			</header>
+
+			<div class="fr-body">
+				{site && (
+					<section class="fr-section" aria-labelledby="friend-site-info-title">
+						<div class="fr-section-head">
+							<span class="fr-section-icon" aria-hidden="true">
+								<Icon name="material-symbols:info-outline-rounded" />
+							</span>
+							<h3 id="friend-site-info-title">本站信息</h3>
+						</div>
+						<div class="fr-info-grid">
+							{[
+								{ label: "站点名称", value: site.name },
+								{ label: "站点描述", value: site.desc },
+								{ label: "站点链接", value: site.url },
+								{ label: "头像链接", value: site.avatar },
+							].filter((item) => item.value).map((item) => (
+								<div class="fr-info-row">
+									<div class="fr-info-text">
+										<span class="fr-info-label">{item.label}</span>
+										<span class="fr-info-value">{item.value}</span>
+									</div>
+									<button
+										type="button"
+										class="fr-copy-btn"
+										data-copy-value={item.value}
+										aria-label={`复制${item.label}`}
+									>
+										<Icon name="material-symbols:content-copy-outline-rounded" class="fr-copy-icon" />
+										<Icon name="material-symbols:check-rounded" class="fr-check-icon" />
+									</button>
+								</div>
+							))}
+						</div>
+					</section>
+				)}
+
+				<section class="fr-section" aria-labelledby="friend-apply-steps-title">
+					<div class="fr-section-head">
+						<span class="fr-section-icon" aria-hidden="true">
+							<Icon name="material-symbols:list-alt-outline-rounded" />
+						</span>
+						<h3 id="friend-apply-steps-title">申请流程</h3>
+					</div>
+					<ol class="fr-steps">
+						<li class="fr-step">
+							<span class="fr-step-num">1</span>
+							<span class="fr-step-line" aria-hidden="true"></span>
+							<div class="fr-step-content">
+								<p class="fr-step-title">添加本站友链</p>
+								<p class="fr-step-desc">请先在您的网站友链页面添加本站信息，可直接复制上方字段。</p>
+							</div>
+						</li>
+						<li class="fr-step">
+							<span class="fr-step-num">2</span>
+							<span class="fr-step-line" aria-hidden="true"></span>
+							<div class="fr-step-content">
+								<p class="fr-step-title">
+									准备申请信息
+									{site?.email && <code class="fr-code">{site.email}</code>}
+								</p>
+								<p class="fr-step-desc">复制模板并填写您的站点信息。</p>
+								<div class="fr-template">
+									<button
+										type="button"
+										class="fr-copy-btn fr-template-copy"
+										data-copy-value={applicationTemplate}
+										aria-label="复制友链申请模板"
+									>
+										<Icon name="material-symbols:content-copy-outline-rounded" class="fr-copy-icon" />
+										<Icon name="material-symbols:check-rounded" class="fr-check-icon" />
+									</button>
+									<pre class="fr-template-text">{applicationTemplate}</pre>
+								</div>
+							</div>
+						</li>
+						<li class="fr-step">
+							<span class="fr-step-num">3</span>
+							<div class="fr-step-content">
+								<p class="fr-step-title">等待审核</p>
+								<p class="fr-step-desc">确认信息无误后会尽快添加您的友链。</p>
+							</div>
+						</li>
+					</ol>
+				</section>
+
+				{notes.length > 0 && (
+					<section class="fr-section" aria-labelledby="friend-apply-notes-title">
+						<div class="fr-section-head">
+							<span class="fr-section-icon" aria-hidden="true">
+								<Icon name="material-symbols:verified-user-outline-rounded" />
+							</span>
+							<h3 id="friend-apply-notes-title">注意事项</h3>
+						</div>
+						<ul class="fr-notes">
+							{notes.map((item) => (
+								<li class="fr-note">
+									<span class="fr-note-dot" aria-hidden="true"></span>
+									<p><strong>{item.title}</strong>：{item.content}</p>
+								</li>
+							))}
+						</ul>
+					</section>
+				)}
+			</div>
+
+			<footer class="fr-footer">
+				{applyLink && (
+					<a href={applyLink} target="_blank" rel="noopener noreferrer" class="fr-btn fr-btn-primary">
+						<Icon name="material-symbols:edit-square-outline" class="text-base" />
+						自助申请
+					</a>
+				)}
+				{manualApplyHref && (
+					<a href={manualApplyHref} class="fr-btn fr-btn-secondary">
+						<Icon name="material-symbols:mail-outline-rounded" class="text-base" />
+						邮件申请
+					</a>
+				)}
+			</footer>
+		</div>
+	</dialog>
+</friend-rules-modal>
+
+<script>
+	class FriendRulesModalElement extends HTMLElement {
+		private dialog: HTMLDialogElement | null = null;
+		private copyResetTimer: number | undefined;
+
+		private readonly handleDocumentClick = (event: Event) => {
+			const target = event.target as Element | null;
+			if (!target?.closest("[data-open-friend-rules]")) return;
+			event.preventDefault();
+			this.open();
+		};
+
+		private readonly handleDialogClick = async (event: Event) => {
+			const target = event.target as Element | null;
+			if (!target) return;
+
+			if (target.closest("[data-close-friend-rules]")) {
+				this.close();
+				return;
+			}
+
+			const copyButton = target.closest<HTMLButtonElement>("[data-copy-value]");
+			if (!copyButton) return;
+			const value = copyButton.dataset.copyValue ?? "";
+			if (!(await this.copyText(value))) return;
+
+			this.querySelectorAll(".fr-copy-btn.copied").forEach((button) => {
+				button.classList.remove("copied");
+			});
+			copyButton.classList.add("copied");
+			window.clearTimeout(this.copyResetTimer);
+			this.copyResetTimer = window.setTimeout(() => {
+				copyButton.classList.remove("copied");
+			}, 1500);
+		};
+
+		private readonly handleClose = () => {
+			document.body.style.removeProperty("overflow");
+		};
+
+		connectedCallback() {
+			this.dialog = this.querySelector<HTMLDialogElement>("[data-friend-rules-dialog]");
+			if (!this.dialog) return;
+			document.addEventListener("click", this.handleDocumentClick);
+			this.dialog.addEventListener("click", this.handleDialogClick);
+			this.dialog.addEventListener("close", this.handleClose);
+		}
+
+		disconnectedCallback() {
+			document.removeEventListener("click", this.handleDocumentClick);
+			this.dialog?.removeEventListener("click", this.handleDialogClick);
+			this.dialog?.removeEventListener("close", this.handleClose);
+			window.clearTimeout(this.copyResetTimer);
+			this.handleClose();
+		}
+
+		private open() {
+			if (!this.dialog || this.dialog.open) return;
+			this.dialog.showModal();
+			document.body.style.overflow = "hidden";
+		}
+
+		private close() {
+			if (this.dialog?.open) this.dialog.close();
+		}
+
+		private async copyText(value: string): Promise<boolean> {
+			try {
+				await navigator.clipboard.writeText(value);
+				return true;
+			} catch {
+				const input = document.createElement("textarea");
+				input.value = value;
+				input.setAttribute("readonly", "");
+				input.style.position = "fixed";
+				input.style.opacity = "0";
+				document.body.append(input);
+				input.select();
+				const executeCommand = Reflect.get(document, "execCommand");
+				const copied =
+					typeof executeCommand === "function" &&
+					Boolean(executeCommand.call(document, "copy"));
+				input.remove();
+				return copied;
+			}
+		}
+	}
+
+	if (!customElements.get("friend-rules-modal")) {
+		customElements.define("friend-rules-modal", FriendRulesModalElement);
+	}
+</script>

@@ -1,0 +1,43 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import { siteConfig } from "@/config";
+import { type BangumiEntry, RecordDetail } from "@/features/records";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+export async function getStaticPaths() {
+	const entries = await getCollection(
+		"bangumi",
+		(entry) => entry.data.category === "book",
+	);
+	return entries.map((entry) => ({
+		params: { slug: entry.id.replace(/\.(?:md|mdx|ya?ml)$/i, "") },
+		props: { entry },
+	}));
+}
+
+interface Props {
+	entry: CollectionEntry<"bangumi">;
+}
+const { entry } = Astro.props;
+if (!siteConfig.pages.books) return Astro.redirect("/404/");
+const { Content } = await render(entry);
+const id = entry.id.replace(/\.(?:md|mdx|ya?ml)$/i, "");
+const record: BangumiEntry = {
+	id,
+	title: entry.data.title,
+	nameCn: entry.data.name_cn,
+	category: entry.data.category,
+	subcategory: entry.data.subcategory,
+	status: entry.data.status,
+	image: entry.data.image,
+	link: entry.data.link || `/books/${id}/`,
+	score: entry.data.score,
+	comment: entry.data.comment,
+	tags: entry.data.tags,
+	published: entry.data.published?.toISOString(),
+};
+---
+
+<MainGridLayout title={record.nameCn || record.title} description={record.comment} contentWidth="article">
+	<RecordDetail entry={record} backPath="/books/" backLabel="返回书架"><Content /></RecordDetail>
+</MainGridLayout>

@@ -1,0 +1,52 @@
+---
+import PageTitle from "@/components/common/PageTitle.astro";
+---
+
+<activity-admin class="activity-admin-page">
+	<header class="activity-admin-page__header">
+		<PageTitle title="动态管理" eyebrow="Activity Admin" />
+	</header>
+
+	<div class="activity-admin-shell">
+		<section class="activity-admin-login" data-activity-login-panel>
+			<h2>管理认证</h2>
+			<label for="activity-admin-token">管理 Token</label>
+			<input id="activity-admin-token" data-activity-token type="password" class="activity-admin-input" autocomplete="current-password" maxlength="256" />
+			<button data-activity-login type="button" class="activity-admin-btn activity-admin-btn--primary">登录</button>
+			<p data-activity-login-error class="activity-admin-error" role="alert"></p>
+		</section>
+
+		<div class="activity-admin-panel" data-activity-admin-panel hidden>
+			<section class="activity-admin-card">
+				<div class="activity-admin-card__header">
+					<h2>动态编辑器</h2>
+					<button data-activity-new class="activity-admin-btn" type="button">新建动态</button>
+				</div>
+				<div class="activity-admin-form">
+					<label>标题<input data-activity-title class="activity-admin-input" type="text" maxlength="80" /></label>
+					<label>摘要<input data-activity-excerpt class="activity-admin-input" type="text" maxlength="140" /></label>
+					<label>正文<textarea data-activity-content class="activity-admin-textarea"></textarea></label>
+					<div class="activity-admin-image-tools">
+						<label>图片提示词<input data-activity-image-prompt class="activity-admin-input" type="text" maxlength="240" /></label>
+						<button data-activity-generate-image class="activity-admin-btn" type="button">插入图片</button>
+					</div>
+					<div data-activity-image-list class="activity-admin-image-list"></div>
+					<div class="activity-admin-actions">
+						<button data-activity-save class="activity-admin-btn activity-admin-btn--primary" type="button">保存动态</button>
+						<button data-activity-delete class="activity-admin-btn activity-admin-btn--danger" type="button">删除</button>
+					</div>
+					<p data-activity-message class="activity-admin-message" role="status"></p>
+				</div>
+			</section>
+
+			<section class="activity-admin-card">
+				<h2>已有动态</h2>
+				<div data-activity-list class="activity-admin-list"></div>
+			</section>
+		</div>
+	</div>
+</activity-admin>
+
+<script>
+	import "../client/activity-admin";
+</script>

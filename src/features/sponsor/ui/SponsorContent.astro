@@ -1,0 +1,120 @@
+---
+import Icon from "@components/common/Icon.astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+import type { SponsorItem, SponsorMethod } from "@/types/config";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	title: string;
+	description?: string;
+	usage?: string;
+	methods: SponsorMethod[];
+	sponsors: SponsorItem[];
+	showSponsorsList: boolean;
+	scanLabel: string;
+	emptyLabel: string;
+}
+
+const {
+	title,
+	description,
+	usage,
+	methods,
+	sponsors,
+	showSponsorsList,
+	scanLabel,
+	emptyLabel,
+} = Astro.props;
+---
+
+<section class="sponsor-content" aria-labelledby="sponsor-page-title">
+	<header class="sponsor-content__header">
+		<PageTitle title={title} eyebrow="Sponsor" variant="stacked" />
+		{description && <p class="sponsor-content__description">{description}</p>}
+		{usage && (
+			<div class="usage-info-box">
+				<Icon name="material-symbols:info-outline" class="text-(--primary) text-lg shrink-0" />
+				<p>{usage}</p>
+			</div>
+		)}
+	</header>
+
+	{methods.length > 0 && (
+		<sponsor-method-tabs data-initial-tab="0">
+			<div class="sponsor-qr-card__outer">
+				<div class="sponsor-qr-card">
+					<header class="sponsor-qr-card__header">
+						<h2 class="sponsor-qr-card__title">{scanLabel}</h2>
+					</header>
+					<p class="sponsor-qr-card__subtitle">选择支付方式</p>
+					<div class="sponsor-qr-card__tabs-wrapper">
+						<div class="sponsor-qr-card__tabs-pill" data-sponsor-tab-nav role="tablist" aria-label="赞助方式">
+							<div class="sponsor-qr-card__tabs-indicator" data-sponsor-tab-indicator aria-hidden="true"></div>
+							{methods.map((method, index) => (
+								<button
+									type="button"
+									role="tab"
+									class:list={["sponsor-qr-card__tab-btn", index === 0 ? "sponsor-qr-card__tab-btn--active" : "sponsor-qr-card__tab-btn--inactive"]}
+									data-sponsor-tab={index}
+									aria-selected={index === 0 ? "true" : "false"}
+								>
+									{method.icon && <Icon name={method.icon} class="text-base" />}
+									{method.name}
+								</button>
+							))}
+						</div>
+					</div>
+					<div class="sponsor-qr-card__content">
+						{methods.map((method, index) => (
+							<div class="sponsor-qr-card__panel" data-sponsor-panel={index} hidden={index !== 0} role="tabpanel">
+								{method.qrCode ? (
+									<div class="sponsor-qr-card__image-wrapper">
+										<img src={url(method.qrCode)} alt={`${method.name} ${scanLabel}`} class="sponsor-qr-card__image" loading="lazy" />
+									</div>
+								) : method.link ? (
+									<a href={method.link} target="_blank" rel="noopener noreferrer" class="sponsor-method-link">
+										<Icon name="material-symbols:open-in-new-rounded" />
+										打开 {method.name}
+									</a>
+								) : (
+									<div class="sponsor-qr-card__empty">
+										<Icon name="material-symbols:qr-code-scanner" class="text-5xl opacity-40" />
+										<span class="sponsor-qr-card__empty-text">暂不开通</span>
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
+		</sponsor-method-tabs>
+	)}
+
+	{showSponsorsList && (
+		<section class="sponsor-history" aria-labelledby="sponsor-history-title">
+			<h2 id="sponsor-history-title">赞助名单</h2>
+			{sponsors.length > 0 ? (
+				<ul class="sponsor-list">
+					{sponsors.map((sponsor) => (
+						<li class="sponsor-row">
+							<div class="sponsor-avatar">
+								{sponsor.avatar ? (
+									<img src={sponsor.avatar} alt="" class="sponsor-avatar__img" loading="lazy" />
+								) : <span>{sponsor.name.charAt(0)}</span>}
+							</div>
+							<div class="sponsor-info">
+								<span class="sponsor-name">{sponsor.name}</span>
+								{sponsor.date && <time class="sponsor-date" datetime={sponsor.date}>{new Date(sponsor.date).toLocaleDateString()}</time>}
+							</div>
+							{sponsor.amount && <span class="sponsor-amount">{sponsor.amount}</span>}
+						</li>
+					))}
+				</ul>
+			) : <p class="sponsor-empty">{emptyLabel}</p>}
+		</section>
+	)}
+</section>
+
+<script>
+	import "../client/sponsor-method-tabs";
+</script>

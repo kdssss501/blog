@@ -1,0 +1,13 @@
+---
+import { getCollection } from "astro:content";
+import { siteConfig } from "@/config";
+import { ProjectDirectory } from "@/features/records";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.projects) return Astro.redirect("/404/");
+const items = await getCollection("navigation");
+---
+
+<MainGridLayout title="网站导航" description="常用工具、文档与项目入口。" showSidebar={true}>
+	<ProjectDirectory {items} />
+</MainGridLayout>

@@ -1,4 +1,5 @@
 import type { HomeConfig } from "../types/config";
+import { wallpaperConfig } from "./wallpaperConfig";
 
 export const homeConfig: HomeConfig = {
 	// 头像
@@ -9,7 +10,7 @@ export const homeConfig: HomeConfig = {
 	avatar: "assets/images/avatar.webp",
 
 	// 上班时间头像（为空则使用上方 avatar）
-	avatarOnWork: "assets/images/avatar-work-on.webp",
+	avatarOnWork: "/assets/images/home/avatar-work-on.gif",
 
 	// 下班时间头像（为空则始终使用上方 avatar）
 	avatarOffWork: "assets/images/avatar-work-off.webp",
@@ -30,8 +31,9 @@ export const homeConfig: HomeConfig = {
 	bio: ["记录学习与生活的点滴"],
 
 	hero: {
-		backgroundImage: "/assets/images/home/home.webp",
-		backgroundImageMobile: "/assets/images/home/home-mobile.webp",
+		backgroundImage: "/assets/illustrations/fate-throne/59561306-p0.webp",
+		backgroundImageMobile: "/assets/illustrations/fate-throne/59561306-p0.webp",
+		characterImage: "/assets/images/home/saber-gilgamesh-pixel.png",
 		speechAccentImage: "/assets/images/home/home2-1.webp",
 		rightPanel: {
 			pill: "BLOG",
@@ -63,7 +65,7 @@ export const homeConfig: HomeConfig = {
 		title: "CRYSTALLIZE GALLERY",
 		description:
 			"Where fleeting visions crystallize into permanence — each frame a frozen breath of time, each work a memory hardened into light.",
-		scrollDistance: 4000,
+		scrollDistance: 4600,
 		pillarFinalWidth: "18vw",
 		emitterImage: "/assets/images/home-truncated/td.webp",
 	},
@@ -73,7 +75,7 @@ export const homeConfig: HomeConfig = {
 		kicker: "The End",
 		title: "愿你每一天 都闪闪发光",
 		description: "岁岁常欢愉，万事皆胜意",
-		scrollDistance: 6000,
+		scrollDistance: 12000,
 		finalImage: {
 			midgroundImage: "/assets/images/home-truncated/utl-back1.webp",
 			backgroundVideo: "/assets/images/home-truncated/utl-back2.webm",
@@ -82,6 +84,8 @@ export const homeConfig: HomeConfig = {
 		},
 		interlude: {
 			foreground: "/assets/images/home-truncated/b-1.webp",
+			foregroundAlt: "第二幕中央透明人物",
+			foregroundWidth: "min(56vw, 70rem)",
 			stripLeft: "/assets/images/home-truncated/b-2.webp",
 			stripRight: "/assets/images/home-truncated/b-3.webp",
 			copyLeft: "初心",
@@ -89,44 +93,177 @@ export const homeConfig: HomeConfig = {
 		},
 		panels: [
 			{
-				title: "外部站点",
-				english: "PROJECTS",
-				description: "kdssss主站 · 工具导航",
-				image: "/assets/images/home-truncated/1.webp",
-				alt: "外部站点",
+				title: "间桐樱",
+				english: "SAKURA",
+				description: "Fate · 命运王座",
+				image: "/assets/illustrations/fate-throne/98522947-p0.webp",
+				alt: "间桐樱",
 			},
 			{
-				title: "术业专攻",
-				english: "SPECIALITIES",
-				description: "AI学习 · 技术架构 · 踩坑记录",
-				image: "/assets/images/home-truncated/2.webp",
-				alt: "术业专攻",
+				title: "远坂凛",
+				english: "RIN Tohsaka",
+				description: "Fate · 魔术与旅途",
+				image: "/assets/illustrations/fate-throne/89514781-p0.webp",
+				alt: "远坂凛",
 			},
 			{
-				title: "博客特色",
-				english: "BLOG FEATURES",
-				description: "RAG 知识检索 · 归档热力图 · 结构化知识库",
-				image: "/assets/images/home-truncated/3.webp",
-				alt: "博客特色",
+				title: "Saber Alter",
+				english: "ALTER",
+				description: "Fate · 黑色圣剑",
+				image: "/assets/illustrations/fate-throne/84782057-p0.webp",
+				alt: "Saber Alter",
 			},
 			{
-				title: "站点技术",
-				english: "STACK",
-				description: "Astro · SSG静态生成 · 纯AI零手工",
-				image: "/assets/images/home-truncated/4.webp",
-				alt: "站点技术",
+				title: "远坂凛",
+				english: "RIN",
+				description: "Fate · 红色的魔术师",
+				image: "/assets/illustrations/fate-throne/87446888-p0.webp",
+				alt: "远坂凛",
 			},
 			{
-				title: "相册收录",
-				english: "PHOTO ALBUM",
-				description: "AI 生图 · API 接入",
-				image: "/assets/images/home-truncated/5.webp",
-				alt: "相册收录",
+				title: "Saber",
+				english: "SABER",
+				description: "Fate · 铠甲与誓约",
+				image: "/assets/illustrations/fate-throne/101297457-p0.webp",
+				alt: "Saber",
 			},
 		],
+		cinematicStory: {
+			sourceVideo: "/assets/videos/artoria-original.mp4",
+			frames: [
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-01.webp",
+					sourceTime: 0.05,
+					caption: "风从很远的地方来，替她擦亮了剑锋。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-02.webp",
+					sourceTime: 0.65,
+					caption: "她把沉默握在手中，像握住一场未醒的黎明。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-03.webp",
+					sourceTime: 1.25,
+					caption: "光穿过旧日，留下一个尚未说完的名字。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-04.webp",
+					sourceTime: 1.8,
+					caption: "当世界褪成纯白，她仍沿着誓言前行。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-05.webp",
+					sourceTime: 2.35,
+					caption: "没有掌声的时刻，也值得郑重地站立。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-06.webp",
+					sourceTime: 2.9,
+					caption: "每一次回身，都是命运重新落笔。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-07.webp",
+					sourceTime: 3.45,
+					caption: "她学会在迟疑之前，先迈出一步。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-08.webp",
+					sourceTime: 4,
+					caption: "风追上裙摆，时间却被留在身后。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-09.webp",
+					sourceTime: 4.55,
+					caption: "背对人群时，心仍朝着那束光。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-10.webp",
+					sourceTime: 4.72,
+					caption: "同一把剑，也曾映照过不同的夜。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-11.webp",
+					sourceTime: 5.05,
+					caption: "火焰记得她的名字，城市记得她的影子。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-12.webp",
+					sourceTime: 5.22,
+					caption: "有些告别，不在终点，而在选择发生的那一刻。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-13.webp",
+					sourceTime: 5.55,
+					caption: "王座很高，高不过她不肯低下的目光。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-14.webp",
+					sourceTime: 5.72,
+					caption: "偶尔也让海风，把战争吹得远一些。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-15.webp",
+					sourceTime: 6.05,
+					caption: "花环不是冠冕，只是春天短暂的拥抱。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-16.webp",
+					sourceTime: 6.22,
+					caption: "冬雪落下时，愿旧伤终于有了温度。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-17.webp",
+					sourceTime: 6.55,
+					caption: "星海辽阔，仍装得下一颗固执的心。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-18.webp",
+					sourceTime: 6.72,
+					caption: "人间的橱窗亮起，她也只是路过寻常的一天。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-19.webp",
+					sourceTime: 7.05,
+					caption: "褪下盔甲以后，脚步仍知道归途。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-20.webp",
+					sourceTime: 7.55,
+					caption: "黄昏替她换上白裙，也替往事按下静音。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-21.webp",
+					sourceTime: 8.1,
+					caption: "她从光里走来，不问故事是否有人记得。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-22.webp",
+					sourceTime: 8.65,
+					caption: "原野没有挽留，风却一直跟随。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-23.webp",
+					sourceTime: 9.2,
+					caption: "直到身影走远，春天才慢慢合上眼睛。",
+				},
+				{
+					image: "/assets/images/home/artoria-scroll-4k/frame-24.webp",
+					sourceTime: 9.82,
+					caption: "最后留在画面里的，是她曾经来过的风。",
+				},
+			],
+		},
 	},
 
 	// 首页技能图标
+	photoDeck: {
+		enabled: true,
+		title: "WUTHERING WAVES",
+		subtitle: "四段潮声，在光影之间循环",
+		autoplayMs: 5200,
+		photos: wallpaperConfig.slides.map((slide) => ({ ...slide })),
+	},
+
 	skills: [
 		{ name: "Astro", icon: "simple-icons:astro", group: "Frontend" },
 		{ name: "Svelte", icon: "simple-icons:svelte", group: "Frontend" },

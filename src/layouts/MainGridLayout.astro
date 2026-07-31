@@ -2,15 +2,17 @@
 import Footer from "@components/layout/Footer.astro";
 import Navbar from "@components/layout/Navbar.astro";
 import NavMenuPanel from "@components/layout/NavMenuPanel.astro";
+import type { SidebarVariant } from "@components/layout/Sidebar.astro";
 import Sidebar from "@components/layout/Sidebar.astro";
 import ArticleCatalog from "@components/misc/ArticleCatalog.astro";
+import { createNavigation } from "@/app";
 import CategoryBar from "@/components/layout/CategoryBar.astro";
 
-import { navBarConfig, sidebarLayoutConfig, siteConfig } from "@/config";
+import { sidebarLayoutConfig, siteConfig } from "@/config";
 import { LinkPresets } from "@/constants/link-presets";
+import type { CatalogGroup } from "@/features/posts";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
-import type { CatalogGroup } from "@/utils/content-utils";
 import Layout from "./Layout.astro";
 
 import "@/styles/markdown.css";
@@ -36,6 +38,8 @@ interface Props {
 	};
 	/** 是否显示三栏侧边栏布局，仅在特定页面（如动态）启用 */
 	showSidebar?: boolean;
+	contentWidth?: "default" | "wide" | "article";
+	sidebarVariant?: SidebarVariant;
 }
 
 const {
@@ -49,9 +53,13 @@ const {
 	catalogGroups,
 	bannerPostMeta: _bannerPostMeta,
 	showSidebar = false,
+	contentWidth: requestedContentWidth,
+	sidebarVariant = "default",
 } = Astro.props;
 
 const isPostPage = !!postSlug;
+const contentWidth =
+	requestedContentWidth ?? (isPostPage ? "article" : "default");
 const shouldRenderCategoryBar = !!siteConfig.categoryBar;
 const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
@@ -61,7 +69,7 @@ const sidebarPosition = sidebarLayoutConfig.position; // "left" | "right" | "bot
 const showBothOnPost = sidebarLayoutConfig.showBothSidebarsOnPostPage;
 
 // 判断当前页面应该显示哪侧侧边栏
-let dataSidebarPosition: string = "none";
+let dataSidebarPosition = "none";
 if (sidebarEnabled) {
 	if (sidebarPosition === "both") {
 		dataSidebarPosition = "both";
@@ -72,7 +80,7 @@ if (sidebarEnabled) {
 	}
 }
 
-const navLinks = navBarConfig.links.map((item) => {
+const navLinks = createNavigation(siteConfig.pages).links.map((item) => {
 	if (typeof item === "number") return LinkPresets[item];
 	return item;
 });
@@ -99,19 +107,19 @@ const navLinks = navBarConfig.links.map((item) => {
 <NavMenuPanel links={navLinks} />
 
 {/* 主内容容器 — Firefly 三栏网格布局 */}
-<div class="relative w-full" id="main-grid-wrapper">
-	<div class="mx-auto px-4 md:px-6" data-sidebar-position={dataSidebarPosition} id="main-grid">
+<div class="relative w-full" id="main-grid-wrapper" data-has-sidebar={sidebarEnabled ? "true" : "false"}>
+	<div class="mx-auto px-4 md:px-6" data-sidebar-position={dataSidebarPosition} data-tablet-sidebar={sidebarLayoutConfig.tabletSidebar ?? "left"} data-content-width={contentWidth} id="main-grid">
 		{/* 左侧栏 */}
 		<div id="left-sidebar-dynamic" class="transition-swup-main">
 			{(dataSidebarPosition === "both" || dataSidebarPosition === "left") && (
-				<Sidebar side="left" isPostPage={isPostPage} />
+				<Sidebar side="left" isPostPage={isPostPage} variant={sidebarVariant} />
 			)}
 		</div>
 
 		{/* 右侧栏 */}
 		<div id="right-sidebar-dynamic" class="transition-swup-main">
 			{(dataSidebarPosition === "both" || dataSidebarPosition === "right") && (
-				<Sidebar side="right" isPostPage={isPostPage} />
+				<Sidebar side="right" isPostPage={isPostPage} variant={sidebarVariant} />
 			)}
 		</div>
 
@@ -120,7 +128,7 @@ const navLinks = navBarConfig.links.map((item) => {
 				<ArticleCatalog groups={catalogGroups} currentPostId={postSlug || ""} />
 			)}
 			{isPostPage && (
-				<div id="article-toc-wrapper" class="article-toc-wrapper catalog-fade-in hidden xl:block">
+				<div id="article-toc-wrapper" class="article-toc-wrapper catalog-fade-in">
 					<div id="article-toc-container" class="article-toc-container">
 						<div class="article-toc-header">
 							<span class="article-toc-title">{i18n(I18nKey.tableOfContents)}</span>
@@ -137,6 +145,9 @@ const navLinks = navBarConfig.links.map((item) => {
 			<div id="content-wrapper" class="onload-animation">
 				<slot></slot>
 			</div>
+			{sidebarEnabled && (
+				<Sidebar side="mobile" isPostPage={isPostPage} variant={sidebarVariant} />
+			)}
 			<div class="footer onload-animation mt-16 pt-8 border-t">
 				<Footer></Footer>
 			</div>

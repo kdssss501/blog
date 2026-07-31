@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: original anime character production turnaround sheet for Live2D planning
+Input images: Image 1 is the approved Xiao Ai identity anchor. Preserve her identity, mature anatomy, hairstyle, outfit construction, palette, seams, straps, hardware and shoes exactly.
+Primary request: Create a clean professional turnaround sheet of the exact same adult woman Xiao Ai. Show exactly three complete full-body views: front, strict side profile, and back. All three views stand upright in the same neutral pose, at the same scale, aligned on one baseline, with arms slightly away from the torso and hands relaxed and fully visible.
+Scene/backdrop: flat light neutral-gray studio sheet, no environment, no floor perspective, no cast shadows.
+Style/medium: crisp high-resolution anime production model sheet, controlled linework and flat readable material shading.
+Composition/framing: horizontal 4:3 sheet, three evenly spaced orthographic-feeling full-body views, head-to-toe visible with generous margins.
+Constraints: exactly three figures; same person and costume in every view; mature 24-28-year-old proportions; consistent face, bun, side locks, coat lengths, accessory locations and color accents; anatomically coherent hands and feet; no prose labels, no logos, no watermark.
+Avoid: extra figures, expression rows, action poses, childlike body, chibi, loli, perspective distortion, costume drift, mismatched colors, cropped feet, hidden hands, crossed limbs, extra fingers, extra limbs, glow, fog, UI decoration.

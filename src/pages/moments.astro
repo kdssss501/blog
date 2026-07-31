@@ -1,0 +1,17 @@
+---
+import { siteConfig } from "@/config";
+import { ActivityDirectory } from "@/features/activity";
+import { getObsidianActivities } from "@/features/activity/server";
+import { RuntimeContentShelf } from "@/features/writing";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.activity) return Astro.redirect("/404/");
+const title = "动态";
+const description = "记录生活中的点点滴滴。";
+const initialItems = await getObsidianActivities();
+---
+
+<MainGridLayout {title} {description} showSidebar={true} sidebarVariant="social">
+	<ActivityDirectory {title} {description} {initialItems} />
+	<RuntimeContentShelf kind="moment" />
+</MainGridLayout>

@@ -1,0 +1,152 @@
+{
+  "source": "C:/Users/41462/Desktop/blog/public/assets/videos/artoria-original.mp4",
+  "duration": 13.546333,
+  "width": 1920,
+  "height": 1080,
+  "frames": [
+    {
+      "time": 0.05,
+      "scene": "金色草原，蓝裙铠甲，双手持剑",
+      "caption": "风从很远的地方来，替她擦亮了剑锋。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-01-0_05.png"
+    },
+    {
+      "time": 0.65,
+      "scene": "金色草原，蓝裙铠甲，持剑静立",
+      "caption": "她把沉默握在手中，像握住一场未醒的黎明。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-02-0_65.png"
+    },
+    {
+      "time": 1.25,
+      "scene": "金色草原被白色光幕切过",
+      "caption": "光穿过旧日，留下一个尚未说完的名字。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-03-1_25.png"
+    },
+    {
+      "time": 1.8,
+      "scene": "纯白背景，蓝裙阿尔托莉雅侧身",
+      "caption": "当世界褪成纯白，她仍沿着誓言前行。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-04-1_80.png"
+    },
+    {
+      "time": 2.35,
+      "scene": "纯白背景，蓝裙阿尔托莉雅抬手",
+      "caption": "没有掌声的时刻，也值得郑重地站立。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-05-2_35.png"
+    },
+    {
+      "time": 2.9,
+      "scene": "纯白背景，蓝裙阿尔托莉雅前行",
+      "caption": "每一次回身，都是命运重新落笔。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-06-2_90.png"
+    },
+    {
+      "time": 3.45,
+      "scene": "纯白背景，蓝裙阿尔托莉雅迈步",
+      "caption": "她学会在迟疑之前，先迈出一步。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-07-3_45.png"
+    },
+    {
+      "time": 4,
+      "scene": "纯白背景，蓝裙阿尔托莉雅奔跑",
+      "caption": "风追上裙摆，时间却被留在身后。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-08-4_00.png"
+    },
+    {
+      "time": 4.55,
+      "scene": "纯白背景，蓝裙阿尔托莉雅背身张开双臂",
+      "caption": "背对人群时，心仍朝着那束光。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-09-4_55.png"
+    },
+    {
+      "time": 4.72,
+      "scene": "Fate Zero 黑西装造型与蓝色战斗背景",
+      "caption": "同一把剑，也曾映照过不同的夜。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-10-4_72.png"
+    },
+    {
+      "time": 5.05,
+      "scene": "UBW 白裙造型与室内战斗背景",
+      "caption": "火焰记得她的名字，城市记得她的影子。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-11-5_05.png"
+    },
+    {
+      "time": 5.22,
+      "scene": "Heaven's Feel 黑裙造型与暗红月夜背景",
+      "caption": "有些告别，不在终点，而在选择发生的那一刻。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-12-5_22.png"
+    },
+    {
+      "time": 5.55,
+      "scene": "FGO 王座蓝白铠甲与宫殿",
+      "caption": "王座很高，高不过她不肯低下的目光。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-13-5_55.png"
+    },
+    {
+      "time": 5.72,
+      "scene": "FGO 夏日泳装与海滩群像",
+      "caption": "偶尔也让海风，把战争吹得远一些。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-14-5_72.png"
+    },
+    {
+      "time": 6.05,
+      "scene": "FGO 花环白裙造型与浅色花朵背景",
+      "caption": "花环不是冠冕，只是春天短暂的拥抱。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-15-6_05.png"
+    },
+    {
+      "time": 6.22,
+      "scene": "FGO 冬装与冬日群像",
+      "caption": "冬雪落下时，愿旧伤终于有了温度。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-16-6_22.png"
+    },
+    {
+      "time": 6.55,
+      "scene": "FGO 宇宙制服与星空背景",
+      "caption": "星海辽阔，仍装得下一颗固执的心。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-17-6_55.png"
+    },
+    {
+      "time": 6.72,
+      "scene": "店内便装与商店背景",
+      "caption": "人间的橱窗亮起，她也只是路过寻常的一天。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-18-6_72.png"
+    },
+    {
+      "time": 7.05,
+      "scene": "纯白背景，便装阿尔托莉雅奔跑",
+      "caption": "褪下盔甲以后，脚步仍知道归途。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-19-7_05.png"
+    },
+    {
+      "time": 7.55,
+      "scene": "金色草原，浅色连衣裙奔跑",
+      "caption": "黄昏替她换上白裙，也替往事按下静音。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-20-7_55.png"
+    },
+    {
+      "time": 8.1,
+      "scene": "蓝天草原，浅色连衣裙站立",
+      "caption": "她从光里走来，不问故事是否有人记得。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-21-8_10.png"
+    },
+    {
+      "time": 8.65,
+      "scene": "蓝天草原，浅色连衣裙前行",
+      "caption": "原野没有挽留，风却一直跟随。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-22-8_65.png"
+    },
+    {
+      "time": 9.2,
+      "scene": "蓝天草原，人物走出画面",
+      "caption": "直到身影走远，春天才慢慢合上眼睛。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-23-9_20.png"
+    },
+    {
+      "time": 9.82,
+      "scene": "空无一人的蓝天草原",
+      "caption": "最后留在画面里的，是她曾经来过的风。",
+      "referenceFile": "C:\\Users\\41462\\.codex\\visualizations\\2026\\07\\25\\019f98f1-39c9-7aa2-82bc-bef568588ab4\\artoria-cinematic-v2\\references\\ref-24-9_82.png"
+    }
+  ]
+}

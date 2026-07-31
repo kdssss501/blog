@@ -8,7 +8,8 @@
  *
  * 环境变量（在 .env 中配置）：
  *   必填：CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
- *   可选（第三方 embedding API）：AI_API_KEY
+ *   Embedding 使用上述 Cloudflare 凭据调用 Workers AI。
+ *   DeepSeek 的 AI_API_KEY 只用于聊天，不用于生成向量。
  *
  * 非敏感配置统一从 src/config/aiSearchConfig.ts 读取
  */
@@ -17,8 +18,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import matter from "gray-matter";
 import { glob } from "glob";
+import matter from "gray-matter";
 
 // ── 加载配置文件 ──────────────────────────────────────
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,7 +29,9 @@ let aiConfig;
 try {
 	const configContent = fs.readFileSync(configPath, "utf-8");
 	// 简单解析导出对象（避免引入 TS 编译器）
-	const match = configContent.match(/export\s+const\s+aiSearchConfig\s*=\s*(\{[\s\S]*?\n\});/);
+	const match = configContent.match(
+		/export\s+const\s+aiSearchConfig\s*=\s*(\{[\s\S]*?\n\});/,
+	);
 	if (!match) throw new Error("无法解析 aiSearchConfig");
 	// 使用 Function 构造器安全解析对象字面量
 	aiConfig = new Function(`return ${match[1]}`)();
@@ -64,15 +67,14 @@ const BATCH_SIZE = aiConfig.batchSize;
 const EMBED_BATCH_SIZE = aiConfig.embedBatchSize;
 const MANIFEST_PATH = path.resolve(process.cwd(), ".vectorize-manifest.json");
 
-// 判断是否使用第三方 embedding API（API_KEY 为敏感信息，从环境变量读取）
-const useThirdParty = !!(aiConfig.apiUrl && process.env.AI_API_KEY && aiConfig.embeddingModel);
-
 // Cloudflare 配置（上传向量始终需要）
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 
 if (!API_TOKEN || !ACCOUNT_ID) {
-	console.error("❌ 缺少 CLOUDFLARE_API_TOKEN 或 CLOUDFLARE_ACCOUNT_ID，请在 .env 中配置");
+	console.error(
+		"❌ 缺少 CLOUDFLARE_API_TOKEN 或 CLOUDFLARE_ACCOUNT_ID，请在 .env 中配置",
+	);
 	process.exit(1);
 }
 
@@ -98,7 +100,9 @@ function contentHash(text) {
 // ── 读取并切段 ────────────────────────────────────────
 
 async function loadPosts() {
-	const files = await glob("src/content/posts/**/*.{md,mdx}", { cwd: process.cwd() });
+	const files = await glob("src/content/posts/**/*.{md,mdx}", {
+		cwd: process.cwd(),
+	});
 	const posts = [];
 
 	for (const file of files) {
@@ -137,7 +141,10 @@ function splitByHeadings(content, articleTitle) {
 	function flush() {
 		const text = currentContent.join("\n").trim();
 		if (text.length < 50) return;
-		chunks.push({ heading: currentHeadingPath.join(" > ") || articleTitle, text });
+		chunks.push({
+			heading: currentHeadingPath.join(" > ") || articleTitle,
+			text,
+		});
 	}
 
 	for (const line of lines) {
@@ -168,10 +175,16 @@ function buildChunksForPost(post) {
 			`章节：${section.heading}`,
 			"",
 			section.text,
-		].filter(Boolean).join("\n");
+		]
+			.filter(Boolean)
+			.join("\n");
 
 		return {
-			id: crypto.createHash("sha256").update(`${post.slug}::${section.heading}`).digest("hex").slice(0, 16),
+			id: crypto
+				.createHash("sha256")
+				.update(`${post.slug}::${section.heading}`)
+				.digest("hex")
+				.slice(0, 16),
 			slug: post.slug,
 			text: chunkText,
 			metadata: {
@@ -190,60 +203,56 @@ function buildChunksForPost(post) {
 // ── Embedding ────────────────────────────────────────
 
 async function generateEmbeddings(texts) {
-	if (useThirdParty) {
-		const baseUrl = aiConfig.apiUrl.replace(/\/+$/, "").replace(/\/chat\/completions$/, "").replace(/\/v1$/, "");
-		const body = JSON.stringify({
-			model: aiConfig.embeddingModel,
-			input: texts,
-			dimensions: VECTORIZE_DIM,
-			encoding_format: "float",
-		});
-		const res = await fetch(`${baseUrl}/v1/embeddings`, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${process.env.AI_API_KEY}`,
-				"Content-Type": "application/json; charset=utf-8",
-			},
-			body: Buffer.from(body, "utf-8"),
-		});
-		if (!res.ok) throw new Error(`Embedding API ${res.status}: ${await res.text()}`);
-		const data = await res.json();
-		return data.data.map((d) => d.embedding);
-	}
-
 	// Cloudflare Workers AI
 	const res = await fetch(`${API_BASE}/ai/run/@cf/baai/bge-large-en-v1.5`, {
 		method: "POST",
-		headers: { Authorization: `Bearer ${API_TOKEN}`, "Content-Type": "application/json" },
+		headers: {
+			Authorization: `Bearer ${API_TOKEN}`,
+			"Content-Type": "application/json",
+		},
 		body: JSON.stringify({ text: texts }),
 	});
-	if (!res.ok) throw new Error(`Cloudflare AI ${res.status}: ${await res.text()}`);
+	if (!res.ok)
+		throw new Error(`Cloudflare AI ${res.status}: ${await res.text()}`);
 	return (await res.json()).result.data;
 }
 
 // ── Vectorize 操作 ────────────────────────────────────
 
 async function insertVectors(vectors) {
-	const res = await fetch(`${API_BASE}/vectorize/v2/indexes/${INDEX_NAME}/insert`, {
-		method: "POST",
-		headers: { Authorization: `Bearer ${API_TOKEN}`, "Content-Type": "application/json" },
-		body: JSON.stringify({ vectors }),
-	});
-	if (!res.ok) throw new Error(`Vectorize insert ${res.status}: ${await res.text()}`);
+	const res = await fetch(
+		`${API_BASE}/vectorize/v2/indexes/${INDEX_NAME}/insert`,
+		{
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${API_TOKEN}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ vectors }),
+		},
+	);
+	if (!res.ok)
+		throw new Error(`Vectorize insert ${res.status}: ${await res.text()}`);
 	return res.json();
 }
 
 async function deleteVectorsByIds(ids) {
 	for (let i = 0; i < ids.length; i += 1000) {
 		const batch = ids.slice(i, i + 1000);
-		const res = await fetch(`${API_BASE}/vectorize/v2/indexes/${INDEX_NAME}/delete-by-ids`, {
-			method: "POST",
-			headers: { Authorization: `Bearer ${API_TOKEN}`, "Content-Type": "application/json" },
-			body: JSON.stringify({ ids: batch }),
-		});
+		const res = await fetch(
+			`${API_BASE}/vectorize/v2/indexes/${INDEX_NAME}/delete-by-ids`,
+			{
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${API_TOKEN}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ids: batch }),
+			},
+		);
 		if (!res.ok) {
 			if (res.status === 404) {
-				console.warn(`⚠️ Vectorize 索引不存在或已删除，跳过删除操作`);
+				console.warn("⚠️ Vectorize 索引不存在或已删除，跳过删除操作");
 				return;
 			}
 			throw new Error(`Vectorize delete ${res.status}: ${await res.text()}`);
@@ -262,8 +271,14 @@ async function deleteIndex() {
 async function createIndex() {
 	const res = await fetch(`${API_BASE}/vectorize/v2/indexes`, {
 		method: "POST",
-		headers: { Authorization: `Bearer ${API_TOKEN}`, "Content-Type": "application/json" },
-		body: JSON.stringify({ name: INDEX_NAME, config: { dimensions: VECTORIZE_DIM, metric: "cosine" } }),
+		headers: {
+			Authorization: `Bearer ${API_TOKEN}`,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			name: INDEX_NAME,
+			config: { dimensions: VECTORIZE_DIM, metric: "cosine" },
+		}),
 	});
 	if (!res.ok) {
 		const text = await res.text();
@@ -296,7 +311,10 @@ async function syncChunks(chunks) {
 				});
 			}
 
-			if (buffer.length >= BATCH_SIZE || i + EMBED_BATCH_SIZE >= chunks.length) {
+			if (
+				buffer.length >= BATCH_SIZE ||
+				i + EMBED_BATCH_SIZE >= chunks.length
+			) {
 				for (let j = 0; j < buffer.length; j += BATCH_SIZE) {
 					const subBatch = buffer.slice(j, j + BATCH_SIZE);
 					const upStart = uploaded + 1;
@@ -338,7 +356,10 @@ async function main() {
 
 		const newManifest = {};
 		for (const post of posts) {
-			newManifest[post.slug] = { hash: post.hash, chunkIds: buildChunksForPost(post).map((c) => c.id) };
+			newManifest[post.slug] = {
+				hash: post.hash,
+				chunkIds: buildChunksForPost(post).map((c) => c.id),
+			};
 		}
 		saveManifest(newManifest);
 		console.log(`全量重建完成，共上传 ${processed} 个向量`);
@@ -350,7 +371,9 @@ async function main() {
 	const manifestSlugs = new Set(Object.keys(manifest));
 
 	const added = posts.filter((p) => !manifestSlugs.has(p.slug));
-	const changed = posts.filter((p) => manifestSlugs.has(p.slug) && manifest[p.slug].hash !== p.hash);
+	const changed = posts.filter(
+		(p) => manifestSlugs.has(p.slug) && manifest[p.slug].hash !== p.hash,
+	);
 	const deleted = [...manifestSlugs].filter((s) => !currentSlugs.has(s));
 
 	if (added.length === 0 && changed.length === 0 && deleted.length === 0) {
@@ -371,12 +394,17 @@ async function main() {
 
 	const toProcess = [...added, ...changed];
 	if (toProcess.length > 0) {
-		const chunkMap = new Map(toProcess.map((p) => [p.slug, buildChunksForPost(p)]));
+		const chunkMap = new Map(
+			toProcess.map((p) => [p.slug, buildChunksForPost(p)]),
+		);
 		const newChunks = [...chunkMap.values()].flat();
 		const processed = await syncChunks(newChunks);
 
 		for (const post of toProcess) {
-			manifest[post.slug] = { hash: post.hash, chunkIds: chunkMap.get(post.slug).map((c) => c.id) };
+			manifest[post.slug] = {
+				hash: post.hash,
+				chunkIds: chunkMap.get(post.slug).map((c) => c.id),
+			};
 		}
 		console.log(`增量更新完成，新增/更新 ${processed} 个向量`);
 	}
@@ -384,4 +412,7 @@ async function main() {
 	saveManifest(manifest);
 }
 
-main().catch((err) => { console.error("❌ 构建失败:", err); process.exit(1); });
+main().catch((err) => {
+	console.error("❌ 构建失败:", err);
+	process.exit(1);
+});

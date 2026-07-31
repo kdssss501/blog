@@ -1,0 +1,70 @@
+---
+import PageTitle from "@/components/common/PageTitle.astro";
+---
+
+<notebook-admin class="notebook-admin-page">
+	<header class="notebook-admin-page__header">
+		<PageTitle title="笔记本管理" eyebrow="Notebook Admin" />
+	</header>
+
+	<section class="notebook-admin-login" data-notebook-admin-login-panel>
+		<h2>管理认证</h2>
+		<label for="notebook-admin-token">管理 Token</label>
+		<input id="notebook-admin-token" data-notebook-admin-token type="password" autocomplete="current-password" maxlength="256" />
+		<button data-notebook-admin-login type="button" class="notebook-admin-btn notebook-admin-btn--primary">登录</button>
+		<p data-notebook-admin-login-error class="notebook-admin-error" role="alert"></p>
+	</section>
+
+	<div class="notebook-admin-layout" data-notebook-admin-panel hidden>
+		<section class="notebook-admin-panel notebook-admin-panel--selector">
+			<div class="notebook-admin-heading">
+				<h2>笔记本</h2>
+				<button data-notebook-admin-new-book type="button" class="notebook-admin-btn">新建</button>
+			</div>
+			<div data-notebook-admin-selector class="notebook-admin-filters"></div>
+			<div class="notebook-admin-heading">
+				<h2>已有笔记</h2>
+				<button data-notebook-admin-new-entry type="button" class="notebook-admin-btn">新建笔记</button>
+			</div>
+			<div data-notebook-admin-list class="notebook-admin-list"></div>
+		</section>
+
+		<section class="notebook-admin-panel notebook-admin-editor" data-notebook-admin-editor>
+			<h2>笔记编辑器</h2>
+			<div class="notebook-admin-fields">
+				<label>标题<input data-notebook-admin-title type="text" maxlength="100" /></label>
+				<div class="notebook-admin-field-row">
+					<label>日期<input data-notebook-admin-date type="date" /></label>
+					<label>笔记本<input data-notebook-admin-notebook type="text" maxlength="30" /></label>
+				</div>
+				<label>正文<textarea data-notebook-admin-content rows="14"></textarea></label>
+			</div>
+
+			<div class="notebook-admin-cover-tools">
+				<div class="notebook-admin-heading">
+					<h3>封面</h3>
+					<label class="notebook-admin-file-btn">上传图片<input data-notebook-admin-file type="file" accept="image/*" /></label>
+					<button data-notebook-admin-clear-cover type="button" class="notebook-admin-btn">清除</button>
+				</div>
+				<div data-notebook-admin-cover-preview class="notebook-admin-cover-preview" data-empty="true"></div>
+				<div data-notebook-admin-gallery class="notebook-admin-cover-gallery"></div>
+			</div>
+
+			<section class="notebook-admin-preview">
+				<h3>预览</h3>
+				<div data-notebook-admin-preview class="custom-md"></div>
+			</section>
+
+			<div class="notebook-admin-actions">
+				<button data-notebook-admin-save type="button" class="notebook-admin-btn notebook-admin-btn--primary">保存笔记</button>
+				<button data-notebook-admin-delete type="button" class="notebook-admin-btn notebook-admin-btn--danger" hidden>删除</button>
+				<button data-notebook-admin-cancel type="button" class="notebook-admin-btn">取消</button>
+			</div>
+			<p data-notebook-admin-message class="notebook-admin-message" role="status"></p>
+		</section>
+	</div>
+</notebook-admin>
+
+<script>
+	import "../client/notebook-admin";
+</script>

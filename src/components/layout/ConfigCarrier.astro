@@ -1,10 +1,20 @@
 ---
-import { siteConfig } from "@/config";
+import { siteConfig, wallpaperConfig } from "@/config";
+
+const wallpaperCarouselImages = wallpaperConfig.slides.map(
+	(slide) => slide.src,
+);
 ---
 
 <!-- 全局配置载体 -->
 <div
   id="config-carrier"
   data-hue={siteConfig.themeColor.hue}
+	data-post-layout={siteConfig.postListLayout.defaultMode}
+	data-post-layout-switch={String(siteConfig.postListLayout.allowSwitch)}
+	data-post-grid-columns={String(siteConfig.postListLayout.grid.columns)}
+	data-background-image={wallpaperCarouselImages[0]}
+	data-background-image-mobile={wallpaperCarouselImages[0]}
+	data-wallpaper-carousel={JSON.stringify(wallpaperCarouselImages)}
 >
 </div>

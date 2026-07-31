@@ -1,0 +1,29 @@
+---
+import Icon from "@components/common/Icon.astro";
+
+interface Props {
+	page: number;
+	totalPages: number;
+}
+
+const { page, totalPages } = Astro.props;
+const pageUrl = (value: number) =>
+	value <= 1 ? "/posts/" : `/posts/${value}/`;
+---
+
+{totalPages > 1 && (
+	<nav class="post-route-pagination" aria-label="文章分页">
+		<a href={pageUrl(page - 1)} aria-disabled={page === 1} aria-label="上一页"><Icon name="material-symbols:chevron-left-rounded" /></a>
+		{Array.from({ length: totalPages }, (_, index) => index + 1).map((value) => (
+			<a href={pageUrl(value)} class:list={{ "is-active": value === page }} aria-current={value === page ? "page" : undefined}>{value}</a>
+		))}
+		<a href={pageUrl(page + 1)} aria-disabled={page === totalPages} aria-label="下一页"><Icon name="material-symbols:chevron-right-rounded" /></a>
+	</nav>
+)}
+
+<style>
+	.post-route-pagination { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.4rem; margin-top:1.5rem; }
+	.post-route-pagination a { display:grid; width:2.5rem; height:2.5rem; place-items:center; border:1px solid var(--line-divider); border-radius:.5rem; background:var(--card-bg); color:var(--deep-text); text-decoration:none; }
+	.post-route-pagination a:hover,.post-route-pagination a.is-active { border-color:var(--deep-text); background:var(--deep-text); color:var(--page-bg); }
+	.post-route-pagination a[aria-disabled="true"] { pointer-events:none; opacity:.35; }
+</style>

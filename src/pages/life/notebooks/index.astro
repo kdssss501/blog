@@ -1,0 +1,17 @@
+---
+import { siteConfig } from "@/config";
+import { NotebookDirectory } from "@/features/notebook";
+import { getObsidianNotebookEntries } from "@/features/notebook/server";
+import { RuntimeContentShelf } from "@/features/writing";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.notebook) return Astro.redirect("/404/");
+const title = "笔记本";
+const description = "记录生活与学习的点滴，按笔记本分类整理。";
+const initialEntries = await getObsidianNotebookEntries();
+---
+
+<MainGridLayout {title} {description} showSidebar={true} sidebarVariant="social">
+	<NotebookDirectory {title} {description} {initialEntries} />
+	<RuntimeContentShelf kind="notebook" />
+</MainGridLayout>

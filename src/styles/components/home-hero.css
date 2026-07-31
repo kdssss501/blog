@@ -33,12 +33,16 @@ html:has(.home-hero) #top-row {
 	right: 0;
 }
 
+html:has(.home-hero) #main-grid {
+	margin-top: 0;
+}
+
 /* 背景图黑色遮罩（默认常驻，亮/暗主题均生效） */
 .home-hero::after {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.45);
+	background: rgba(0, 0, 0, 0.25);
 	z-index: 1;
 	pointer-events: none;
 	opacity: 1;
@@ -63,6 +67,7 @@ html:has(.home-hero) #top-row {
 	height: 100%;
 	object-fit: cover;
 	z-index: 0;
+	filter: brightness(1.12) saturate(1.18) contrast(1.03);
 }
 
 /* ---------- 玻璃雨珠 + 撞击水花画布 ---------- */
@@ -86,6 +91,54 @@ html:has(.home-hero) #top-row {
 	grid-template-columns: 87% 13%;
 	z-index: 10;
 	overflow: hidden;
+}
+
+/* Hero 角色使用透明图片；外层承担受限鼠标跟随，图片自身保留轻微待机浮动。 */
+.home-hero__character-duo {
+	--home-character-follow-x: 0px;
+	--home-character-follow-y: 0px;
+	position: absolute;
+	right: clamp(3.5rem, 4.25vw, 5rem);
+	bottom: clamp(5rem, 11vh, 7rem);
+	z-index: 14;
+	width: clamp(22.6667rem, 26vw, 29.3333rem);
+	max-width: calc(100vw - 2rem);
+	pointer-events: none;
+	user-select: none;
+	translate: var(--home-character-follow-x) var(--home-character-follow-y);
+	filter: drop-shadow(0 1rem 1.35rem rgb(8 12 24 / 32%));
+	will-change: translate, transform, filter;
+	animation: home-character-enter 1.15s cubic-bezier(0.16, 1, 0.3, 1) 1.1s both;
+}
+
+.home-hero__character-duo img {
+	display: block;
+	width: 100%;
+	height: auto;
+	opacity: 0.82;
+	filter: none;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+	transform-origin: 50% 100%;
+	animation: home-character-idle 5.2s ease-in-out 2.25s infinite;
+}
+
+@keyframes home-character-enter {
+	from {
+		opacity: 0;
+		transform: translateY(3.5rem) scale(0.92);
+		filter: blur(0.5rem) drop-shadow(0 1rem 1.35rem rgb(8 12 24 / 0%));
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		filter: blur(0) drop-shadow(0 1rem 1.35rem rgb(8 12 24 / 32%));
+	}
+}
+
+@keyframes home-character-idle {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-0.4rem); }
 }
 
 /* ---------- 外四角取景框 ---------- */
@@ -274,7 +327,7 @@ html:has(.home-hero) #top-row {
 	border-radius: 50%;
 	overflow: hidden;
 	outline: 3px solid #D44E7D;
-	background: #ffffff;
+	background: transparent;
 	box-shadow: 0 10px 0 #D44E7D, 0 18px 38px rgba(0, 0, 0, 0.48);
 	flex-shrink: 0;
 }
@@ -286,9 +339,16 @@ html:has(.home-hero) #top-row {
 }
 
 .home-hero__avatar {
+	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	object-position: center;
+	transition: scale 280ms ease;
+}
+
+.home-hero__avatar-wrapper:hover .home-hero__avatar {
+	scale: 1.035;
 }
 
 .home-hero__status-badge {
@@ -369,19 +429,32 @@ html:has(.home-hero) #top-row {
 	padding-bottom: 0.12em;
 }
 
-.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+1) { color: #FF5252; }
-.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+2) { color: #FF9800; }
-.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+3) { color: #FFEB3B; }
-.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+4) { color: #4CAF50; }
-.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+5) { color: #00BCD4; }
-.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+6) { color: #2196F3; }
-.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+7) { color: #9C27B0; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+1) { --hero-title-color: #FF5252; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+2) { --hero-title-color: #FF9800; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+3) { --hero-title-color: #FFEB3B; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+4) { --hero-title-color: #4CAF50; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+5) { --hero-title-color: #00BCD4; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+6) { --hero-title-color: #2196F3; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7n+7) { --hero-title-color: #9C27B0; }
 
 .home-hero__name-letter {
+	--hero-title-color: #ffffff;
 	display: inline-block;
 	min-height: 1em;
+	background: none;
+	color: var(--hero-title-color);
+	-webkit-text-fill-color: currentColor;
+	filter: drop-shadow(0 4px 8px rgb(0 0 0 / 48%));
 	vertical-align: bottom;
 	will-change: transform, opacity;
+}
+
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+	.home-hero__name-letter {
+		background: none;
+		color: var(--hero-title-color);
+		-webkit-text-fill-color: currentColor;
+	}
 }
 
 /* 联系徽章 — 白色半透明底 + 黑色文字，轻微上移压在字体下半部 */
@@ -520,16 +593,16 @@ html:has(.home-hero) #top-row {
 /* ---------- 对话框（放大·水平居中·放简介，左对齐，底部定位） ---------- */
 .home-hero__speech {
 	position: absolute;
-	left: 50%;
-	bottom: clamp(5rem, 10vh, 8rem);
+	left: 53.333333%;
+	bottom: 5.375rem;
 	transform: translateX(-50%);
 	z-index: 32;
-	width: min(48rem, 90%);
+	width: min(27.305rem, 90%);
 	pointer-events: none;
 }
 
 .home-hero__speech-inner {
-	padding: clamp(1.2rem, 1.9vw, 1.7rem) clamp(1.4rem, 2.2vw, 1.9rem);
+	padding: 1.26rem 1.25rem;
 	border: 2px solid #000000;
 	border-radius: 8px;
 	background:
@@ -541,7 +614,7 @@ html:has(.home-hero) #top-row {
 		0 3px 0 rgba(0, 0, 0, 0.65),
 		0 22px 54px rgba(0, 0, 0, 0.32);
 	color: rgba(255, 255, 255, 0.86);
-	text-align: left;
+	text-align: center;
 	transform-origin: 50% 100%;
 }
 
@@ -554,7 +627,7 @@ html:has(.home-hero) #top-row {
 	height: auto;
 	object-fit: contain;
 	pointer-events: none;
-	filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.34));
+	filter: drop-shadow(0 0.875rem 1.5rem rgb(0 0 0 / 34%));
 }
 
 .home-hero__speech-text {
@@ -563,11 +636,22 @@ html:has(.home-hero) #top-row {
 	margin: 0;
 	text-shadow: none;
 	color: rgba(255, 255, 255, 0.9);
-	font-size: clamp(1.15rem, 1.6vw, 1.6rem);
+	font-size: 1.25rem;
 	font-weight: 950;
 	letter-spacing: 0.08em;
 	line-height: 1.35;
-	text-align: left;
+	text-align: center;
+}
+
+.home-hero__speech-subtitle {
+	position: relative;
+	z-index: 1;
+	margin: 0.2rem 0 0;
+	color: rgba(255, 255, 255, 0.62);
+	font-size: 0.65rem;
+	font-weight: 800;
+	line-height: 1.2;
+	text-align: center;
 }
 
 .home-hero__speech-char {
@@ -588,6 +672,10 @@ html:has(.home-hero) #top-row {
 [data-theme="light"] .home-hero__speech-text {
 	color: rgba(0, 0, 0, 0.72);
 	text-shadow: none;
+}
+
+[data-theme="light"] .home-hero__speech-subtitle {
+	color: rgba(0, 0, 0, 0.5);
 }
 
 /* ---------- 右侧面板 ---------- */
@@ -816,5 +904,232 @@ html:has(.home-hero) #top-row {
 @media (min-width: 769px) and (max-width: 1024px) {
 	.home-hero__canvas-container {
 		grid-template-columns: 88% 12%;
+	}
+}
+
+/* fqzlr 首屏构图：大标题是主视觉，头像不与标题争夺焦点。 */
+.home-hero__left-panel {
+	--hero-name-size: 9.875rem;
+	justify-content: flex-start;
+	padding-top: 16.71875rem;
+	padding-left: 15.25rem;
+}
+
+.home-hero__profile,
+.home-hero__identity-row {
+	width: min(33.5rem, 100%);
+	max-width: 100%;
+}
+
+.home-hero__profile {
+	transform: none;
+}
+
+.home-hero__identity-row {
+	align-items: flex-start;
+}
+
+.home-hero__avatar-group {
+	--identity-avatar-size: clamp(8.5rem, 9.5vw, 9.5rem);
+	position: absolute;
+	top: calc(18.765625rem + var(--hero-name-size) - var(--identity-avatar-size));
+	left: clamp(66.75rem, 56vw, 70rem);
+	z-index: 22;
+	display: block;
+	width: var(--identity-avatar-size);
+	margin: 0;
+	filter: drop-shadow(0 1rem 1.5rem rgb(0 0 0 / 32%));
+}
+
+.home-hero__avatar-group .home-hero__avatar-wrapper {
+	border: 0;
+	outline: 3px solid color-mix(in srgb, var(--primary) 78%, #fff);
+	background: transparent;
+	box-shadow:
+		0 0 0 3px rgb(0 0 0 / 72%),
+		0 0.8rem 1.6rem rgb(0 0 0 / 38%);
+}
+
+.home-hero__avatar-group .home-hero__status-badge {
+	bottom: -1.32rem;
+	min-width: 6.35rem;
+	min-height: 2.2rem;
+	padding: 0.4rem 0.86rem;
+	border-width: 3px;
+	font-size: 0.98rem;
+	line-height: 1.05;
+	letter-spacing: 0.04em;
+	box-shadow: 0 3px 0 color-mix(in srgb, var(--primary) 72%, #111);
+}
+
+.home-hero__avatar-group .home-hero__status-dot {
+	width: 0.56rem;
+	height: 0.56rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.home-hero__avatar {
+		animation: none;
+		transition: none;
+		translate: 0;
+		rotate: 0deg;
+		scale: 1;
+	}
+
+	.home-hero__avatar-wrapper:hover .home-hero__avatar {
+		scale: 1;
+	}
+
+	.home-hero__status-dot {
+		animation: none;
+	}
+}
+
+.home-hero__name-group {
+	width: 100%;
+	gap: 0.45rem;
+}
+
+.home-hero__name {
+	color: #fff;
+	font-size: var(--hero-name-size);
+	font-weight: 900;
+	line-height: 1;
+	margin-top: 0;
+	white-space: nowrap;
+	text-shadow: 0 4px 20px rgb(0 0 0 / 45%);
+	transform: scaleX(0.815);
+	transform-origin: left top;
+}
+
+.home-hero__name--rainbow .home-hero__name-letter {
+	text-shadow: 0 4px 20px rgb(0 0 0 / 42%);
+}
+
+.home-hero__occupation {
+	font-size: 1rem;
+}
+
+.home-hero__occupation::before {
+	content: "[";
+}
+
+.home-hero__occupation::after {
+	content: "]";
+}
+
+.home-hero__name-badge {
+	min-width: 11rem;
+	margin-top: 0.75rem;
+	padding: 0.36rem 1rem;
+	background: rgb(255 255 255 / 82%);
+	color: #111;
+	font-size: 0.9rem;
+	letter-spacing: 0;
+}
+
+.home-hero__tagline {
+	margin: 2rem 0 0;
+	color: rgb(255 255 255 / 84%);
+	font-size: 1.15rem;
+	font-weight: 750;
+	text-shadow: 0 3px 12px rgb(0 0 0 / 55%);
+}
+
+@media (min-width: 769px) and (max-width: 1279px) {
+	.home-hero__left-panel {
+		--hero-name-size: clamp(4.6rem, 7vw, 5.8rem);
+		padding-left: clamp(5rem, 10vw, 7rem);
+	}
+
+	.home-hero__name {
+		width: calc(100% / 0.78);
+		font-size: var(--hero-name-size);
+		transform: scaleX(0.78);
+	}
+
+	.home-hero__avatar-group {
+		--identity-avatar-size: clamp(6.5rem, 10vw, 7.5rem);
+		right: auto;
+		left: calc(100% - 1rem);
+	}
+}
+
+@media (max-width: 768px) {
+	.home-hero {
+		left: 50%;
+		width: 100dvw;
+		margin-right: -50dvw;
+		margin-left: -50dvw;
+	}
+
+	.home-hero__left-panel,
+	[data-theme="light"] .home-hero__left-panel {
+		justify-content: center;
+		align-items: flex-start;
+		padding: 0 28px;
+		background: transparent;
+	}
+
+	.home-hero__profile,
+	.home-hero__identity-row,
+	.home-hero__name-group {
+		width: 100%;
+		max-width: 100%;
+		align-items: flex-start;
+		align-self: flex-start;
+		margin-right: 0;
+		margin-left: 0;
+		text-align: left;
+	}
+
+	.home-hero__identity-row {
+		display: block;
+	}
+
+	.home-hero__avatar-group {
+		display: none;
+	}
+
+	.home-hero__name {
+		margin: 0;
+		width: calc(100% / 0.76);
+		font-size: 5.1rem;
+		line-height: 1;
+		transform: scaleX(0.76);
+		transform-origin: left top;
+	}
+
+	.home-hero__occupation {
+		width: auto;
+		margin-bottom: 0.45rem;
+		font-size: 0.78rem;
+		text-align: left;
+	}
+
+	.home-hero__name-badge {
+		min-width: 9.5rem;
+		margin: 0.2rem auto 0;
+		font-size: 0.78rem;
+	}
+
+	.home-hero__tagline {
+		max-width: 17rem;
+		margin-top: 1.815rem;
+		font-size: 0.9rem;
+		white-space: normal;
+	}
+}
+
+@media (max-width: 959px) {
+	.home-hero__character-duo {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.home-hero__character-duo,
+	.home-hero__character-duo img {
+		animation: none;
 	}
 }

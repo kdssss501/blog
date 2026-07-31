@@ -217,9 +217,6 @@ export const en: Translation = {
 	[Key.postEncrypted]: "This post is encrypted",
 
 	// Post List Layout
-	[Key.postListLayout]: "Post List Layout",
-	[Key.postListLayoutList]: "List",
-	[Key.postListLayoutGrid]: "Grid",
 
 	// Sponsor Page
 	[Key.sponsor]: "Sponsor",
@@ -369,34 +366,8 @@ export const en: Translation = {
 	[Key.calendarNearestBirthday]: "Upcoming Birthdays",
 	[Key.calendarNearestSchedule]: "Upcoming Schedules",
 
-	// Treehole
-	[Key.treehole]: "Treehole",
-	[Key.treeholeDescription]:
-		"Anonymous confessions, safe release. No identity here, only voices. Submissions are reviewed before display.",
-	[Key.treeholePlaceholder]: "Leave your thoughts here, no one knows who you are...",
-	[Key.treeholeSubmit]: "Drop in",
-	[Key.treeholeSubmitting]: "Dropping...",
-	[Key.treeholeSubmitted]: "Dropped in",
-	[Key.treeholeSubmittedHint]: "Your confession has been submitted and will appear here after review.",
-	[Key.treeholeEmpty]: "The treehole is quiet. Be the first to confide.",
-	[Key.treeholeLoading]: "Listening to the treehole...",
-	[Key.treeholeLoadMore]: "Listen more",
-	[Key.treeholeResonance]: "Resonate",
-	[Key.treeholeResonated]: "Resonated",
-	[Key.treeholeReply]: "Reply",
-	[Key.treeholeReplyPlaceholder]: "Write a warm reply...",
-	[Key.treeholeReplySubmit]: "Send reply",
-	[Key.treeholeReplies]: "replies",
-	[Key.treeholeAdmin]: "Treehole Admin",
-	[Key.treeholeAdminToken]: "Admin Token",
-	[Key.treeholeAdminLogin]: "Login",
-	[Key.treeholeAdminPending]: "Pending",
-	[Key.treeholeAdminApprove]: "Approve",
-	[Key.treeholeAdminReject]: "Reject",
-	[Key.treeholeAdminEmpty]: "No pending content",
-	[Key.treeholeAdminUnauthorized]: "Token invalid or not set",
-
 	// Notebook
 	[Key.notebook]: "Notebook",
-	[Key.notebookDescription]: "Record bits of life and learning, organized by notebooks.",
+	[Key.notebookDescription]:
+		"Record bits of life and learning, organized by notebooks.",
 };

@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: 16:9 opening cinematic keyframe for a Live2D vampire page
+Input images: Image 1 is the black-form character identity and costume reference; Image 2 is the white-form identity reference. Keep the same face, bangs, pointed ears, red eyes, long black hair, and cross choker.
+Primary request: second shot in the same continuous anime opening, sudden extreme close-up as the black-form vampire turns toward camera, one red eye catching a razor-thin highlight while wind lifts a few hair strands.
+Scene/backdrop: abstracted chapel windows and moonlight streaks moving behind her, shallow depth cues, no new objects.
+Style/medium: original premium Japanese 2D animation key art, sharp cel linework, cinematic color grading, subtle film grain, polished compositing.
+Composition/framing: extreme close-up, face occupies the right two thirds, eye line near upper third, left side carries fast diagonal light streaks and usable negative space.
+Lighting/mood: abrupt crimson eye flare against cold blue-black shadows, tense and elegant rather than violent.
+Constraints: preserve the black-form identity; no text; no title; no logos; no watermark; no chains; no bats; no blood; fill the entire frame.
+Avoid: chibi proportions, photorealism, extra eyes, distorted face, heavy bloom, generic portrait backdrop.

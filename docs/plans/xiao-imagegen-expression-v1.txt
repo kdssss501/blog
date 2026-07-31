@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: expression, phoneme and hand-gesture production sheet for Live2D planning
+Input images: Image 1 is the approved Xiao Ai identity anchor. Preserve her exact adult face, gray-cyan eyes, black high bun, side locks, earrings, outfit materials and restrained cyan-magenta accents.
+Primary request: Create a clean production reference sheet for the exact same adult woman Xiao Ai. Top section: six consistent head-and-shoulder portraits showing neutral, gentle joy, sadness, restrained anger, surprise and thoughtful listening. Middle section: five close face views with clearly distinct mouth shapes for closed, small open, wide open, smiling vowel and rounded vowel while all other facial identity stays unchanged. Bottom section: four isolated forearm-and-hand studies showing relaxed open hand, pointing, greeting wave and attentive listening gesture.
+Scene/backdrop: flat light neutral-gray studio sheet with simple thin divider lines only, no environment and no cast shadows.
+Style/medium: crisp high-resolution anime production model sheet, consistent anatomy and clean separable contours.
+Composition/framing: horizontal 4:3 layout, evenly spaced reference cells, every face and hand fully visible.
+Constraints: preserve Image 1 identity and costume exactly; adult proportions; expression differences are readable but not exaggerated; coherent hands with five fingers; no prose labels, no logos, no watermark.
+Avoid: full-body turnarounds, identity drift, hairstyle drift, costume redesign, childlike face, chibi, sexualized expression, open-mouth anatomy errors, extra teeth, extra fingers, extra hands, glow, fog, busy UI.

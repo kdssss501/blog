@@ -34,6 +34,7 @@ import { remarkPlantuml } from "./src/plugins/remark-plantuml.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 import mdx from "@astrojs/mdx";
 import devApiPlugin from "./scripts/dev-api-plugin.js";
+import vampireLive2dPlugin from "./scripts/vampire-live2d-plugin.js";
 import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
 import rehypeExternalLinks from "./src/plugins/rehype-external-links.mjs";
 import rehypeFigure from "./src/plugins/rehype-figure.mjs";
@@ -50,6 +51,7 @@ export default defineConfig({
 
 	base: "/",
 	trailingSlash: "always",
+	devToolbar: { enabled: false },
 
 	adapter: vercel(),
 
@@ -83,6 +85,14 @@ export default defineConfig({
 			updateBodyClass: true,
 			globalInstance: true,
 			resolveUrl: (url) => url,
+			ignoreVisit: (url, { el } = {}) => {
+				if (el?.closest?.("[data-no-swup]")) return true;
+				if (typeof globalThis.location === "undefined") return false;
+				const isXiaoPath = (pathname) =>
+					pathname === "/live2D" || pathname.startsWith("/live2D/");
+				const target = new URL(url, globalThis.location.href);
+				return isXiaoPath(globalThis.location.pathname) !== isXiaoPath(target.pathname);
+			},
 			animateHistoryBrowsing: false,
 			skipPopStateHandling: (event) => {
 				return event.state?.url?.includes("#");
@@ -239,10 +249,44 @@ export default defineConfig({
 		}),
 	},
 	vite: {
-		plugins: [tailwindcss(), devApiPlugin()],
+		plugins: [tailwindcss(), vampireLive2dPlugin(), devApiPlugin()],
+		optimizeDeps: {
+			// 限制 Vite 的 HTML 入口扫描，避免遍历 GPT-SoVITS 内置的 Gradio、
+			// CMake 与 TensorBoard 页面；应用依赖仍会从 src 入口正常递归发现。
+			entries: ["src/**/*.{astro,html,js,jsx,ts,tsx,svelte}"],
+			include: [
+				"@swup/astro/serialise",
+				"@swup/astro/idle",
+				"@swup/astro/client/Swup",
+				"@swup/astro/client/SwupA11yPlugin",
+				"@swup/astro/client/SwupBodyClassPlugin",
+				"@swup/astro/client/SwupHeadPlugin",
+				"@swup/astro/client/SwupPreloadPlugin",
+				"@swup/astro/client/SwupScriptsPlugin",
+				"@soullink-emotion/engine",
+				"@soullink-emotion/live2d-pixi",
+				"pixi.js",
+				"pixi-live2d-display/cubism4",
+			],
+		},
 		server: {
 			watch: {
-				ignored: ["**/package/**", "**/Firefly-docs/**"],
+				ignored: [
+					"**/.astro/**",
+					"**/.edge-reference-pixel/**",
+					"**/.obsidian/**",
+					"**/.pnpm-store/**",
+					"**/.vite-xiao-shell-cache/**",
+					"**/package/**",
+					"**/Firefly-docs/**",
+					"**/.vercel/**",
+					"**/dist/**",
+					"**/generated-art/**",
+					"**/GPT-SoVITS-v2pro-20250604/**",
+					"**/PixivCrawler/**",
+					"**/test-results/**",
+					"**/吸血鬼女生/**",
+				],
 			},
 			proxy: {
 				"/api/ai-chat": {
@@ -274,7 +318,6 @@ export default defineConfig({
 						if (id.includes("node_modules")) {
 							if (id.includes("katex")) return "vendor-katex";
 							if (id.includes("mermaid")) return "vendor-mermaid";
-							if (id.includes("pixi") || id.includes("live2d")) return "vendor-live2d";
 							if (id.includes("gsap")) return "vendor-gsap";
 						}
 						if (id.includes("AISearch")) return "vendor-ai";

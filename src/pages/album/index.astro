@@ -1,0 +1,17 @@
+---
+import { getCollection } from "astro:content";
+import { siteConfig } from "@/config";
+import { AlbumCollection } from "@/features/gallery";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.album) return Astro.redirect("/404/");
+const title = "相册";
+const description = "记录生活中的美好瞬间。";
+const albums = await getCollection("album", ({ data }) =>
+	import.meta.env.PROD ? data.draft !== true : true,
+);
+---
+
+<MainGridLayout {title} {description} showSidebar={true} sidebarVariant="social">
+	<AlbumCollection {albums} />
+</MainGridLayout>

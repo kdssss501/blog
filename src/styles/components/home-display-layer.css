@@ -5,7 +5,7 @@
 
 .home-display-layer {
 	position: relative;
-	z-index: 4;
+	z-index: 40;
 	width: 100vw;
 	min-height: 100vh;
 	margin-left: calc(50% - 50vw);
@@ -21,6 +21,11 @@
 	display: none;
 }
 
+.home-display-layer[data-shutter-enabled="false"],
+.home-display-layer[data-display-ready="disabled"] {
+	display: none;
+}
+
 .home-display-layer__viewport {
 	position: relative;
 	z-index: 40;
@@ -28,8 +33,65 @@
 	height: 100vh;
 	min-height: 100vh;
 	overflow: hidden;
-	background: var(--page-bg);
+	background: #09090b;
 	isolation: isolate;
+}
+
+.home-display-layer__backdrop {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	display: grid;
+	align-content: center;
+	padding: clamp(2rem, 6vw, 7rem);
+	border-block: 1px solid rgb(255 255 255 / 18%);
+	background: #09090b;
+	color: #f5f5f2;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.home-display-layer__backdrop::after {
+	position: absolute;
+	right: clamp(2rem, 5vw, 6rem);
+	bottom: clamp(1.5rem, 4vw, 4rem);
+	width: min(34vw, 34rem);
+	height: 1px;
+	background: rgb(255 255 255 / 42%);
+	content: "";
+}
+
+.home-display-layer__backdrop p,
+.home-display-layer__backdrop h2,
+.home-display-layer__backdrop span {
+	margin: 0;
+	letter-spacing: 0;
+}
+
+.home-display-layer__backdrop p,
+.home-display-layer__backdrop span {
+	font-size: clamp(0.72rem, 0.85vw, 0.9rem);
+	font-weight: 800;
+}
+
+.home-display-layer__backdrop p {
+	margin-bottom: 1.25rem;
+	color: #b8ff1f;
+}
+
+.home-display-layer__backdrop h2 {
+	max-width: 8ch;
+	font-size: clamp(4rem, 11vw, 12rem);
+	font-weight: 950;
+	line-height: 0.82;
+	text-wrap: balance;
+}
+
+.home-display-layer__backdrop span {
+	position: absolute;
+	right: clamp(2rem, 5vw, 6rem);
+	bottom: clamp(2rem, 4.5vw, 4.75rem);
+	color: rgb(255 255 255 / 62%);
 }
 
 @supports (height: 100dvh) {
@@ -159,8 +221,8 @@
 	will-change: transform, opacity;
 }
 
-/* ===== 移动端：整层隐藏 ===== */
-@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+/* 参考站在移动端与减少动画模式下跳过整段，避免显示已完成的静态终态。 */
+@media (max-width: 768px) {
 	.home-display-layer {
 		display: none;
 	}

@@ -1,0 +1,47 @@
+---
+import Icon from "@components/common/Icon.astro";
+
+interface Props {
+	title: string;
+	href: string;
+	imgurl: string;
+	desc: string;
+	tags?: string[];
+}
+
+const { title, href, imgurl, desc, tags = [] } = Astro.props;
+const primaryTag = tags[0] || "Blog";
+const initial = title.trim().slice(0, 1).toUpperCase();
+---
+
+<a
+	class="friend-card-link"
+	href={href}
+	target="_blank"
+	rel="noopener noreferrer"
+	title={desc}
+>
+	<span class="friend-card-type-badge">{primaryTag}</span>
+	<div class="friend-card-left" data-initial={initial}>
+		<img
+			alt={title}
+			class="friend-card-avatar"
+			data-src={imgurl}
+			decoding="async"
+		/>
+	</div>
+	<div class="friend-card-right">
+		<div class="friend-card-header">
+			<h3 class="friend-card-title">{title}</h3>
+			<Icon name="material-symbols:arrow-outward-rounded" class="friend-card-arrow" />
+		</div>
+		<p class="friend-card-desc">{desc}</p>
+	</div>
+	<div class="friend-card-overlay" aria-hidden="true">
+		<div class="friend-card-overlay-content">
+			<strong>{title}</strong>
+			<span>{desc}</span>
+		</div>
+	</div>
+</a>
+

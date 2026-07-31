@@ -127,6 +127,8 @@ if (isLocalSrcLogo) {
 <!-- 样式已迁移至 src/styles/layout/nav-menu-panel.css -->
 
 <script>
+import { NAV_MENU_TOGGLE_EVENT } from "@/shared/events";
+
 let drawerAbortController: AbortController | null = null;
 
 function initNavDrawer() {
@@ -175,6 +177,11 @@ function initNavDrawer() {
 	if (closeBtn) {
 		closeBtn.onclick = () => closeDrawer();
 	}
+
+	window.addEventListener(NAV_MENU_TOGGLE_EVENT, () => {
+		if (panel.classList.contains('is-open')) closeDrawer();
+		else openDrawer();
+	}, { signal });
 
 	overlay.addEventListener('click', () => closeDrawer(), { signal });
 

@@ -1,0 +1,98 @@
+{
+  "source": "10秒の阿尔托莉雅 - Original.mp4",
+  "duration": 13.546333,
+  "width": 1920,
+  "height": 1080,
+  "frames": [
+    {
+      "index": 0,
+      "time": 0.05,
+      "file": "public/assets/images/home/artoria-scroll/frame-01-0_05.webp"
+    },
+    {
+      "index": 1,
+      "time": 0.65,
+      "file": "public/assets/images/home/artoria-scroll/frame-02-0_65.webp"
+    },
+    {
+      "index": 2,
+      "time": 1.25,
+      "file": "public/assets/images/home/artoria-scroll/frame-03-1_25.webp"
+    },
+    {
+      "index": 3,
+      "time": 1.8,
+      "file": "public/assets/images/home/artoria-scroll/frame-04-1_80.webp"
+    },
+    {
+      "index": 4,
+      "time": 2.35,
+      "file": "public/assets/images/home/artoria-scroll/frame-05-2_35.webp"
+    },
+    {
+      "index": 5,
+      "time": 2.9,
+      "file": "public/assets/images/home/artoria-scroll/frame-06-2_90.webp"
+    },
+    {
+      "index": 6,
+      "time": 3.45,
+      "file": "public/assets/images/home/artoria-scroll/frame-07-3_45.webp"
+    },
+    {
+      "index": 7,
+      "time": 4,
+      "file": "public/assets/images/home/artoria-scroll/frame-08-4_00.webp"
+    },
+    {
+      "index": 8,
+      "time": 4.55,
+      "file": "public/assets/images/home/artoria-scroll/frame-09-4_55.webp"
+    },
+    {
+      "index": 9,
+      "time": 5.05,
+      "file": "public/assets/images/home/artoria-scroll/frame-10-5_05.webp"
+    },
+    {
+      "index": 10,
+      "time": 5.55,
+      "file": "public/assets/images/home/artoria-scroll/frame-11-5_55.webp"
+    },
+    {
+      "index": 11,
+      "time": 6.05,
+      "file": "public/assets/images/home/artoria-scroll/frame-12-6_05.webp"
+    },
+    {
+      "index": 12,
+      "time": 6.55,
+      "file": "public/assets/images/home/artoria-scroll/frame-13-6_55.webp"
+    },
+    {
+      "index": 13,
+      "time": 7.05,
+      "file": "public/assets/images/home/artoria-scroll/frame-14-7_05.webp"
+    },
+    {
+      "index": 14,
+      "time": 7.55,
+      "file": "public/assets/images/home/artoria-scroll/frame-15-7_55.webp"
+    },
+    {
+      "index": 15,
+      "time": 8.1,
+      "file": "public/assets/images/home/artoria-scroll/frame-16-8_10.webp"
+    },
+    {
+      "index": 16,
+      "time": 8.65,
+      "file": "public/assets/images/home/artoria-scroll/frame-17-8_65.webp"
+    },
+    {
+      "index": 17,
+      "time": 9.2,
+      "file": "public/assets/images/home/artoria-scroll/frame-18-9_20.webp"
+    }
+  ]
+}

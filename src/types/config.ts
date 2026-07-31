@@ -18,6 +18,9 @@ export type SiteConfig = {
 		fixed: boolean;
 		defaultMode?: LIGHT_DARK_MODE; // 默认模式：浅色、深色或跟随系统
 	};
+	card: {
+		border: boolean;
+	};
 
 	// 页面整体宽度（单位：rem）
 	pageWidth?: number;
@@ -73,32 +76,43 @@ export type SiteConfig = {
 		gallery: boolean; // 相册页面开关
 		collections: boolean; // 收藏API页面开关
 		calendar: boolean; // 日历页面开关
-		treehole: boolean; // 树洞页面开关
 		notebook: boolean; // 笔记本页面开关
+		activity: boolean;
+		album: boolean;
+		friendFeed: boolean;
+		books: boolean;
+		moviesGames: boolean;
+		musicPage: boolean;
+		changelog: boolean;
+		routines: boolean;
+		places: boolean;
+		projects: boolean;
+		write: boolean;
+		config: boolean;
+		xiao: boolean;
+	};
+
+	postListLayout: {
+		defaultMode: "list" | "grid";
+		allowSwitch: boolean;
+		grid: {
+			masonry: boolean;
+			columns: 2 | 3;
+		};
 	};
 
 	// 分类导航栏开关
 	categoryBar?: boolean;
 
-	// 文章列表布局配置
-	postListLayout: {
-		defaultMode: "list" | "grid"; // 默认布局模式：list=列表模式，grid=网格模式
-		mobileDefaultMode?: "list" | "grid"; // 移动端默认布局模式（视口宽度<780px时使用），不设置则跟随 defaultMode
-		showTags: boolean; // 是否在文章列表中显示标签
-		descriptionLines?: number; // 文章简介显示行数，0 表示不截断，默认 2
-		allowSwitch: boolean; // 是否允许用户切换布局
-		grid: {
-			// 网格布局配置，仅在 defaultMode 为 "grid" 或允许切换布局时生效
-			// 是否开启瀑布流布局
-			masonry: boolean;
-			// 网格模式卡片最小宽度(px)，浏览器根据容器宽度自动计算列数，默认 320
-			columnWidth?: number;
-		};
-	};
-
 	// 分页配置
 	pagination: {
 		postsPerPage: number; // 每页显示的文章数量
+	};
+
+	mapConfig?: {
+		center: [number, number];
+		zoom: number;
+		showMarkers: boolean;
 	};
 
 	// 统计分析
@@ -196,10 +210,9 @@ export enum LinkPreset {
 	NavPosts = 17,
 	NavMy = 18,
 	Music = 19,
-	Treehole = 20,
 	Notebook = 21,
 	Activity = 22,
-        Xiao = 23,
+	Xiao = 23,
 }
 
 export type NavBarLink = {
@@ -224,8 +237,11 @@ export type HomePortfolioShutterPanel = {
 };
 
 export type HomePortfolioShutterInterlude = {
-	/** 前景大图（仅显示上半部分） */
+	/** 中央人物抠图，支持透明 PNG / WebP；替换路径即可更换第二幕人物。 */
 	foreground: string;
+	foregroundAlt?: string;
+	/** CSS 宽度值，例如 "min(48vw, 52rem)"。 */
+	foregroundWidth?: string;
 	/** 背景左侧滑入长条（从左向右） */
 	stripLeft: string;
 	/** 背景右侧滑入长条（从右向左） */
@@ -234,6 +250,21 @@ export type HomePortfolioShutterInterlude = {
 	copyLeft: string;
 	/** 中景右侧文字（人物右侧） */
 	copyRight: string;
+};
+
+export type HomePortfolioShutterCinematicFrame = {
+	/** Full-resolution still used by the scroll-scrubbed sequence. */
+	image: string;
+	/** Timestamp in the source video, retained for reproducible frame extraction. */
+	sourceTime: number;
+	/** Film subtitle rendered independently from the generated still. */
+	caption: string;
+};
+
+export type HomePortfolioShutterCinematicStory = {
+	/** Original user-provided clip retained alongside the extracted frames. */
+	sourceVideo: string;
+	frames: HomePortfolioShutterCinematicFrame[];
 };
 
 export type HomePortfolioShutterFinalImage = {
@@ -254,12 +285,31 @@ export type HomePortfolioShutterConfig = {
 	scrollDistance: number;
 	finalImage: HomePortfolioShutterFinalImage;
 	panels: HomePortfolioShutterPanel[];
+	/** Scroll-driven freeze-frame story between the five columns and interlude. */
+	cinematicStory: HomePortfolioShutterCinematicStory;
 	/** 5 张长条图之后的插入动画段：三层布局（背景长条 / 中景文字 / 前景大图） */
 	interlude: HomePortfolioShutterInterlude;
 };
 
+/** 首页立体照片轮播配置。图片使用本地已授权素材，避免运行时依赖第三方图床。 */
+export type HomePhotoDeckPhoto = {
+	src: string;
+	alt: string;
+	label?: string;
+	/** CSS object-position，用于宽幅裁切时保留人物焦点。 */
+	position?: string;
+};
+
+export type HomePhotoDeckConfig = {
+	enabled: boolean;
+	title: string;
+	subtitle?: string;
+	autoplayMs?: number;
+	photos: HomePhotoDeckPhoto[];
+};
+
 export type HomeDisplayLayerConfig = {
-	/** 是否启用展示层（移动端与 prefers-reduced-motion 下始终隐藏） */
+	/** 是否启用展示层（移动端与减少动画模式使用静态两幕回退） */
 	enabled: boolean;
 	/** 左侧垂直大字 */
 	kicker: string;
@@ -288,7 +338,7 @@ export type HomeConfig = {
 		backgroundImage: string;
 		backgroundImageMobile?: string;
 		characterImage?: string;
-		speechAccentImage: string;
+		speechAccentImage?: string;
 		speech?: {
 			text: string;
 			english: string;
@@ -318,6 +368,7 @@ export type HomeConfig = {
 	/** 展示层：垂直线 → 长柱 → 字体显隐 → 柱子扩全屏，衔接百叶窗 */
 	displayLayer: HomeDisplayLayerConfig;
 	portfolioShutter: HomePortfolioShutterConfig;
+	photoDeck?: HomePhotoDeckConfig;
 	skills?: {
 		name: string;
 		icon?: string;
@@ -545,7 +596,13 @@ export type WidgetComponentType =
 	| "advertisement"
 	| "stats"
 	| "calendar"
-	| "music";
+	| "music"
+	| "weather"
+	| "journey"
+	| "recentPosts"
+	| "quote"
+	| "hotRanking"
+	| "postDirectory";
 
 export type WidgetComponentConfig = {
 	type: WidgetComponentType; // 组件类型
@@ -559,6 +616,7 @@ export type WidgetComponentConfig = {
 		collapseThreshold?: number; // 折叠阈值
 	};
 	customProps?: Record<string, unknown>; // 自定义属性，用于扩展组件功能
+	variants?: ("default" | "posts" | "social")[];
 };
 
 export type MobileBottomComponentConfig = {
@@ -572,6 +630,7 @@ export type MobileBottomComponentConfig = {
 		collapseThreshold?: number; // 折叠阈值
 	};
 	customProps?: Record<string, unknown>; // 自定义属性，用于扩展组件功能
+	variants?: ("default" | "posts" | "social")[];
 };
 
 export type SidebarLayoutConfig = {
@@ -674,39 +733,12 @@ export type Live2DModelConfig = {
 	};
 };
 
-// 友链配置
-export type FriendLink = {
-	title: string; // 友链标题
-	imgurl: string; // 头像图片URL
-	desc: string; // 友链描述
-	siteurl: string; // 友链地址
-	tags?: string[]; // 标签数组
-	weight: number; // 权重，数字越大排序越靠前
-	enabled: boolean; // 是否启用
-};
-
-export type FriendSiteInfo = {
-	name: string; // 站点名称
-	desc: string; // 站点描述
-	url: string; // 站点链接
-	avatar: string; // 头像链接
-	email: string; // 联系邮箱
-};
-
-export type FriendNote = {
-	title: string; // 注意事项标题
-	content: string; // 注意事项内容
-};
-
-export type FriendsPageConfig = {
-	title?: string; // 页面标题，留空则使用 i18n 中的翻译
-	description?: string; // 页面描述，留空则使用 i18n 中的翻译
-	showComment?: boolean; // 是否显示评论区，默认 true
-	randomizeSort?: boolean; // 是否打乱排序，如果为 true，将忽略 weight，随机排序
-	applyLink?: string; // 友链申请链接，跳转到 GitHub Issue 等
-	siteInfo?: FriendSiteInfo; // 本站信息，用于友链申请指南弹窗
-	notes?: FriendNote[]; // 注意事项，用于友链申请指南弹窗
-};
+export type {
+	FriendLink,
+	FriendNote,
+	FriendSiteInfo,
+	FriendsPageConfig,
+} from "@/features/friends";
 
 // 音乐播放器配置
 export type MusicPlayerConfig = {

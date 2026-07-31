@@ -1,0 +1,56 @@
+---
+import Icon from "@components/common/Icon.astro";
+---
+
+<div
+	class="cinematic-player"
+	data-cinematic-player
+	data-playing="false"
+	data-muted="true"
+	aria-hidden="true"
+	hidden
+>
+	<div class="cinematic-player__stage" role="dialog" aria-modal="true" aria-labelledby="cinematic-player-title">
+		<video
+			class="cinematic-player__video"
+			data-cinematic-video
+			preload="none"
+			playsinline
+			muted
+		>
+			<source data-cinematic-source="mp4" type="video/mp4" />
+			<source data-cinematic-source="webm" type="video/webm" />
+		</video>
+		<div class="cinematic-player__topline" aria-hidden="true">
+			<span>CINEMATIC ARCHIVE</span>
+			<span data-cinematic-duration>2.5 SEC</span>
+		</div>
+		<div class="cinematic-player__controls">
+			<div class="cinematic-player__identity">
+				<small>FATE / MEMORY CUT</small>
+				<strong id="cinematic-player-title" data-cinematic-title>Fate 短片</strong>
+			</div>
+			<div class="cinematic-player__actions">
+				<button type="button" data-cinematic-toggle aria-label="播放短片" title="播放">
+					<span class="cinematic-player__icon cinematic-player__icon--play"><Icon name="material-symbols:play-arrow-rounded" /></span>
+					<span class="cinematic-player__icon cinematic-player__icon--pause"><Icon name="material-symbols:pause-rounded" /></span>
+				</button>
+				<button type="button" data-cinematic-audio aria-label="开启声音" aria-pressed="false" title="开启声音">
+					<span class="cinematic-player__icon cinematic-player__icon--muted"><Icon name="material-symbols:volume-off-rounded" /></span>
+					<span class="cinematic-player__icon cinematic-player__icon--audible"><Icon name="material-symbols:volume-up-rounded" /></span>
+				</button>
+				<button type="button" data-cinematic-dismiss aria-label="关闭短片" title="关闭">
+					<span class="cinematic-player__icon cinematic-player__icon--close"><Icon name="material-symbols:close-rounded" /></span>
+					<span class="cinematic-player__icon cinematic-player__icon--skip"><Icon name="material-symbols:skip-next-rounded" /></span>
+				</button>
+			</div>
+		</div>
+		<div class="cinematic-player__progress" aria-hidden="true"><i data-cinematic-progress></i></div>
+	</div>
+</div>
+
+<script>
+	import { initCinematicPlayer } from "../client/cinematic-player";
+
+	initCinematicPlayer();
+</script>

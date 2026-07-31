@@ -1,0 +1,75 @@
+---
+import Icon from "@components/common/Icon.astro";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { getCategoryList } from "@/features/posts/server";
+
+const categories = await getCategoryList();
+const icons = [
+	"material-symbols:folder-outline-rounded",
+	"material-symbols:code-blocks-outline-rounded",
+	"material-symbols:storage-rounded",
+	"material-symbols:terminal-rounded",
+	"material-symbols:description-outline-rounded",
+];
+---
+
+<WidgetLayout name="全部文章" id="post-directory">
+	<nav class="post-directory" aria-label="文章分类">
+		<a class="post-directory__all" href="/posts/">
+			<Icon name="material-symbols:menu-book-outline-rounded" />
+			<span>全部文章</span>
+		</a>
+		{categories.map((category, index) => (
+			<a href={category.url}>
+				<Icon name={icons[index % icons.length]} />
+				<span>{category.name}</span>
+				<small>{category.count}</small>
+			</a>
+		))}
+	</nav>
+</WidgetLayout>
+
+<style>
+	.post-directory {
+		display: grid;
+		gap: 0.15rem;
+	}
+
+	.post-directory a {
+		display: grid;
+		min-width: 0;
+		grid-template-columns: 1.1rem minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.48rem 0.25rem;
+		border-radius: 5px;
+		color: var(--deep-text);
+		font-size: 0.78rem;
+		font-weight: 750;
+		text-decoration: none;
+	}
+
+	.post-directory a:hover,
+	.post-directory a:focus-visible {
+		background: var(--btn-regular-bg);
+		color: var(--primary);
+	}
+
+	.post-directory a span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.post-directory small {
+		color: var(--content-meta);
+		font-size: 0.66rem;
+	}
+
+	.post-directory__all {
+		margin-bottom: 0.25rem;
+		border-bottom: 1px solid var(--line-divider);
+		border-radius: 0 !important;
+		font-weight: 900 !important;
+	}
+</style>

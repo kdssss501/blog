@@ -1,0 +1,13 @@
+---
+import { siteConfig } from "@/config";
+import { FriendFeedDirectory } from "@/features/friend-feed";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.friendFeed) return Astro.redirect("/404/");
+const title = "朋友动态";
+const description = "聚合已声明订阅源的友链更新。";
+---
+
+<MainGridLayout {title} {description} showSidebar={true} sidebarVariant="social">
+	<FriendFeedDirectory client:load />
+</MainGridLayout>

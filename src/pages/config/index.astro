@@ -1,0 +1,13 @@
+---
+import { siteConfig } from "@/config";
+import { ConfigStudio } from "@/features/admin";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.config) return Astro.redirect("/404/");
+const title = "站点配置";
+const description = "编辑可公开的站点身份、外观默认值与文案。";
+---
+
+<MainGridLayout {title} {description} contentWidth="wide" showSidebar={false}>
+	<ConfigStudio client:load />
+</MainGridLayout>

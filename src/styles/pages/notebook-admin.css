@@ -1,0 +1,272 @@
+notebook-admin {
+  display: block;
+  width: 100%;
+}
+
+.notebook-admin-page__header {
+  margin-bottom: 1.5rem;
+}
+
+.notebook-admin-login,
+.notebook-admin-panel,
+.notebook-admin-preview {
+  padding: 1.25rem;
+  border: 1px solid var(--line-color);
+  border-radius: var(--radius-medium);
+  background: var(--card-bg);
+}
+
+.notebook-admin-login {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 26rem);
+  margin: 3rem auto;
+}
+
+.notebook-admin-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.75fr) minmax(0, 1.75fr);
+  gap: 1rem;
+}
+
+.notebook-admin-panel--selector {
+  align-self: start;
+}
+
+.notebook-admin-editor,
+.notebook-admin-fields,
+.notebook-admin-cover-tools,
+.notebook-admin-list {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.notebook-admin-heading,
+.notebook-admin-actions,
+.notebook-admin-field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.notebook-admin-heading {
+  justify-content: space-between;
+}
+
+.notebook-admin-heading h2,
+.notebook-admin-heading h3,
+.notebook-admin-panel > h2,
+.notebook-admin-preview h3,
+.notebook-admin-login h2 {
+  margin: 0;
+  color: var(--deep-text);
+  font-size: 1rem;
+}
+
+.notebook-admin-fields label,
+.notebook-admin-login label {
+  display: grid;
+  flex: 1;
+  gap: 0.35rem;
+  min-width: min(100%, 12rem);
+  color: var(--content-meta);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.notebook-admin-fields input,
+.notebook-admin-fields textarea,
+.notebook-admin-login input {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--line-color);
+  border-radius: var(--radius-small);
+  background: var(--page-bg);
+  color: var(--deep-text);
+  font: inherit;
+}
+
+.notebook-admin-fields textarea {
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.notebook-admin-fields input:focus,
+.notebook-admin-fields textarea:focus,
+.notebook-admin-login input:focus {
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in oklch, var(--primary) 25%, transparent);
+  outline-offset: 1px;
+}
+
+.notebook-admin-btn,
+.notebook-admin-file-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--line-color);
+  border-radius: var(--radius-small);
+  background: var(--card-bg);
+  color: var(--deep-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notebook-admin-btn:hover:not(:disabled),
+.notebook-admin-file-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.notebook-admin-btn--primary {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.notebook-admin-btn--primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  color: white;
+}
+
+.notebook-admin-btn--danger {
+  color: #c62828;
+}
+
+.notebook-admin-file-btn input {
+  display: none;
+}
+
+.notebook-admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1.25rem;
+}
+
+.notebook-admin-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line-color);
+  border-radius: var(--radius-small);
+  background: var(--page-bg);
+  color: var(--deep-text);
+  cursor: pointer;
+}
+
+.notebook-admin-filter.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.notebook-admin-filter small {
+  opacity: 0.75;
+}
+
+.notebook-admin-entry {
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--line-color);
+  border-radius: var(--radius-small);
+  background: var(--page-bg);
+  color: var(--deep-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.notebook-admin-entry:hover {
+  border-color: var(--primary);
+}
+
+.notebook-admin-entry span,
+.notebook-admin-entry small,
+.notebook-admin-muted,
+.notebook-admin-error,
+.notebook-admin-message {
+  margin: 0;
+  color: var(--content-meta);
+  font-size: 0.75rem;
+}
+
+.notebook-admin-entry small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notebook-admin-cover-preview {
+  width: min(100%, 20rem);
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line-color);
+  border-radius: var(--radius-small);
+  background-position: center;
+  background-size: cover;
+}
+
+.notebook-admin-cover-preview[data-empty="true"] {
+  background: var(--btn-card-bg-hover);
+}
+
+.notebook-admin-cover-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: 0.5rem;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.notebook-admin-cover-option {
+  aspect-ratio: 16 / 9;
+  border: 1px solid transparent;
+  border-radius: var(--radius-small);
+  background-position: center;
+  background-size: cover;
+  cursor: pointer;
+}
+
+.notebook-admin-cover-option.is-selected {
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in oklch, var(--primary) 35%, transparent);
+}
+
+.notebook-admin-preview {
+  min-height: 10rem;
+  overflow: auto;
+}
+
+.notebook-admin-message[data-state="success"] {
+  color: #2e7d32;
+}
+
+.notebook-admin-message[data-state="error"],
+.notebook-admin-error {
+  color: #c62828;
+}
+
+@media (max-width: 900px) {
+  .notebook-admin-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .notebook-admin-login,
+  .notebook-admin-panel,
+  .notebook-admin-preview {
+    padding: 1rem;
+  }
+
+  .notebook-admin-actions .notebook-admin-btn {
+    flex: 1;
+  }
+}

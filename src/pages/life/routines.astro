@@ -1,0 +1,15 @@
+---
+import { siteConfig } from "@/config";
+import { RoutineDirectory } from "@/features/records";
+import { getRoutineEntries } from "@/features/records/server";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.routines) return Astro.redirect("/404/");
+const title = "规划";
+const description = "把长期目标拆成可以持续执行的日常节奏。";
+const entries = await getRoutineEntries();
+---
+
+<MainGridLayout {title} {description} showSidebar={true}>
+	<RoutineDirectory {entries} />
+</MainGridLayout>

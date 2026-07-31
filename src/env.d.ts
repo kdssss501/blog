@@ -4,6 +4,10 @@
 declare global {
 	interface ImportMetaEnv {
 		readonly MEILI_MASTER_KEY: string;
+		readonly PUBLIC_AMAP_KEY?: string;
+		readonly PUBLIC_AMAP_SECURITY_CODE?: string;
+		readonly PUBLIC_VAMPIRE_MODEL_URL?: string;
+		readonly PUBLIC_CUBISM_CORE_URL?: string;
 	}
 
 	interface ITOCManager {

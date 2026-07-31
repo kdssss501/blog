@@ -1,0 +1,29 @@
+---
+import PageTitle from "@/components/common/PageTitle.astro";
+import { siteConfig } from "@/config";
+import type { ArticleListPost } from "../model/types";
+import ArticleFeed from "./ArticleFeed.svelte";
+
+interface Props {
+	title: string;
+	posts: ArticleListPost[];
+	postsPerPage: number;
+}
+
+const { title, posts, postsPerPage } = Astro.props;
+---
+
+<section class="article-list-page">
+	<header class="article-list-page__header">
+		<PageTitle title={title} eyebrow="Article Index" />
+		<span class="sr-only">共 {posts.length} 篇文章</span>
+	</header>
+
+	<ArticleFeed
+		client:load
+		{posts}
+		{postsPerPage}
+		defaultLayout={siteConfig.postListLayout.defaultMode}
+		allowLayoutSwitch={siteConfig.postListLayout.allowSwitch}
+	/>
+</section>

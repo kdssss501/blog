@@ -216,9 +216,6 @@ export const ja: Translation = {
 	[Key.postEncrypted]: "この記事は暗号化されています",
 
 	// 投稿リストレイアウト
-	[Key.postListLayout]: "投稿リストレイアウト",
-	[Key.postListLayoutList]: "リスト",
-	[Key.postListLayoutGrid]: "グリッド",
 
 	// スポンサーページ
 	[Key.sponsor]: "スポンサー",
@@ -367,34 +364,8 @@ export const ja: Translation = {
 	[Key.calendarNearestBirthday]: "直近の誕生日",
 	[Key.calendarNearestSchedule]: "直近のスケジュール",
 
-	// ツリーホール
-	[Key.treehole]: "ツリーホール",
-	[Key.treeholeDescription]:
-		"匿名で打ち明ける、安全な場所。ここに身分はなく、声だけがある。投稿は審査後に表示される。",
-	[Key.treeholePlaceholder]: "心の中の言葉をここに。誰もあなたが誰かを知らない...",
-	[Key.treeholeSubmit]: "投函",
-	[Key.treeholeSubmitting]: "投函中...",
-	[Key.treeholeSubmitted]: "投函済み",
-	[Key.treeholeSubmittedHint]: "投稿されました。審査後にここに表示されます。",
-	[Key.treeholeEmpty]: "ツリーホールは静かです。最初に打ち明けてみよう。",
-	[Key.treeholeLoading]: "ツリーホールを聴いている...",
-	[Key.treeholeLoadMore]: "もっと聴く",
-	[Key.treeholeResonance]: "共鳴",
-	[Key.treeholeResonated]: "共鳴済み",
-	[Key.treeholeReply]: "返信",
-	[Key.treeholeReplyPlaceholder]: "温かい返信を書く...",
-	[Key.treeholeReplySubmit]: "返信を送信",
-	[Key.treeholeReplies]: "件の返信",
-	[Key.treeholeAdmin]: "ツリーホール管理",
-	[Key.treeholeAdminToken]: "管理 Token",
-	[Key.treeholeAdminLogin]: "ログイン",
-	[Key.treeholeAdminPending]: "審査待ち",
-	[Key.treeholeAdminApprove]: "承認",
-	[Key.treeholeAdminReject]: "拒否",
-	[Key.treeholeAdminEmpty]: "審査待ちの内容はありません",
-	[Key.treeholeAdminUnauthorized]: "Token が無効または未設定です",
-
 	// ノートブック
 	[Key.notebook]: "ノートブック",
-	[Key.notebookDescription]: "生活と学習の断片を記録し、ノートブックごとに整理する。",
+	[Key.notebookDescription]:
+		"生活と学習の断片を記録し、ノートブックごとに整理する。",
 };

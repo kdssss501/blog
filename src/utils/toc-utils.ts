@@ -274,10 +274,12 @@ export class TOCManager {
 		const visibleHeadingIds = this.getVisibleHeadingIds();
 
 		// 找到对应的TOC项并添加活动状态
-		const activeItems = this.tocItems.filter((item) => {
-			const headingId = item.dataset.headingId;
-			return headingId && visibleHeadingIds.includes(headingId);
-		});
+		const activeItems = this.tocItems
+			.filter((item) => {
+				const headingId = item.dataset.headingId;
+				return headingId && visibleHeadingIds.includes(headingId);
+			})
+			.slice(0, 1);
 
 		// 添加活动状态
 		activeItems.forEach((item) => {

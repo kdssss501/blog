@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: 16:9 final reveal keyframe for a Live2D vampire page opening
+Input images: Image 1 is the exact black-form character identity and costume reference; Image 2 confirms the same identity in white form. Use Image 1's black form for this final shot.
+Primary request: final shot of the same anime opening immediately after a white flash, the black-form vampire woman facing camera with a calm, unwavering expression, subtle hair motion settling as the ruined chapel returns behind her.
+Style/medium: original premium Japanese 2D animation key art, highly polished cel shading, clean facial drawing, cinematic finish, restrained film texture.
+Composition/framing: chest-up frontal portrait, face slightly above center, shoulders visible, character large but leaves a clean horizontal band across the center for the word VAMPIRE and chain overlays.
+Lighting/mood: soft cold key light, narrow crimson rim, silver edge highlights on black hair and dress, intimate final reveal.
+Constraints: preserve Image 1's face, hair, red eyes, pointed ears, cross choker and black outfit; no text; no title; no logos; no watermark; no chains; no bats; fill the entire frame.
+Avoid: smile, chibi styling, photorealism, exaggerated cleavage, extra jewelry, generic studio portrait, strong background blur.

@@ -1,0 +1,49 @@
+# Local dependencies and build caches
+node_modules/
+node_modules.stale.*/
+.pnpm-store/
+.astro/
+dist/
+.vercel/
+.vite-xiao-shell-cache/
+.edge-*/
+.tools/
+
+# Local-only runtimes, source assets, and heavyweight tools
+GPT-SoVITS-v2pro-20250604/
+PixivCrawler/
+吸血鬼女生/
+generated-art/
+Firefly-docs/
+package/
+cache/
+
+# Development and verification artifacts
+tests/
+test-results/
+scripts/diagnostics/
+notebook-test-screenshots/
+notebook-swup-test-screenshots/
+.codex-*
+.astro-*.log
+debug*.mjs
+debug.log
+notebook-debug*.mjs
+notebook-test*.mjs
+test-*.mjs
+notebook-*.png
+.codex-patch-probe
+
+# Local configuration and editor state
+.env
+.env.*
+.obsidian/
+.agents/
+.claude/
+.idea/
+.wrangler/
+.git/
+.git-backup/
+.reference/
+.DS_Store
+CLAUDE.md

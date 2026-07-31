@@ -24,6 +24,8 @@ export type {
 	HolidayItem,
 	HomeConfig,
 	HomeDisplayLayerConfig,
+	HomePhotoDeckConfig,
+	HomePhotoDeckPhoto,
 	HomePortfolioShutterConfig,
 	HomePortfolioShutterInterlude,
 	HomePortfolioShutterPanel,
@@ -55,6 +57,7 @@ export { footerConfig } from "./footerConfig"; // 页脚配置
 export { friendsPageConfig, getEnabledFriends } from "./friendsConfig"; // 友链配置
 export { galleryConfig } from "./galleryConfig"; // 相册配置
 export { homeConfig } from "./homeConfig"; // 首页与用户资料配置
+export { illustrationConfig } from "./illustrationConfig"; // 插图来源与授权策略
 export { licenseConfig } from "./licenseConfig"; // 许可证配置
 // 组件配置
 export { musicPlayerConfig } from "./musicConfig"; // 音乐播放器配置
@@ -65,3 +68,9 @@ export { plantumlConfig } from "./plantumlConfig"; // PlantUML 图表配置
 export { sidebarLayoutConfig } from "./sidebarConfig"; // 侧边栏布局配置
 export { siteConfig } from "./siteConfig"; // 站点基础配置
 export { sponsorConfig } from "./sponsorConfig"; // 赞助配置
+export { type WallpaperSlide, wallpaperConfig } from "./wallpaperConfig";
+export {
+	type VampireIntroConfig,
+	type VampireIntroFrameConfig,
+	xiaoConfig,
+} from "./xiaoConfig";

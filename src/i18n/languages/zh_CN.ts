@@ -210,9 +210,6 @@ export const zh_CN: Translation = {
 	[Key.postEncrypted]: "本文已加密",
 
 	// 文章布局
-	[Key.postListLayout]: "文章布局",
-	[Key.postListLayoutList]: "列表",
-	[Key.postListLayoutGrid]: "网格",
 
 	// 赞助页面
 	[Key.sponsor]: "赞助",
@@ -356,33 +353,6 @@ export const zh_CN: Translation = {
 	[Key.calendarNearestHoliday]: "最近的节日",
 	[Key.calendarNearestBirthday]: "最近的生日/纪念日",
 	[Key.calendarNearestSchedule]: "最近的安排",
-
-	// 树洞
-	[Key.treehole]: "树洞",
-	[Key.treeholeDescription]:
-		"匿名倾诉，安全释放。这里没有身份，只有声音。提交后经审核后展示。",
-	[Key.treeholePlaceholder]: "把心里的话留在这里，没人知道你是谁...",
-	[Key.treeholeSubmit]: "投入树洞",
-	[Key.treeholeSubmitting]: "投递中...",
-	[Key.treeholeSubmitted]: "已投入树洞",
-	[Key.treeholeSubmittedHint]: "你的倾诉已提交，经审核后将展示在这里",
-	[Key.treeholeEmpty]: "树洞还很安静，成为第一个倾诉的人吧",
-	[Key.treeholeLoading]: "正在聆听树洞...",
-	[Key.treeholeLoadMore]: "聆听更多",
-	[Key.treeholeResonance]: "共鸣",
-	[Key.treeholeResonated]: "已共鸣",
-	[Key.treeholeReply]: "回应",
-	[Key.treeholeReplyPlaceholder]: "写下一句温暖的回应...",
-	[Key.treeholeReplySubmit]: "发送回应",
-	[Key.treeholeReplies]: "条回应",
-	[Key.treeholeAdmin]: "树洞管理",
-	[Key.treeholeAdminToken]: "管理 Token",
-	[Key.treeholeAdminLogin]: "登录",
-	[Key.treeholeAdminPending]: "待审核",
-	[Key.treeholeAdminApprove]: "通过",
-	[Key.treeholeAdminReject]: "拒绝",
-	[Key.treeholeAdminEmpty]: "没有待审核的内容",
-	[Key.treeholeAdminUnauthorized]: "Token 无效或未设置",
 
 	// 笔记本
 	[Key.notebook]: "笔记本",

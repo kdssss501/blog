@@ -1,19 +1,9 @@
 import { calendarConfig } from "@/config";
-import { resolveYearlyDate } from "@/utils/lunar-utils";
+import { type HolidayEntry, resolveYearlyDate } from "@/features/calendar";
 
 // 构建时拉取 timor.tech 中国法定节假日，合并 builtinHolidays，按 dateKey 分桶返回
 // 失败时仅返回 builtinHolidays 兜底
 // 该 endpoint 在 Astro SSG 期间会被预渲染为静态 JSON
-
-export type HolidayEntry = {
-	date: string; // "YYYY-MM-DD"
-	name: string;
-	isOfficial?: boolean; // 来自 API 的法定节假日
-	isWorkday?: boolean; // 调休补班日
-	icon?: string;
-	source: "api" | "builtin";
-	rest?: number; // 假期持续天数（含当天）
-};
 
 type TimorHoliday = {
 	holiday: boolean; // true=放假, false=补班

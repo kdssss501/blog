@@ -2,7 +2,7 @@
 
 > 本文档是项目视觉与代码风格的**唯一权威**。所有新增功能、组件、页面都必须严格遵循本指南，以保持整体风格一致性。
 >
-> 最后更新：2026-07-10 ｜ 适用版本：Firefly-Mod V2.4.6
+> 最后更新：2026-07-22 ｜ 适用版本：Firefly-Mod V2.4.6
 
 ---
 
@@ -13,11 +13,11 @@
 | 原则 | 说明 | 反例（禁止） |
 |------|------|------------|
 | **极简中性灰阶** | 模拟 x.ai 视觉语言，全部去饱和，仅保留黑白灰 | 使用彩色主题色块、渐变背景 |
-| **无背景图** | 页面/卡片背景透明或纯色，靠线条与字体构建层次 | 大图背景、毛玻璃彩色光斑 |
-| **粗边框 + 圆角 + 加粗** | 卡片、按钮、分页统一 `2px solid #000/#fff` + `border-radius: 0.75rem` + `font-weight: 700` | 细发丝边框、阴影投射 |
-| **hover 反相填充** | 白底黑字 hover 变黑底白字（暗色模式反之） | 颜色渐变 hover、阴影抬起 |
+| **插图有明确职责** | 普通页面和卡片保持透明或纯色；授权插图只用于首页 Hero、壁纸模式和内容封面 | 无来源图片、装饰性大图、毛玻璃彩色光斑 |
+| **细边框 + 小圆角 + 清晰层级** | 面板使用 `1px solid var(--line-divider)`，矩形卡片圆角不超过 `8px` | 12px 以上大圆角、无意义厚边框 |
+| **克制反馈** | hover 只改变边框、文字、背景或轻微位移 | 大幅缩放、强阴影和持续装饰动画 |
 | **交互优先** | 组件以可交互为主，动效服务于反馈 | 纯装饰性动画、自动播放特效 |
-| **单列居中** | 首页删除侧边栏，主内容 `max-w-5xl` 居中 | 三栏布局、左右固定侧栏 |
+| **内容优先布局** | 普通页面单列居中；明确需要信息辅助时允许配置侧栏 | 所有页面无差别堆叠侧栏或卡片 |
 
 ---
 
@@ -34,28 +34,20 @@
 | 动效 | GSAP / anime.js / @vfx-js/core | - | 复杂动画 |
 | 3D | three.js | 0.184 | 音乐可视化等 |
 | 代码格式化 | Biome | 2.4.x | tab 缩进 + 双引号 |
-| 包管理 | pnpm | 9.14.4 | **强制**（`preinstall` 钩子拦截） |
+| 包管理 | pnpm | 11.9.0 | **强制**（`preinstall` 钩子拦截） |
 | 页面切换 | Swup | 4.x | 无刷新导航 + View Transitions |
 
 ---
 
 ## 2. 目录结构与文件归属
 
-### 2.1 组件分类（`src/components/`）
+### 2.1 功能与组件归属
 
-新增组件时，按职责放入对应目录，**不得新建顶层分类**：
-
-| 目录 | 用途 | 选用规则 |
-|------|------|---------|
-| `layout/` | 页面框架（Navbar / Footer / PostCard / Home*） | 决定整体页面结构 |
-| `controls/` | 导航与交互控件（Search / LightDarkSwitch / FloatingDock） | 用户交互入口 |
-| `common/` | 跨页复用基础组件（ButtonLink / Icon / Pagination / WidgetLayout） | 可被任意页面引用 |
-| `widget/` | 侧边栏小部件（Profile / Tags / Calendar / Heatmap） | 仅侧边栏场景 |
-| `features/` | 全局功能特效（MusicManager / PageLoader / Live2D / Guestbook*） | 全局加载、单例管理 |
-| `pages/` | 页面专属组件（calendar/ / gallery/ / AdvancedSearch） | 只在单一页面使用 |
-| `comment/` | 评论系统集成 | 第三方服务对接 |
-| `analytics/` | 统计代码 | 第三方服务对接 |
-| `misc/` | 杂项工具 | 无法归类的辅助组件 |
+- 业务 UI、客户端生命周期、数据适配和纯模型进入 `src/features/<feature>/{ui,client,data,model}`。
+- 跨功能应用外壳进入 `src/app`；服务端 HTTP 与存储端口进入 `src/server`。
+- `src/components/common`、`layout`、`widget` 只保留真正跨功能的基础组件与布局兼容层。
+- 新业务不得在 `src/components/pages`、`components/features` 或 `src/utils` 新增第二套实现。
+- 模块外只从 feature 的 `index.ts`、`client` 或 `server` 公共入口导入。
 
 ### 2.2 样式与组件镜像
 
@@ -122,6 +114,13 @@ src/styles/
 ### 3.3 阴影策略
 
 **全局禁用阴影**：`--shadow-md: none`、`--shadow-navbar: none`。层次靠边框与留白构建，不靠投影。
+
+### 3.4 插图与壁纸
+
+- 普通内容页默认使用纯色背景，不为区块叠加装饰性图片。
+- 首页 Hero、用户主动选择的壁纸模式、文章封面和笔记本封面可以使用插图。
+- 外部插图必须符合 `docs/ASSET_POLICY.md`，并提供作者、原作页、许可和授权类型；不得热链 Pixiv/pximg。
+- 插图上的文字和命令控件必须保持可读，移动端使用独立构图或安全裁切，不得遮挡导航和底部 Dock。
 
 ---
 
@@ -267,21 +266,20 @@ document.addEventListener("astro:page-load", () => { /* ... */ });
 
 ### 6.3 分页与卡片边框（全局硬性）
 
-**文章卡片、分页、tabs 必须使用粗边框反相风格**：
+**文章卡片、分页、tabs 使用 1px 令牌边框和不超过 8px 的矩形圆角**：
 
 ```css
 /* 卡片外框 */
-.post-card-wrapper { border: 2px solid #000 !important; }
-:root.dark .post-card-wrapper { border-color: #fff !important; }
+.post-card-wrapper { border: 1px solid var(--line-divider); border-radius: 8px; }
 
 /* 分页按钮 */
 .pagination-btn, .pagination-page {
-  border: 2px solid #000 !important;
-  border-radius: 0.75rem !important;
-  font-weight: 700 !important;
-  background: #fff !important; color: #000 !important;
+  border: 1px solid var(--line-divider);
+  border-radius: 8px;
+  font-weight: 700;
+  background: var(--card-bg); color: var(--deep-text);
 }
-.pagination-btn:hover { background: #000 !important; color: #fff !important; }
+.pagination-btn:hover { border-color: var(--primary); color: var(--primary); }
 ```
 
 ### 6.4 链接与文字
@@ -347,7 +345,7 @@ import Icon from "@components/common/Icon.astro";
 </div>
 ```
 
-- **单列居中**，无侧栏（侧栏容器 `#left-sidebar-dynamic` / `#right-sidebar-dynamic` 已 `hidden`，仅为 Swup 协议保留）。
+- 普通页面使用单列居中；`showSidebar` 与站点配置明确启用时使用可响应式降级的侧栏布局。
 - 页面宽度由 `siteConfig.pageWidth`（默认 `100rem`）控制，通过 CSS 变量 `--page-width` 注入。
 
 ### 8.3 Navbar
@@ -439,10 +437,10 @@ import Icon from "@components/common/Icon.astro";
 
 开发新功能/组件前，逐项对照：
 
-- [ ] **目录归属**：组件放入正确的 `src/components/{分类}/`，样式放入镜像的 `src/styles/{分类}/`。
+- [ ] **目录归属**：业务进入 `src/features/<feature>`，外壳进入 `src/app`，服务端进入 `src/server`，样式进入对应 `src/styles` 层。
 - [ ] **配置抽取**：可配置项写入 `src/config/` 对应文件，通过 `@/config` 导入，不硬编码。
 - [ ] **色彩合规**：只用 `variables.styl` 定义的变量，OKLCH 灰阶，无饱和色；暗色模式 `:root.dark` 覆盖。
-- [ ] **边框风格**：卡片/按钮/分页用 `2px solid #000/#fff` + `0.75rem` 圆角 + `font-weight: 700`；hover 反相。
+- [ ] **边框风格**：矩形卡片/按钮/分页使用 1px 令牌边框、最大 8px 圆角；hover 保持克制。
 - [ ] **无阴影**：不写 `box-shadow`（除 `card-shadow` 极淡值）。
 - [ ] **样式外置**：大段样式抽到 `src/styles/` 对应 CSS，组件内只留私有 `<style>`；在 `main.css` 注册 `@import`。
 - [ ] **复用通用类**：优先用 `.btn-line` / `.btn-plain` / `.section` / `.text-90` 等，不重复造。
@@ -453,6 +451,7 @@ import Icon from "@components/common/Icon.astro";
 - [ ] **代码风格**：Tab 缩进、双引号、显式 Props 接口、中文注释。
 - [ ] **响应式**：移动端 `768px` 断点测试，dock 抽屉等组件需适配。
 - [ ] **暗色模式**：light/dark 双态视觉均正常。
+- [ ] **插图许可**：外部插图具备可核验授权与署名；未知许可资源不进入仓库或对象存储。
 
 ---
 
@@ -468,7 +467,7 @@ import Icon from "@components/common/Icon.astro";
 | 配置目录说明 | [config/README.md](file:///c:/Users/41462/Desktop/blog/src/config/README.md) |
 | Biome 规则 | [biome.json](file:///c:/Users/41462/Desktop/blog/biome.json) |
 | 构建配置 | [astro.config.mjs](file:///c:/Users/41462/Desktop/blog/astro.config.mjs) |
-| 代表性组件 | [PostCard.astro](file:///c:/Users/41462/Desktop/blog/src/components/layout/PostCard.astro) / [WidgetLayout.astro](file:///c:/Users/41462/Desktop/blog/src/components/common/WidgetLayout.astro) / [LightDarkSwitch.svelte](file:///c:/Users/41462/Desktop/blog/src/components/controls/LightDarkSwitch.svelte) |
+| 代表性组件 | `src/features/posts/ui/ArticleFeed.svelte` / `src/components/common/WidgetLayout.astro` / `src/features/settings/ui/LightDarkSwitch.svelte` |
 
 ---
 

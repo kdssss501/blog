@@ -7,7 +7,19 @@
 	position: relative;
 }
 
+/* The fullscreen story owns the viewport while pinned. Keep persistent tools
+   out of the artwork, then restore them as soon as the section unpins. */
+:root[data-home-cinematic="true"] #live2d-widget,
+:root[data-home-cinematic="true"] #live2d-trigger,
+:root[data-home-cinematic="true"] #pio-message,
+:root[data-home-cinematic="true"] .floating-dock,
+:root[data-home-cinematic="true"] .mobile-dock {
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
 .home-portfolio-shutter__rail,
+.home-scroll-cinematic,
 .home-portfolio-shutter__final-video,
 .home-portfolio-shutter__final-copy,
 .home-portfolio-shutter__mask,
@@ -19,9 +31,173 @@
 .home-portfolio-shutter__rail {
 	z-index: 2;
 	display: grid;
+	width: 100%;
+	height: 100%;
 	grid-template-columns: repeat(5, minmax(0, 1fr));
 	min-height: 100%;
 	overflow: hidden;
+	background: transparent;
+	perspective: 1400px;
+	perspective-origin: 50% 48%;
+	transform-style: preserve-3d;
+}
+
+.home-portfolio-shutter__rail,
+.home-scroll-cinematic,
+.home-portfolio-shutter__interlude,
+.home-display-layer__kicker,
+.home-display-layer__title,
+.home-display-layer__description {
+	opacity: 0;
+	visibility: hidden;
+}
+
+.home-display-layer[data-display-ready="ready"] .home-portfolio-shutter__rail {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* ===== Scroll-scrubbed freeze-frame sequence ===== */
+.home-scroll-cinematic {
+	--cinematic-letterbox-size: max(
+		0px,
+		calc((100vh - min(41.6667vw, 100vh)) / 2)
+	);
+
+	z-index: 3;
+	overflow: hidden;
+	background: #000;
+	pointer-events: none;
+	isolation: isolate;
+}
+
+.home-scroll-cinematic__frames {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	overflow: hidden;
+	background: #000;
+}
+
+.home-scroll-cinematic__frame {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	border-radius: 0;
+	object-fit: contain;
+	object-position: center;
+	backface-visibility: hidden;
+	filter: saturate(0.86) contrast(1.1) brightness(0.92);
+	opacity: 0;
+	visibility: hidden;
+	transform-origin: 50% 50%;
+	user-select: none;
+	-webkit-user-drag: none;
+	will-change: transform, opacity;
+}
+
+.home-scroll-cinematic__grade,
+.home-scroll-cinematic__texture,
+.home-scroll-cinematic__vignette,
+.home-scroll-cinematic__letterbox {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.home-scroll-cinematic__grade {
+	z-index: 2;
+	background:
+		linear-gradient(112deg, rgb(20 46 72 / 22%), transparent 38% 62%, rgb(92 32 26 / 16%)),
+		linear-gradient(180deg, rgb(0 0 0 / 12%), transparent 42%, rgb(0 0 0 / 24%));
+	mix-blend-mode: soft-light;
+	will-change: opacity;
+}
+
+.home-scroll-cinematic__texture {
+	z-index: 3;
+	inset: -1%;
+	background-image:
+		repeating-linear-gradient(0deg, rgb(255 255 255 / 2.5%) 0 1px, transparent 1px 4px),
+		repeating-linear-gradient(90deg, rgb(0 0 0 / 2.5%) 0 1px, transparent 1px 5px);
+	mix-blend-mode: soft-light;
+	opacity: 0.34;
+	will-change: transform;
+}
+
+.home-scroll-cinematic__vignette {
+	z-index: 4;
+	background: radial-gradient(
+		ellipse at center,
+		transparent 48%,
+		rgb(0 0 0 / 18%) 70%,
+		rgb(0 0 0 / 58%) 100%
+	);
+	box-shadow: inset 0 0 8rem rgb(0 0 0 / 18%);
+}
+
+.home-scroll-cinematic__letterbox {
+	z-index: 5;
+}
+
+.home-scroll-cinematic__letterbox::before,
+.home-scroll-cinematic__letterbox::after {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: var(--cinematic-letterbox-size);
+	background: #000;
+	content: "";
+}
+
+.home-scroll-cinematic__letterbox::before {
+	top: 0;
+	box-shadow: 0 0.7rem 1.5rem rgb(0 0 0 / 24%);
+}
+
+.home-scroll-cinematic__letterbox::after {
+	bottom: 0;
+	box-shadow: 0 -0.7rem 1.5rem rgb(0 0 0 / 24%);
+}
+
+.home-scroll-cinematic__captions {
+	position: absolute;
+	right: clamp(2rem, 8%, 9rem);
+	bottom: 0;
+	left: clamp(2rem, 8%, 9rem);
+	z-index: 6;
+	display: grid;
+	height: var(--cinematic-letterbox-size);
+	place-items: center;
+	padding: 0.75rem 0;
+	box-sizing: border-box;
+	pointer-events: none;
+}
+
+.home-scroll-cinematic__caption {
+	grid-area: 1 / 1;
+	max-width: 52rem;
+	margin: 0;
+	color: #fff;
+	font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+	font-size: 1.375rem;
+	font-weight: 900;
+	font-synthesis: weight;
+	letter-spacing: 0;
+	line-height: 1.5;
+	text-align: center;
+	-webkit-text-stroke: 0.032em rgb(0 0 0 / 96%);
+	paint-order: stroke fill;
+	text-shadow:
+		0 0.08em 0.12em rgb(0 0 0 / 100%),
+		0 0.18em 0.55em rgb(0 0 0 / 92%);
+	text-wrap: balance;
+	opacity: 0;
+	visibility: hidden;
+	will-change: transform, opacity;
 }
 
 .home-portfolio-shutter__mask {
@@ -49,6 +225,22 @@
 	will-change: opacity;
 }
 
+.home-portfolio-shutter__interlude-aura {
+	position: absolute;
+	z-index: 3;
+	top: 8%;
+	bottom: 4%;
+	left: 50%;
+	width: min(56vw, 62rem);
+	background: radial-gradient(ellipse at center, rgb(255 255 255 / 10%), transparent 68%);
+	mask-image: linear-gradient(180deg, transparent, #000 16% 84%, transparent);
+	-webkit-mask-image: linear-gradient(180deg, transparent, #000 16% 84%, transparent);
+	transform: translateX(-50%);
+	transform-origin: 50% 50%;
+	pointer-events: none;
+	will-change: transform, opacity;
+}
+
 .home-portfolio-shutter__interlude-strips {
 	position: absolute;
 	inset: 0;
@@ -64,6 +256,8 @@
 	display: block;
 	width: 100%;
 	height: 44vh;
+	border: 0;
+	border-radius: 0;
 	object-fit: cover;
 	object-position: center;
 	user-select: none;
@@ -101,15 +295,16 @@
 
 .home-portfolio-shutter__interlude-fg {
 	position: absolute;
-	left: 46%;
-
+	top: -5%;
+	left: 50%;
 	z-index: 4;
-	width: auto;
-	max-width: 100%;
-	height: 100vh;
+	width: var(--shutter-interlude-foreground-width, min(56vw, 70rem));
+	max-width: 80vw;
+	height: 105%;
 	object-fit: contain;
 	object-position: center bottom;
 	transform: translateX(-50%);
+	filter: drop-shadow(0 1.25rem 1.5rem rgb(0 0 0 / 55%));
 	user-select: none;
 	-webkit-user-drag: none;
 	opacity: 0;
@@ -121,6 +316,8 @@
 	--panel-label-size: clamp(0.58rem, 0.68vw, 0.78rem);
 	--panel-title-size: clamp(1.6rem, calc(1.6vw + 1vh), 3.2rem);
 	--panel-desc-size: clamp(0.74rem, calc(0.62vw + 0.38vh), 1.05rem);
+	--shutter-panel-progress: 0;
+	--shutter-panel-y: 0%;
 	position: relative;
 	box-sizing: border-box;
 	min-width: 0;
@@ -130,7 +327,52 @@
 	border: none;
 	background: transparent;
 	pointer-events: auto;
+	isolation: isolate;
+	backface-visibility: hidden;
+	transform-style: preserve-3d;
 	will-change: transform, opacity;
+}
+
+/* CSS owns the closed state before JavaScript runs. GSAP writes the same
+   values synchronously, then maps scroll progress onto the open state. */
+.home-portfolio-shutter__panel[data-direction="up"] {
+	transform: translate3d(0, var(--shutter-panel-y), 0);
+	--shutter-panel-y: -102%;
+}
+
+.home-portfolio-shutter__panel[data-direction="down"] {
+	transform: translate3d(0, var(--shutter-panel-y), 0);
+	--shutter-panel-y: 102%;
+}
+
+.home-portfolio-shutter__panel::before,
+.home-portfolio-shutter__panel::after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+
+.home-portfolio-shutter__panel::before {
+	z-index: 6;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 1px;
+	background: linear-gradient(180deg, transparent, rgb(255 255 255 / 52%) 18% 82%, transparent);
+	box-shadow: 0 0 18px rgb(0 0 0 / 36%);
+}
+
+.home-portfolio-shutter__panel:first-child::before {
+	display: none;
+}
+
+.home-portfolio-shutter__panel::after {
+	z-index: 2;
+	inset: 0;
+	background:
+		linear-gradient(110deg, rgb(255 255 255 / 16%), transparent 22% 76%, rgb(0 0 0 / 16%)),
+		linear-gradient(180deg, rgb(0 0 0 / 4%), transparent 48%, rgb(0 0 0 / 34%));
+	mix-blend-mode: soft-light;
 }
 
 .home-portfolio-shutter__panel + .home-portfolio-shutter__panel {
@@ -192,10 +434,20 @@
 }
 
 .home-portfolio-shutter__panel-image {
+	position: absolute;
+	inset: 0;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	object-position: center bottom;
+	backface-visibility: hidden;
+	transform-origin: 50% 50%;
+	will-change: transform, opacity;
+}
+
+.home-portfolio-shutter__panel-image--clear {
+	z-index: 1;
+	opacity: 1;
 }
 
 .home-portfolio-shutter__panel-copy {
@@ -207,56 +459,48 @@
 	color: #fff;
 	pointer-events: none;
 	will-change: transform, opacity;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(48px);
 }
 
 .home-portfolio-shutter__panel-copy::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	z-index: -1;
-	background-image: var(--panel-image);
-	background-size: cover;
-	background-position: center bottom;
-	filter: grayscale(100%);
-	clip-path: inset(var(--title-bar-clip-top) 0 var(--title-bar-clip-bottom) 0);
-	pointer-events: none;
+	display: none;
 }
 
 .home-portfolio-shutter__panel-title-bar {
 	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 16%;
+	top: 52%;
+	left: 50%;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	justify-content: center;
-	align-items: flex-start;
-	gap: 0.2em;
-	height: auto;
-	padding: var(--panel-padding);
-	overflow: hidden;
-	box-shadow:
-		0 -8px 24px rgb(0 0 0 / 0.45),
-		0 8px 24px rgb(0 0 0 / 0.45);
+	align-items: center;
+	gap: 0.55rem;
+	max-height: 56vh;
+	padding: 0;
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+	transform: translate(-50%, -50%);
 }
 
 .home-portfolio-shutter__panel:nth-child(even) .home-portfolio-shutter__panel-title-bar {
-	bottom: 8%;
+	top: 58%;
 }
 
 .home-portfolio-shutter__panel-label {
-	font-size: var(--panel-label-size);
+	font-size: clamp(0.52rem, 0.62vw, 0.7rem);
 	font-weight: 900;
-	letter-spacing: 0.14em;
+	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: #fff;
 }
 
 .home-portfolio-shutter__panel-title-bar strong {
-	font-size: var(--panel-title-size);
+	font-size: clamp(1.05rem, 1.35vw, 1.55rem);
 	font-weight: 950;
-	line-height: 1.05;
-	letter-spacing: 0.04em;
+	line-height: 1;
+	letter-spacing: 0.08em;
 	color: #fff;
 	text-shadow:
 		0 2px 0 #000,
@@ -264,12 +508,12 @@
 }
 
 .home-portfolio-shutter__panel-description {
-	max-width: 100%;
-	font-size: var(--panel-desc-size);
+	max-height: 28vh;
+	font-size: clamp(0.52rem, 0.62vw, 0.7rem);
 	font-weight: 850;
-	line-height: 1.35;
-	letter-spacing: 0.02em;
-	text-align: left;
+	line-height: 1.25;
+	letter-spacing: 0.05em;
+	text-align: center;
 	text-wrap: balance;
 	color: rgb(255 255 255 / 0.95);
 	text-shadow:

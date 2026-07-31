@@ -1,0 +1,14 @@
+---
+import { siteConfig } from "@/config";
+import { PixivCrawlerStudio } from "@/features/gallery";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import "@/styles/pages/pixiv-crawler.css";
+
+if (!siteConfig.pages.album) return Astro.redirect("/404/");
+const title = "Pixiv 素材采集";
+const description = "相册的本地素材采集与待审工作台。";
+---
+
+<MainGridLayout {title} {description} showSidebar={true} sidebarVariant="social">
+	<PixivCrawlerStudio client:load />
+</MainGridLayout>

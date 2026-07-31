@@ -1,0 +1,12 @@
+Use case: stylized-concept
+Asset type: original adult anime character identity anchor and Live2D source reference
+Input images: Image 1 is the approved Xiao Ai stage concept reference. Use only the central woman's face, hairstyle, mature body proportions, and black-and-white technical outfit as the identity and costume reference. Ignore all UI, text, framing marks, and background from Image 1.
+Primary request: Create the exact same original clearly adult woman Xiao Ai, age appearance 24-28, standing in a neutral relaxed three-quarter frontal pose suitable as the master identity anchor for later Live2D production. Her full head-to-toe body, both hands, every finger, both legs, and both feet must be clearly visible. Keep both arms slightly away from the torso and keep the legs separated enough for later rigging.
+Scene/backdrop: isolated character only; transparent output; no floor, no environment, no shadow, no reflection.
+Style/medium: polished high-resolution anime production character art, crisp clean contours, controlled cel shading, refined but practical costume construction, original character design.
+Composition/framing: vertical 2:3 canvas, centered full body, eye-level, generous padding around hair, sleeves, fingertips, coat tails, and shoes.
+Lighting/mood: neutral soft studio key light, calm, intelligent, warm, readable silhouette.
+Color palette: black, white, charcoal and neutral gray with very restrained cyan and signal-magenta details.
+Character details: elegant black hair in a high loose bun with tidy side locks; mature oval face; calm gray-cyan eyes; long white technical overcoat over a fitted black high-neck inner outfit; practical black trousers; restrained straps, seams and small metallic hardware; black-and-white ankle boots. Non-sexualized adult design.
+Constraints: preserve Image 1 identity and costume construction; anatomically coherent adult proportions; exactly two arms, two hands, five fingers per hand, two legs and two feet; unobstructed joints; no text, logo, watermark, UI, props, cast shadow or contact shadow.
+Avoid: childlike body, chibi, loli, school uniform, sexualized pose, exaggerated chest or hips, distorted torso, extra or fused fingers, extra limbs, cropped feet, hidden hands, crossed limbs, hands touching the torso, hair merging into shoulders, translucent fabric, glow, fog, motion blur, busy decoration, copyrighted character resemblance.

@@ -1,0 +1,35 @@
+---
+import type { GetStaticPaths, ImageMetadata } from "astro";
+import { siteConfig } from "@/config";
+import { ArticleDirectory, PostPagination } from "@/features/posts";
+import { getArticleListPosts } from "@/features/posts/server";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+export const getStaticPaths = (async () => {
+	const articleImageFiles = import.meta.glob<ImageMetadata>(
+		"../../**/*.{png,jpg,jpeg,webp,avif}",
+		{ import: "default" },
+	);
+	const posts = await getArticleListPosts(articleImageFiles);
+	const pageSize = siteConfig.pagination.postsPerPage;
+	const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+	return Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) => {
+		const page = index + 2;
+		return {
+			params: { page: String(page) },
+			props: {
+				page,
+				totalPages,
+				posts: posts.slice((page - 1) * pageSize, page * pageSize),
+			},
+		};
+	});
+}) satisfies GetStaticPaths;
+
+const { page, totalPages, posts } = Astro.props;
+---
+
+<MainGridLayout title={`文章列表 · 第 ${page} 页`} description="按时间浏览所有文章。" showSidebar={true} sidebarVariant="posts">
+	<ArticleDirectory title="文章列表" {posts} postsPerPage={siteConfig.pagination.postsPerPage} />
+	<PostPagination {page} {totalPages} />
+</MainGridLayout>

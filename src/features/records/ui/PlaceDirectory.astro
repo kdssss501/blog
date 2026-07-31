@@ -1,0 +1,259 @@
+---
+import Icon from "@components/common/Icon.astro";
+import type { PlaceEntry } from "../model/types";
+
+interface Props {
+	entries: PlaceEntry[];
+	amapKey?: string;
+	amapSecurityCode?: string;
+}
+
+const { entries, amapKey = "", amapSecurityCode = "" } = Astro.props;
+const mapEntries = entries.filter(
+	(entry) => entry.lat !== undefined && entry.lng !== undefined,
+);
+const hasMap = Boolean(amapKey && mapEntries.length > 0);
+const visitCount = entries.reduce(
+	(total, entry) => total + entry.visitCount,
+	0,
+);
+const currentYear = new Date().getFullYear();
+const currentYearCount = entries.filter((entry) =>
+	entry.date?.startsWith(String(currentYear)),
+).length;
+---
+
+<div class="place-directory" data-pagefind-body>
+	<header class="place-directory__header">
+		<div class="place-directory__title-icon"><Icon name="material-symbols:explore-outline-rounded" /></div>
+		<div>
+			<h1 data-pagefind-meta="title">去过的地方</h1>
+			<span>足迹地图与旅行记录</span>
+		</div>
+	</header>
+
+	<div class="place-directory__stats" aria-label="足迹统计">
+		<span><Icon name="material-symbols:location-city-rounded" /><strong>{entries.length}</strong> 地点</span>
+		<span><Icon name="material-symbols:pin-drop-outline-rounded" /><strong>{visitCount}</strong> 到访次数</span>
+		<span><Icon name="material-symbols:calendar-month-outline-rounded" /><strong>{currentYearCount}</strong> 今年出行</span>
+	</div>
+
+	<section class="place-directory__map-section">
+		<h2>足迹地图</h2>
+		<div
+			id="place-map"
+			class="place-directory__map"
+			data-map-state={hasMap ? "loading" : "fallback"}
+			aria-label="足迹地图"
+		>
+			<div class="place-map-fallback" data-place-map-fallback aria-hidden="true">
+				<div class="place-map-fallback__grid"></div>
+				<div class="place-map-fallback__land place-map-fallback__land--north"></div>
+				<div class="place-map-fallback__land place-map-fallback__land--south"></div>
+				{mapEntries.map((entry, index) => {
+					const left = Math.max(8, Math.min(92, ((entry.lng ?? 110) - 73) / 62 * 100));
+					const top = Math.max(12, Math.min(88, (54 - (entry.lat ?? 30)) / 27 * 100));
+					return (
+						<span
+							class="place-map-fallback__pin"
+							style={`left:${left}%;top:${top}%;--pin-delay:${index * 120}ms`}
+							title={entry.title}
+						></span>
+					);
+				})}
+				<div class="place-map-fallback__badge">{hasMap ? "地图加载中" : "地图预览"}</div>
+			</div>
+		</div>
+		<small>地图由高德地图提供</small>
+	</section>
+
+	{entries.length > 0 ? (
+		<section class="place-directory__places">
+			<h2>地点列表</h2>
+			<div class="place-directory__list">
+				{entries.map((entry) => (
+					<article class="place-entry">
+						<div class="place-entry__copy">
+							<h3>{entry.title}</h3>
+							{entry.experience && <span>{entry.experience}</span>}
+							<p>{[entry.province, entry.city].filter(Boolean).join(" · ") || "未填写地点"}</p>
+						</div>
+						<div class="place-entry__meta">
+							<strong>到访 {entry.visitCount} 次</strong>
+							{entry.date && <time>{entry.date.slice(0, 10)}</time>}
+						</div>
+					</article>
+				))}
+			</div>
+		</section>
+	) : (
+		<div class="record-empty">
+			<Icon name="material-symbols:map-outline-rounded" class="record-empty__icon" />
+			<strong>暂无足迹</strong>
+			<span>添加地点记录后会显示在这里。</span>
+		</div>
+	)}
+</div>
+
+{mapEntries.length > 0 && (
+	<script is:inline data-swup-reload-script define:vars={{ amapKey, amapSecurityCode, mapEntries }}>
+		(function initPlaceMap() {
+			const container = document.getElementById("place-map");
+			if (!container || container.dataset.mapInitialized === "true") return;
+			const fallbackSnapshot = container.querySelector("[data-place-map-fallback]")?.cloneNode(true);
+			let timeoutId = 0;
+			const clearLoadTimeout = function () {
+				if (!timeoutId) return;
+				window.clearTimeout(timeoutId);
+				timeoutId = 0;
+			};
+			const showFallback = function (label) {
+				if (!container.isConnected) return;
+				clearLoadTimeout();
+				container.dataset.mapState = "fallback";
+				container.classList.add("is-fallback");
+				const fallback = fallbackSnapshot?.cloneNode(true);
+				if (fallback) {
+					fallback.classList?.add("place-map-fallback--error");
+					const badge = fallback.querySelector?.(".place-map-fallback__badge");
+					if (badge) badge.textContent = label || "地图暂时不可用";
+					container.replaceChildren(fallback);
+				}
+			};
+			const initializeMap = function () {
+				if (!container.isConnected || container.dataset.mapInitialized === "true") return false;
+				const amap = Reflect.get(window, "AMap");
+				if (!amap?.Map || !amap?.Marker) return false;
+				try {
+					container.dataset.mapState = "loading";
+					container.classList.remove("is-fallback");
+					container.replaceChildren();
+					const dark = document.documentElement.classList.contains("dark");
+					const map = new amap.Map(container, {
+						zoom: 4,
+						viewMode: "2D",
+						mapStyle: dark ? "amap://styles/dark" : "amap://styles/normal",
+						resizeEnable: true,
+						zooms: [3, 18],
+					});
+					const markers = mapEntries.map(function (entry) {
+						const marker = new amap.Marker({ position: [entry.lng, entry.lat], title: entry.title });
+						marker.on?.("click", function () {
+							const title = String(entry.title || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+							const experience = String(entry.experience || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+							if (!amap.InfoWindow) return;
+							new amap.InfoWindow({
+								content: `<div class="place-map-popup"><strong>${title}</strong><p>${experience}</p></div>`,
+								offset: amap.Pixel ? new amap.Pixel(0, -24) : undefined,
+							}).open(map, marker.getPosition?.());
+						});
+						return marker;
+					});
+					try {
+						if (amap.MarkerCluster) new amap.MarkerCluster(map, markers, { gridSize: 60 });
+						else map.add?.(markers);
+					} catch {
+						map.add?.(markers);
+					}
+					try { map.setFitView?.(markers, false, [48, 48, 48, 48]); } catch {}
+					container.dataset.mapInitialized = "true";
+					container.dataset.mapState = "ready";
+					clearLoadTimeout();
+					const resize = function () {
+						if (container.isConnected) map.resize?.();
+						else window.removeEventListener("resize", resize);
+					};
+					window.addEventListener("resize", resize, { passive: true });
+					return true;
+				} catch {
+					showFallback("地图暂时不可用");
+					return false;
+				}
+			};
+
+			if (initializeMap()) return;
+			if (!amapKey) {
+				showFallback("地图预览");
+				return;
+			}
+			if (amapSecurityCode) {
+				Reflect.set(window, "_AMapSecurityConfig", { securityJsCode: amapSecurityCode });
+			}
+			const onSdkReady = function () {
+				if (!initializeMap()) showFallback("地图暂时不可用");
+			};
+			let script = document.getElementById("amap-sdk-v2");
+			if (script?.dataset.loadState === "error") {
+				showFallback("地图暂时不可用");
+				return;
+			}
+			const createdScript = !script;
+			if (createdScript) {
+				script = document.createElement("script");
+				script.id = "amap-sdk-v2";
+				script.async = true;
+				script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(amapKey)}&plugin=AMap.MarkerCluster`;
+			}
+			script.addEventListener("load", function () {
+				script.dataset.loadState = "loaded";
+				onSdkReady();
+			}, { once: true });
+			script.addEventListener("error", function () {
+				script.dataset.loadState = "error";
+				showFallback("地图暂时不可用");
+			}, { once: true });
+			if (createdScript) document.head.appendChild(script);
+			timeoutId = window.setTimeout(function () {
+				showFallback("地图加载超时");
+			}, 8000);
+		})();
+	</script>
+)}
+
+<style>
+	.place-directory { display:grid; max-width:56rem; gap:1.45rem; margin:0 auto; }
+	.place-directory__header { display:flex; align-items:center; gap:.8rem; }
+	.place-directory__title-icon { display:grid; width:3rem; height:3rem; place-items:center; flex:0 0 auto; background:var(--deep-text); color:var(--page-bg); font-size:1.35rem; }
+	.place-directory__header h1 { margin:0; color:var(--deep-text); font-size:2rem; line-height:1.1; }
+	.place-directory__header span { display:block; margin-top:.15rem; color:var(--content-meta); font-size:.82rem; }
+	.place-directory__stats { display:flex; flex-wrap:wrap; gap:.65rem; }
+	.place-directory__stats > span { display:inline-flex; min-height:2.35rem; align-items:center; gap:.4rem; padding:.35rem .85rem; border:2px solid var(--deep-text); border-radius:999px; color:var(--content-meta); font-size:.78rem; }
+	.place-directory__stats strong { color:var(--deep-text); font-size:.95rem; }
+	.place-directory__map-section,.place-directory__places { display:grid; gap:.8rem; }
+	.place-directory__map-section h2,.place-directory__places > h2 { margin:0; color:var(--deep-text); font-size:1.15rem; }
+	.place-directory__map { position:relative; width:100%; min-height:31.25rem; overflow:hidden; border:1px solid var(--line-divider); border-radius:.75rem; background:var(--card-bg); }
+	.place-directory__map[data-map-state="loading"]::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(110deg,transparent 30%,color-mix(in srgb,var(--primary) 12%,transparent) 50%,transparent 70%); animation:place-map-loading 1.5s ease-in-out infinite; }
+	.place-directory__map[data-map-state="ready"]::after { display:none; }
+	.place-map-fallback { position:absolute; inset:0; overflow:hidden; background:linear-gradient(145deg,#f4f7f3,#e9f0eb 52%,#f8f5ec); }
+	:global(.dark) .place-map-fallback { background:linear-gradient(145deg,#18251f,#1c302c 52%,#24251f); }
+	.place-map-fallback__grid { position:absolute; inset:0; opacity:.45; background-image:linear-gradient(90deg,color-mix(in srgb,var(--primary) 18%,transparent) 1px,transparent 1px),linear-gradient(color-mix(in srgb,var(--primary) 18%,transparent) 1px,transparent 1px); background-size:5rem 5rem; transform:rotate(-8deg) scale(1.2); }
+	.place-map-fallback__land { position:absolute; border:2px solid color-mix(in srgb,var(--primary) 35%,transparent); background:color-mix(in srgb,var(--primary) 9%,transparent); filter:drop-shadow(0 0 1rem color-mix(in srgb,var(--primary) 12%,transparent)); }
+	.place-map-fallback__land--north { width:68%; height:48%; top:7%; left:16%; border-radius:45% 56% 42% 62% / 48% 40% 57% 44%; transform:rotate(-12deg); }
+	.place-map-fallback__land--south { width:38%; height:42%; bottom:8%; left:37%; border-radius:58% 44% 66% 38% / 48% 60% 40% 53%; transform:rotate(18deg); }
+	.place-map-fallback__pin { position:absolute; width:.9rem; height:.9rem; border:3px solid var(--card-bg); border-radius:50% 50% 50% 0; background:var(--primary); box-shadow:0 .3rem .8rem rgb(0 0 0 / 20%); transform:rotate(-45deg); animation:place-pin-pulse 2.4s ease-in-out var(--pin-delay) infinite; }
+	.place-map-fallback__badge { position:absolute; right:1rem; bottom:1rem; padding:.45rem .75rem; border:1px solid color-mix(in srgb,var(--primary) 25%,var(--line-divider)); border-radius:999px; background:color-mix(in srgb,var(--card-bg) 80%,transparent); color:var(--content-meta); font-size:.72rem; backdrop-filter:blur(8px); }
+	.place-map-fallback--error { background:linear-gradient(145deg,#f7f4f1,#ece8e3); }
+	:global(.dark) .place-map-fallback--error { background:linear-gradient(145deg,#292521,#1e1d1a); }
+	@keyframes place-map-loading { from { transform:translateX(-100%); } to { transform:translateX(100%); } }
+	@keyframes place-pin-pulse { 0%,100% { opacity:.72; } 50% { opacity:1; filter:drop-shadow(0 0 .5rem var(--primary)); } }
+	.place-directory__map-section small { color:var(--content-meta); text-align:center; }
+	.place-directory__list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem; }
+	.place-entry { display:grid; min-height:6rem; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; padding:.9rem 1rem; border:2px solid var(--deep-text); background:var(--card-bg); }
+	.place-entry h3,.place-entry p { margin:0; }
+	.place-entry h3 { color:var(--deep-text); font-size:.92rem; }
+	.place-entry p,.place-entry span,.place-entry__meta { color:var(--content-meta); font-size:.72rem; }
+	.place-entry span { display:-webkit-box; margin-top:.3rem; overflow:hidden; line-height:1.45; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+	.place-entry p { margin-top:.35rem; }
+	.place-entry__meta { display:grid; justify-items:end; align-content:start; gap:.25rem; }
+	.place-entry__meta strong { color:var(--deep-text); white-space:nowrap; }
+	.record-empty { display:grid; min-height:17rem; place-items:center; align-content:center; gap:.5rem; border:1px dashed var(--line-divider); color:var(--content-meta); text-align:center; }
+	.record-empty__icon { width:3rem; height:3rem; }
+	.record-empty strong { color:var(--deep-text); }
+	:global(.place-map-popup) { max-width:16rem; color:#222; }
+	:global(.place-map-popup p) { margin:.35rem 0 0; }
+	@media (max-width:640px) {
+		.place-directory__header h1 { font-size:1.6rem; }
+		.place-directory__map { min-height:22rem; }
+		.place-directory__list { grid-template-columns:1fr; }
+	}
+</style>

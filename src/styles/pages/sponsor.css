@@ -2,6 +2,83 @@
    赞助页 — 来自 sponsor.astro
    ============================================ */
 
+sponsor-method-tabs {
+	display: block;
+}
+
+.sponsor-content {
+	width: 100%;
+	padding: 1rem 0 2rem;
+}
+
+.sponsor-content__header {
+	margin-bottom: 2rem;
+}
+
+.sponsor-content__description {
+	max-width: 52rem;
+	margin: 0.75rem 0 0;
+	color: var(--content-meta);
+	line-height: 1.7;
+}
+
+.usage-info-box {
+	display: flex;
+	max-width: 52rem;
+	align-items: flex-start;
+	gap: 0.625rem;
+	margin-top: 1rem;
+	padding: 0.75rem;
+	border: 1px solid var(--line-color);
+	border-radius: 0.5rem;
+	background: var(--btn-regular-bg);
+}
+
+.usage-info-box p {
+	margin: 0;
+	color: var(--content-meta);
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+
+.sponsor-history {
+	margin-top: 2rem;
+	padding-top: 2rem;
+	border-top: 1px solid var(--line-color);
+}
+
+.sponsor-history h2 {
+	margin: 0 0 1rem;
+	font-size: 1.125rem;
+	font-weight: 800;
+}
+
+.sponsor-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sponsor-empty {
+	padding: 3rem 0;
+	color: var(--content-meta);
+	text-align: center;
+}
+
+.sponsor-method-link {
+	display: inline-flex;
+	min-height: 2.5rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.5rem 0.875rem;
+	border: 1px solid var(--line-color);
+	border-radius: 0.5rem;
+	color: var(--deep-text);
+	font-weight: 700;
+	text-decoration: none;
+}
+
 /* ============================================
    扫码赞助卡片
    ============================================ */

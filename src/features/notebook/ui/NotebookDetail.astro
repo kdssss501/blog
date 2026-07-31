@@ -1,0 +1,28 @@
+---
+interface Props {
+	name?: string;
+	initialEntries?: import("../model/types").NotebookEntry[];
+}
+
+const { name = "", initialEntries = [] } = Astro.props;
+const initialPayload = JSON.stringify(initialEntries).replace(/</g, "\\u003c");
+---
+
+<notebook-detail class="notebook-detail-page" data-notebook-name={name}>
+	<script is:inline type="application/json" data-notebook-initial set:html={initialPayload}></script>
+	<div class="notebook-detail-container">
+		<div class="notebook-loading" data-notebook-detail-loading role="status">
+			<span class="notebook-loading-dot"></span>
+			<span>正在加载笔记...</span>
+		</div>
+		<div class="notebook-empty" data-notebook-detail-error hidden>
+			<p>加载失败，请稍后重试。</p>
+			<button type="button" class="notebook-retry" data-notebook-detail-retry hidden>重新加载</button>
+		</div>
+		<div class="notebook-detail-container" data-notebook-detail-content hidden></div>
+	</div>
+</notebook-detail>
+
+<script>
+	import "../client/notebook-detail";
+</script>

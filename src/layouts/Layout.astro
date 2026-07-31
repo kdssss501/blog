@@ -4,22 +4,27 @@ import La51Analytics from "@components/analytics/La51Analytics.astro";
 import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
 import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
 import FancyboxManager from "@components/features/FancyboxManager.astro";
-import FloatingLyrics from "@components/features/FloatingLyrics.astro";
 import FontManager from "@components/features/FontManager.astro";
 import Live2DWidget from "@components/features/Live2DWidget.astro";
-import MusicManager from "@components/features/MusicManager.astro";
 import PageLoader from "@components/features/PageLoader.astro";
 import PrivacyModal from "@components/features/PrivacyModal.astro";
 import SpineModel from "@components/features/SpineModel.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
-import MobileDock from "@components/layout/MobileDock.astro";
-import AISearch from "@/components/controls/AISearch.svelte";
-import FloatingDock from "@/components/controls/FloatingDock.astro";
-import SearchModal from "@/components/controls/SearchModal.svelte";
-
-import { expressiveCodeConfig, homeConfig, live2dModelConfig, siteConfig } from "@/config";
+import { FloatingDock, MobileDock } from "@/app";
+import {
+	expressiveCodeConfig,
+	homeConfig,
+	live2dModelConfig,
+	siteConfig,
+	wallpaperConfig,
+} from "@/config";
 import { PAGE_WIDTH } from "@/constants/constants";
 import { defaultFavicons } from "@/constants/icon";
+import { PublicSiteConfigRuntime } from "@/features/admin";
+import { CinematicPlayer } from "@/features/cinematic";
+import { FloatingLyrics, MusicManager } from "@/features/music";
+import { AISearch, SearchModal } from "@/features/search";
+import { PageWallpaperBanner, SakuraEffect } from "@/features/settings";
 import type { Favicon } from "@/types/config";
 import { url } from "@/utils/url-utils";
 
@@ -41,6 +46,8 @@ const { title, description, setOGTypeArticle, postSlug } = Astro.props;
 let { lang } = Astro.props;
 
 const configHue = siteConfig.themeColor.hue;
+const wallpaperImage = wallpaperConfig.slides[0].src;
+const wallpaperImageMobile = wallpaperImage;
 
 let pageTitle: string;
 if (title) {
@@ -59,6 +66,8 @@ if (siteConfig.generateOgImages && postSlug) {
 }
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const isXiaoPage =
+	Astro.url.pathname === "/live2D/" || Astro.url.pathname === "/live2D";
 
 const favicons: Favicon[] =
 	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
@@ -149,7 +158,7 @@ const siteLang = lang.replace("_", "-");
       />
     ))}
 
-    {/* 主题初始化（极简：仅 light/dark） */}
+    {/* 首屏同步应用版本化显示偏好，避免主题和壁纸闪烁。 */}
     <script
       is:inline
       define:vars={{
@@ -157,10 +166,16 @@ const siteLang = lang.replace("_", "-");
         defaultMode: siteConfig.themeColor.defaultMode ?? "light",
         darkTheme: expressiveCodeConfig.darkTheme,
         lightTheme: expressiveCodeConfig.lightTheme,
+        wallpaperImage,
+        wallpaperImageMobile,
       }}
     >
-      const stored = localStorage.getItem("theme");
-      // 如果没有存储过主题，使用配置的默认值（不写入 localStorage，让用户后续切换才持久化）
+      let displayPreferences = {};
+      try {
+        displayPreferences = JSON.parse(localStorage.getItem("blog:display-preferences:v2") || "{}");
+      } catch {}
+
+      const stored = displayPreferences.theme || localStorage.getItem("theme");
       const theme = stored === "system"
         ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
         : (stored || defaultMode);
@@ -168,11 +183,36 @@ const siteLang = lang.replace("_", "-");
       if (isDark) document.documentElement.classList.add("dark");
       else document.documentElement.classList.remove("dark");
       document.documentElement.setAttribute("data-theme", isDark ? darkTheme : lightTheme);
-      // Persist resolved value if it was "system"
-      if (stored === "system") localStorage.setItem("theme", theme);
-
-      const hue = localStorage.getItem("hue") || configHue;
+      const hue = displayPreferences.hue ?? localStorage.getItem("hue") ?? configHue;
       document.documentElement.style.setProperty("--hue", hue);
+
+      const legacyWallpaperMode = localStorage.getItem("wallpaperMode");
+      const legacyBackground = localStorage.getItem("blog-background-mode");
+      const rawWallpaperMode = displayPreferences.wallpaperMode || legacyWallpaperMode ||
+        (legacyBackground === "wallpaper" ? "full" : "none");
+      const wallpaperMode = rawWallpaperMode === "fullscreen" ? "full" : rawWallpaperMode;
+      document.documentElement.dataset.wallpaperMode = wallpaperMode;
+      document.documentElement.dataset.backgroundMode = wallpaperMode === "none" ? "plain" : "wallpaper";
+      document.documentElement.dataset.pageWallpaperBanner = location.pathname === "/" ? "off" : "on";
+      document.documentElement.dataset.sakura = (displayPreferences.sakura ?? localStorage.getItem("sakuraEnabled") === "true") ? "on" : "off";
+      document.documentElement.dataset.postLayout = displayPreferences.postLayout || localStorage.getItem("postListLayout") || "list";
+      const readDisplayFlag = (name, legacyName, fallback) => {
+        if (typeof displayPreferences[name] === "boolean") return displayPreferences[name];
+        const legacyValue = localStorage.getItem(legacyName);
+        return legacyValue === null ? fallback : legacyValue === "true";
+      };
+      document.documentElement.dataset.wallpaperTitle = readDisplayFlag("wallpaperTitle", "wallpaperTitle", true) ? "on" : "off";
+      document.documentElement.dataset.wallpaperCarousel = readDisplayFlag("wallpaperCarousel", "wallpaperCarousel", false) ? "on" : "off";
+      document.documentElement.dataset.waterRipple = readDisplayFlag("waterRipple", "waterRipple", true) ? "on" : "off";
+      document.documentElement.dataset.gradientTransition = readDisplayFlag("gradientTransition", "gradientTransition", true) ? "on" : "off";
+      document.documentElement.style.setProperty("--site-wallpaper", `url("${wallpaperImage}")`);
+      document.documentElement.style.setProperty("--site-wallpaper-mobile", `url("${wallpaperImageMobile}")`);
+      const overlayOpacity = Number(displayPreferences.overlayOpacity ?? localStorage.getItem("overlayOpacity") ?? localStorage.getItem("wallpaperOpacity") ?? 88);
+      const overlayBlur = Number(displayPreferences.overlayBlur ?? localStorage.getItem("overlayBlur") ?? localStorage.getItem("backgroundBlur") ?? 2);
+      const overlayCardOpacity = Number(displayPreferences.overlayCardOpacity ?? localStorage.getItem("overlayCardOpacity") ?? localStorage.getItem("cardOpacity") ?? 68);
+      document.documentElement.style.setProperty("--wallpaper-overlay-opacity", String(Math.min(100, Math.max(20, overlayOpacity)) / 100));
+      document.documentElement.style.setProperty("--wallpaper-overlay-blur", `${Math.min(24, Math.max(0, overlayBlur))}px`);
+      document.documentElement.style.setProperty("--wallpaper-card-opacity", String(Math.min(96, Math.max(20, overlayCardOpacity)) / 100));
     </script>
     <style
       define:vars={{
@@ -193,6 +233,7 @@ const siteLang = lang.replace("_", "-");
     <FontManager />
   </head>
   <body
+	data-page-mode={isXiaoPage ? "xiao" : undefined}
     class="min-h-screen bg-(--page-bg) text-(--deep-text)"
     class:list={[
       ...(siteConfig.font.enable && siteConfig.font.selected
@@ -206,25 +247,31 @@ const siteLang = lang.replace("_", "-");
     <div id="progress-bar"></div>
     <PageLoader />
     <ConfigCarrier />
-    <MusicManager />
-    <FloatingLyrics />
-    <SpineModel />
-    {live2dModelConfig.enable && <Live2DWidget config={live2dModelConfig} />}
+    <PageWallpaperBanner title={title} />
+    <PublicSiteConfigRuntime client:load />
+    {!isXiaoPage && <MusicManager />}
+    {!isXiaoPage && <FloatingLyrics />}
+    {!isXiaoPage && <SakuraEffect client:load />}
+    {!isXiaoPage && <SpineModel />}
+    {live2dModelConfig.enable && !isXiaoPage && <Live2DWidget config={live2dModelConfig} />}
     <slot />
+    {!isXiaoPage && <CinematicPlayer />}
     {/* 全局持久化组件 — Swup 容器外，所有页面共享（CLAUDE.md 4.2） */}
-    <FloatingDock />
-    <MobileDock />
-    <AISearch client:idle />
-    <SearchModal
-      client:idle
-      placeholders={[
-        "搜索文章、标签、分类...",
-        "输入关键词开始搜索",
-        "试试搜索「Astro」或「Svelte」",
-        "按 ESC 关闭搜索面板",
-        "Ctrl+K 快速切换AI搜索/普通搜索",
-      ]}
-    />
+    {!isXiaoPage && <FloatingDock />}
+    {!isXiaoPage && <MobileDock />}
+    {!isXiaoPage && <AISearch client:idle />}
+    {!isXiaoPage && (
+      <SearchModal
+        client:load
+        placeholders={[
+          "搜索文章、标签、分类...",
+          "输入关键词开始搜索",
+          "试试搜索「Astro」或「Svelte」",
+          "按 ESC 关闭搜索面板",
+          "Ctrl+K 快速切换AI搜索/普通搜索",
+        ]}
+      />
+    )}
     <PrivacyModal />
     <FancyboxManager />
   </body>
@@ -236,7 +283,7 @@ const siteLang = lang.replace("_", "-");
 </script>
 
 <script>
-  import { initPageLoader } from "@/utils/page-loader-controller.js";
+  import { initPageLoader } from "@/app/shell/client/page-loader-controller.js";
 
   initPageLoader();
 </script>
@@ -244,6 +291,42 @@ const siteLang = lang.replace("_", "-");
 <script>
   import { pathsEqual } from "@/utils/url-utils";
   import { expressiveCodeConfig, siteConfig } from "@/config";
+
+  function isXiaoPath(pathname: string) {
+    return pathname === "/live2D" || pathname.startsWith("/live2D/");
+  }
+
+  function installXiaoNavigationBoundary() {
+    if (document.documentElement.dataset.xiaoBoundaryInstalled === "true") return;
+    document.documentElement.dataset.xiaoBoundaryInstalled = "true";
+    document.addEventListener(
+      "click",
+      (event) => {
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
+        const origin = event.target instanceof Element ? event.target : null;
+        const anchor = origin?.closest<HTMLAnchorElement>("a[href]");
+        if (!anchor || anchor.download || (anchor.target && anchor.target !== "_self")) return;
+        const target = new URL(anchor.href, window.location.href);
+        if (target.origin !== window.location.origin) return;
+        if (isXiaoPath(target.pathname) === isXiaoPath(window.location.pathname)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.assign(target.href);
+      },
+      true,
+    );
+  }
+
+  installXiaoNavigationBoundary();
 
   function initCustomScrollbar() {
     const katexElements = document.querySelectorAll(

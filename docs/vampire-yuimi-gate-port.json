@@ -1,0 +1,7 @@
+{
+  "source": "Yuimi-chaya.github.io/src/themes/kisara/pages/HomePage.astro",
+  "sourceRange": "inner gate IIFE starting after scheduleKisaraHome",
+  "bodySha256": "10d879d7e39e0b98c409e2c9320cc2e2e76612e5d42cf1e2bc4adc3bc54f4ae5",
+  "output": "src/features/xiao/client/vampire-yuimi-gate-runtime.ts",
+  "portedAt": "2026-07-30T13:44:51.115Z"
+}

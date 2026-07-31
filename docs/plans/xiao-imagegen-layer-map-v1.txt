@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: Live2D layer-separation planning board for an original anime character
+Input images: Image 1 is the approved Xiao Ai identity anchor. Preserve her exact adult identity, face, hairstyle, costume design and palette.
+Primary request: Create a professional visual planning board showing how the exact same Xiao Ai artwork should be separated for Cubism rigging. Include one clean front-facing full-body master at center with arms slightly away from the torso. Around it, show neatly isolated component studies for back hair, side hair locks, bangs, face base, eyebrows, upper and lower eyelids, eyeballs and irises, nose shadow, closed mouth, open mouth interior, upper and lower lips, neck, torso, left and right upper arms, forearms, hands, coat sleeves, front coat panels, back coat tails, hips, thighs, lower legs and shoes. Show components as complete unobstructed art references, not transparent floating anatomy.
+Scene/backdrop: flat light neutral-gray production board with thin divider lines and generous spacing, no environment or cast shadows.
+Style/medium: crisp high-resolution anime production art, clean separable contours, consistent linework and flat material shading.
+Composition/framing: horizontal 4:3 sheet, centered master figure with organized component groups around it; all items fully inside the canvas.
+Constraints: same approved adult Xiao Ai identity and exact costume; every component corresponds visibly to the master; no prose labels, no logos, no watermark; this is a planning reference, not a claim of a finished PSD or Cubism model.
+Avoid: gore, detached realistic body parts, anatomical cutaway, childlike body, chibi, costume drift, inconsistent colors, cropped components, hidden joints, extra limbs, glow, fog, UI decoration.

@@ -1,0 +1,100 @@
+---
+import Icon from "@components/common/Icon.astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+import {
+	type GalleryDirectoryAlbum,
+	getGalleryTags,
+} from "../model/gallery-directory";
+import AlbumCard from "./AlbumCard.astro";
+import NetworkAlbum from "./NetworkAlbum.svelte";
+
+interface Props {
+	title: string;
+	description: string;
+	albums: GalleryDirectoryAlbum[];
+	labels: {
+		local: string;
+		network: string;
+		all: string;
+		empty: string;
+	};
+}
+
+const { title, description, albums, labels } = Astro.props;
+const tags = getGalleryTags(albums);
+const tabs = [
+	{ id: "local", label: labels.local, icon: "material-symbols:folder-rounded" },
+	{ id: "network", label: labels.network, icon: "material-symbols:wallpaper" },
+] as const;
+---
+
+<gallery-directory class="gallery-directory">
+	<header class="gallery-directory__header">
+		<PageTitle title={title} eyebrow="Gallery" variant="stacked" />
+		{description && <p>{description}</p>}
+	</header>
+
+	<div class="gallery-directory__view-switcher" data-tab-scroll-container>
+		<nav class="gallery-directory__tabs" aria-label="相册来源" role="tablist">
+			<span class="gallery-tab-indicator" data-gallery-tab-indicator aria-hidden="true"></span>
+			{tabs.map((tab, index) => (
+				<button
+					type="button"
+					id={`gallery-tab-${tab.id}`}
+					role="tab"
+					aria-controls={`gallery-panel-${tab.id}`}
+					aria-selected={index === 0 ? "true" : "false"}
+					tabindex={index === 0 ? 0 : -1}
+					class:list={["gallery-tab-btn", index === 0 ? "gallery-tab-btn-active" : "gallery-tab-btn-inactive"]}
+					data-gallery-tab={tab.id}
+				>
+					<Icon name={tab.icon} />
+					<span>{tab.label}</span>
+				</button>
+			))}
+		</nav>
+	</div>
+
+	<section id="gallery-panel-local" role="tabpanel" aria-labelledby="gallery-tab-local" data-gallery-panel="local">
+		{albums.length > 0 && tags.length > 0 && (
+			<div class="gallery-filter" role="toolbar" aria-label="按标签筛选相册">
+				<span class="gallery-filter__indicator" data-gallery-filter-indicator aria-hidden="true"></span>
+				<button type="button" data-gallery-tag="all" aria-pressed="true" class="gallery-filter__button gallery-filter__button--active">
+					{labels.all}
+				</button>
+				{tags.map((tag) => (
+					<button type="button" data-gallery-tag={tag} aria-pressed="false" tabindex="-1" class="gallery-filter__button">
+						{tag}
+					</button>
+				))}
+			</div>
+		)}
+
+		{albums.length > 0 ? (
+			<>
+				<div class="gallery-directory__grid" data-gallery-grid>
+					{albums.map((album) => (
+						<AlbumCard {...album} />
+					))}
+				</div>
+				<div class="gallery-directory__empty" data-gallery-filter-empty hidden>
+					<Icon name="material-symbols:filter-alt-off-rounded" />
+					<p>{labels.empty}</p>
+				</div>
+			</>
+		) : (
+			<div class="gallery-directory__empty">
+				<Icon name="material-symbols:photo-library" />
+				<p>{labels.empty}</p>
+			</div>
+		)}
+	</section>
+
+	<section id="gallery-panel-network" role="tabpanel" aria-labelledby="gallery-tab-network" data-gallery-panel="network" hidden>
+		<NetworkAlbum client:visible />
+	</section>
+</gallery-directory>
+
+<script>
+	import "../client/gallery-directory";
+</script>

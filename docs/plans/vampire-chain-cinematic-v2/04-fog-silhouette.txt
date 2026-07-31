@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: 16:9 opening cinematic keyframe for a Live2D vampire page
+Input images: Image 1 is the black-form character identity and costume reference; Image 2 is the white-form identity reference. This shot returns to Image 1's black form.
+Primary request: fourth shot in the same continuous anime opening, full-body vampire silhouette walking through a cathedral nave flooded with horizontal fog, only her red eyes and thin rim light remain visible as the camera pulls backward.
+Style/medium: original premium Japanese 2D animation key art, strong graphic silhouette, refined cel rendering, cinematic atmospheric perspective, subtle grain.
+Composition/framing: symmetrical wide shot, very low camera, converging columns, figure centered and small enough to show scale, clean center remains compatible with title and chain overlays.
+Lighting/mood: deep neutral black, icy blue window shafts, muted magenta reflections on wet stone, controlled dread.
+Constraints: recognizable long twin tails and black gothic dress silhouette; no text; no title; no logos; no watermark; no chains; no bats; no extra figures; fill the entire frame.
+Avoid: one-color red scene, fantasy castle exterior, fog covering the entire character, soft watercolor look.

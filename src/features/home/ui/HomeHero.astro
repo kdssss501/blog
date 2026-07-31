@@ -1,0 +1,1120 @@
+---
+import { getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import { homeConfig, siteConfig } from "@/config";
+
+const workHours = siteConfig.workHours ?? {
+	start: 9,
+	end: 18,
+	workDays: [1, 2, 3, 4, 5],
+};
+
+const imageFiles = import.meta.glob<ImageMetadata>(
+	"../../../assets/images/**/*.{png,jpg,jpeg,webp,avif,gif}",
+	{
+		import: "default",
+	},
+);
+
+async function optimizeHeroImage(image: ImageMetadata) {
+	const optimized = await getImage({
+		src: image,
+		format: "webp",
+		widths: [320],
+	});
+	return optimized.src;
+}
+
+async function resolveHeroImage(src?: string) {
+	if (!src) return "";
+	if (
+		src.startsWith("/") ||
+		src.startsWith("http://") ||
+		src.startsWith("https://") ||
+		src.startsWith("data:")
+	) {
+		return src;
+	}
+
+	const normalizedPath = `../../../${src}`.replace(/\\/g, "/");
+	const loadImage = imageFiles[normalizedPath];
+	if (!loadImage) {
+		return `/${src}`;
+	}
+
+	const image = await loadImage();
+	return optimizeHeroImage(image);
+}
+
+const avatarUrl =
+	(await resolveHeroImage(homeConfig.avatarOnWork ?? "")) ||
+	(await resolveHeroImage(homeConfig.avatar));
+const avatarOffUrl = homeConfig.avatarOffWork
+	? await resolveHeroImage(homeConfig.avatarOffWork)
+	: avatarUrl;
+
+const heroBioText = Array.isArray(homeConfig.bio)
+	? homeConfig.bio[0] || ""
+	: homeConfig.bio || "";
+
+const heroRightPanel = homeConfig.hero.rightPanel ?? {
+	pill: "BLOG",
+	title: "博客",
+	diamond: "✦",
+	subtitle: "CREATIVE",
+	microText: "システム起動完了",
+};
+
+// 将 displayName 拆成逐字 span，用于逐字入场动画与 cqw 缩放
+const nameLetters = Array.from(
+	siteConfig.title || homeConfig.displayName || "",
+);
+const heroBadgeText = homeConfig.nameBadge || `BLOG · ${homeConfig.name || ""}`;
+const heroWelcomeText = `欢迎来到${siteConfig.title}`;
+
+const mobileBackground =
+	homeConfig.hero.backgroundImageMobile || homeConfig.hero.backgroundImage;
+const heroCharacterImage = homeConfig.hero.characterImage || "";
+const speechAccentImage = homeConfig.hero.speechAccentImage || "";
+
+const rainConfig = {
+	enabled: homeConfig.hero.rain?.enabled ?? true,
+	intensity: homeConfig.hero.rain?.intensity ?? 0.6,
+	color: homeConfig.hero.rain?.color ?? "",
+};
+---
+
+<section class="home-hero home-hero--motion-pending" id="home-hero"
+	data-avatar={avatarUrl}
+	data-avatar-off={avatarOffUrl}
+	data-work-hours={JSON.stringify(workHours)}
+	data-hero-rain={JSON.stringify(rainConfig)}
+>
+	<!-- 背景层：移动端 / 桌面端通过 <picture> 服务端切换 -->
+	<picture class="home-hero__video-picture">
+		<source media="(max-width: 768px)" srcset={mobileBackground} />
+		<img class="home-hero__video" src={homeConfig.hero.backgroundImage} alt="" />
+	</picture>
+
+	<!-- 全屏内容容器 -->
+	<div class="home-hero__canvas-container" id="main-canvas">
+		{heroCharacterImage && (
+			<div class="home-hero__character-duo" aria-hidden="true">
+				<img
+					id="home-hero-character-duo"
+					src={heroCharacterImage}
+					alt=""
+					width="2048"
+					height="1152"
+					loading="eager"
+					decoding="async"
+					draggable="false"
+				/>
+			</div>
+		)}
+		<!-- 外四角取景框 -->
+		<div class="home-hero__viewfinder" aria-hidden="true">
+			<div class="home-hero__viewfinder-corner home-hero__viewfinder-corner--tl"></div>
+			<div class="home-hero__viewfinder-corner home-hero__viewfinder-corner--tr"></div>
+			<div class="home-hero__viewfinder-corner home-hero__viewfinder-corner--bl"></div>
+			<div class="home-hero__viewfinder-corner home-hero__viewfinder-corner--br"></div>
+		</div>
+
+		<!-- 拍摄参数面板 -->
+		<div class="home-hero__camera-params" aria-hidden="true">
+			<span>MNL</span>
+			<span>1/125</span>
+			<span>OPEN</span>
+			<span>3dB</span>
+		</div>
+
+		<!-- 中心对焦框（相机效果） -->
+		<div class="home-hero__focus-frame" aria-hidden="true">
+			<div class="home-hero__focus-corner home-hero__focus-corner--tl"></div>
+			<div class="home-hero__focus-corner home-hero__focus-corner--tr"></div>
+			<div class="home-hero__focus-corner home-hero__focus-corner--bl"></div>
+			<div class="home-hero__focus-corner home-hero__focus-corner--br"></div>
+			<div class="home-hero__focus-dot"></div>
+		</div>
+
+		<!-- 左侧面板（吞并原中栏，87%） -->
+		<section class="home-hero__left-panel">
+			<div class="home-hero__avatar-group">
+				<div class="home-hero__avatar-wrapper">
+					<img
+						src={avatarUrl}
+						alt="avatar"
+						class="home-hero__avatar"
+						id="hero-avatar"
+						loading="eager"
+					/>
+				</div>
+				<div class="home-hero__status-badge" id="work-status">
+					<span class="home-hero__status-dot"></span>
+					<span class="home-hero__status-text">上班中</span>
+				</div>
+			</div>
+
+			<div class="home-hero__profile">
+				<div class="home-hero__identity-row">
+					<!-- 名字 + 职业 + 幽灵徽章 -->
+					<div class="home-hero__name-group">
+						{homeConfig.occupation && (
+							<p class="home-hero__occupation">{homeConfig.occupation}</p>
+						)}
+						{homeConfig.displayName && (
+							<h1 class="home-hero__name home-hero__name--rainbow">
+								{nameLetters.map((letter, i) => (
+									<span class="home-hero__name-letter" data-letter-index={i}>{letter}</span>
+								))}
+							</h1>
+						)}
+						<div class="home-hero__name-badge">{heroBadgeText}</div>
+						{heroBioText && <p class="home-hero__tagline">{heroBioText}</p>}
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 对话框（放大·视窗水平居中·放简介，左对齐，底部定位，打字机效果） -->
+		{heroBioText && (
+			<div class="home-hero__speech" aria-label="Bio">
+				<div class="home-hero__speech-inner">
+					<p class="home-hero__speech-text" data-speech-text>{heroWelcomeText}</p>
+					<p class="home-hero__speech-subtitle">WELCOME TO MY BLOG, ENJOY YOUR STAY!</p>
+					{speechAccentImage && (
+						<img
+							src={speechAccentImage}
+							alt=""
+							class="home-hero__speech-accent"
+							width="192"
+							height="151"
+							loading="eager"
+							decoding="async"
+							aria-hidden="true"
+						/>
+					)}
+				</div>
+			</div>
+		)}
+
+		<!-- 右侧面板（比例与样式保持不变） -->
+		<aside class="home-hero__right-panel">
+			<div class="home-hero__pill">{heroRightPanel.pill}</div>
+			<div class="home-hero__vertical-wrap">
+				<span class="home-hero__v-title">{heroRightPanel.title}</span>
+				<span class="home-hero__v-sub">{homeConfig.name || ""}</span>
+				<span class="home-hero__diamond">{heroRightPanel.diamond}</span>
+				<span class="home-hero__v-sub">{heroRightPanel.subtitle}</span>
+			</div>
+			<div class="home-hero__panel-footer">
+				<div class="home-hero__footer-line"></div>
+				<p class="home-hero__micro-text">{heroRightPanel.microText}</p>
+			</div>
+		</aside>
+	</div>
+</section>
+
+<script>
+	import { gsap } from "gsap";
+	import { ScrollTrigger } from "gsap/ScrollTrigger";
+	import { waitForPageLoaderHidden } from "@/app/shell/client/page-loader-controller.js";
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	let heroOpeningTimeline: ReturnType<typeof gsap.timeline> | null = null;
+	let characterFollowCleanup: (() => void) | null = null;
+	const CHARACTER_FOLLOW_MAX_X = 26;
+	const CHARACTER_FOLLOW_MAX_Y = 18;
+	const CHARACTER_FOLLOW_LERP = 0.09;
+	const CHARACTER_FOLLOW_MEDIA_QUERY =
+		"(min-width: 960px) and (any-hover: hover) and (any-pointer: fine)";
+	const HERO_VISIBILITY_EVENT = "home:hero-visibility";
+
+	// 玻璃雨珠 + 撞击水花
+	type RainDrop = { x: number; y: number; r: number; vy: number; len: number; alpha: number };
+	type SplashParticle = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; r: number };
+	type HitEdge = { x1: number; x2: number; y: number };
+	let rainCanvas: HTMLCanvasElement | null = null;
+	let rainCtx: CanvasRenderingContext2D | null = null;
+	let rainRaf = 0;
+	let rainDrops: RainDrop[] = [];
+	let rainSplashes: SplashParticle[] = [];
+	let rainEdges: HitEdge[] = [];
+	let rainResizeHandler: (() => void) | null = null;
+	let rainResizeObserver: ResizeObserver | null = null;
+	let rainIntersectionObserver: IntersectionObserver | null = null;
+	let rainVisibilityHandler: (() => void) | null = null;
+	let rainScrollHandler: (() => void) | null = null;
+	let rainScrollRaf = 0;
+	let rainEdgeRefreshTimer = 0;
+	let rainFrameCallback: FrameRequestCallback | null = null;
+	let rainHeroVisible = true;
+	let rainLastFrameTime = 0;
+	let rainDpr = 1;
+	let rainIntensity = 0.6;
+	let rainColorRgb: string | null = null;
+	let heroVisibilityObserver: IntersectionObserver | null = null;
+	let homeMediaCleanup: (() => void) | null = null;
+	let homeMediaRebuildTimer: number | null = null;
+
+	function prefersReducedMotion() {
+		return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	}
+
+	function isMobile() {
+		return window.matchMedia("(max-width: 768px)").matches;
+	}
+
+	function canUseCharacterFollow() {
+		return window.matchMedia(CHARACTER_FOLLOW_MEDIA_QUERY).matches;
+	}
+
+	function destroyHeroVisibility() {
+		heroVisibilityObserver?.disconnect();
+		heroVisibilityObserver = null;
+		document.documentElement.removeAttribute("data-home-hero-visible");
+	}
+
+	function initHeroVisibility() {
+		destroyHeroVisibility();
+		const hero = document.getElementById("home-hero");
+		if (!hero) return;
+		const update = (visible: boolean) => {
+			document.documentElement.dataset.homeHeroVisible = visible ? "true" : "false";
+			window.dispatchEvent(
+				new CustomEvent(HERO_VISIBILITY_EVENT, { detail: { visible } }),
+			);
+		};
+		const updateFromRect = () => {
+			const rect = hero.getBoundingClientRect();
+			update(rect.bottom > 0 && rect.top < window.innerHeight);
+		};
+		updateFromRect();
+		if ("IntersectionObserver" in window) {
+			heroVisibilityObserver = new IntersectionObserver(
+				([entry]) => update(Boolean(entry?.isIntersecting)),
+				{ threshold: 0.01 },
+			);
+			heroVisibilityObserver.observe(hero);
+		}
+	}
+
+	function killHomeMotion() {
+		if (heroOpeningTimeline) {
+			heroOpeningTimeline.kill();
+			heroOpeningTimeline = null;
+		}
+		ScrollTrigger.getAll().forEach((trigger) => {
+			const id = String(trigger.vars.id || "");
+			if (id.startsWith("home-motion-")) trigger.kill();
+		});
+	}
+
+	function splitSpeechText() {
+		const speechText = document.querySelector<HTMLElement>("[data-speech-text]");
+		if (!speechText || speechText.dataset.split === "true") return;
+		const text = speechText.textContent || "";
+		speechText.innerHTML = "";
+		for (const char of text) {
+			const span = document.createElement("span");
+			span.className = "home-hero__speech-char";
+			span.textContent = char === " " ? "\u00A0" : char;
+			speechText.appendChild(span);
+		}
+		speechText.dataset.split = "true";
+	}
+
+	function restoreSpeechText() {
+		const speechText = document.querySelector<HTMLElement>("[data-speech-text]");
+		if (!speechText || speechText.dataset.split !== "true") return;
+		const chars = speechText.querySelectorAll(".home-hero__speech-char");
+		const text = Array.from(chars)
+			.map((char) => char.textContent?.replace("\u00A0", " ") ?? "")
+			.join("");
+		speechText.textContent = text;
+		delete speechText.dataset.split;
+	}
+
+	// ============================================
+	// 玻璃雨珠 + 撞击水花（Canvas 2D）
+	// ============================================
+	// 解析配置色为 "r, g, b" 字符串；无法解析或留空时返回 null（走主题自动取色）
+	function parseRainColor(raw: string): string | null {
+		const value = raw.trim();
+		if (!value) return null;
+		// "r,g,b" / "r, g, b"
+		const parts = value.split(",").map((n) => Number.parseInt(n.trim(), 10));
+		if (parts.length === 3 && parts.every((n) => Number.isFinite(n) && n >= 0 && n <= 255)) {
+			return parts.join(", ");
+		}
+		// "#rgb" / "#rrggbb"
+		let hex = value.replace(/^#/, "");
+		if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+		if (hex.length === 6 && /^[0-9a-fA-F]{6}$/.test(hex)) {
+			const r = Number.parseInt(hex.slice(0, 2), 16);
+			const g = Number.parseInt(hex.slice(2, 4), 16);
+			const b = Number.parseInt(hex.slice(4, 6), 16);
+			return `${r}, ${g}, ${b}`;
+		}
+		return null;
+	}
+
+	function rainStroke() {
+		// 已配置固定颜色则优先使用
+		if (rainColorRgb) return rainColorRgb;
+		// 否则：暗色主题用白色雨珠，浅色主题用深灰，随主题实时取色
+		return document.documentElement.classList.contains("dark")
+			? "255, 255, 255"
+			: "70, 78, 90";
+	}
+
+	function collectRainEdges(hero: HTMLElement) {
+		const heroRect = hero.getBoundingClientRect();
+		const edges: HitEdge[] = [];
+		const selectors = [
+			".home-hero__viewfinder-corner",
+			".home-hero__avatar-wrapper",
+			".home-hero__speech-inner",
+			".home-hero__focus-frame",
+		];
+		for (const selector of selectors) {
+			hero.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+				const rect = el.getBoundingClientRect();
+				if (rect.width < 2 || rect.height < 2) return;
+				// 以元素顶边作为"撞击线"
+				edges.push({
+					x1: rect.left - heroRect.left,
+					x2: rect.right - heroRect.left,
+					y: rect.top - heroRect.top,
+				});
+			});
+		}
+		rainEdges = edges;
+	}
+
+	function spawnSplash(x: number, y: number) {
+		// 克制：全局水花粒子上限，避免同帧爆量
+		if (rainSplashes.length > 90) return;
+		const count = 6 + Math.floor(vfxRand() * 4);
+		for (let i = 0; i < count; i++) {
+			const angle = -Math.PI / 2 + (vfxRand() - 0.5) * 1.9;
+			const speed = 1.1 + vfxRand() * 2.2;
+			rainSplashes.push({
+				x,
+				y,
+				vx: Math.cos(angle) * speed,
+				vy: Math.sin(angle) * speed,
+				life: 0,
+				maxLife: 22 + Math.floor(vfxRand() * 16),
+				r: 0.8 + vfxRand() * 1.1,
+			});
+		}
+	}
+
+	// 轻量伪随机（避免依赖 Math.random 的语义，仅用于视觉抖动）
+	let vfxSeed = 20260710;
+	function vfxRand() {
+		vfxSeed = (vfxSeed * 1664525 + 1013904223) % 4294967296;
+		return vfxSeed / 4294967296;
+	}
+
+	function makeDrop(w: number, h: number, fromTop: boolean): RainDrop {
+		return {
+			x: vfxRand() * w,
+			y: fromTop ? -vfxRand() * h * 0.5 : vfxRand() * h,
+			r: 0.9 + vfxRand() * 1.4,
+			vy: 2.4 + vfxRand() * 3.2,
+			len: 9 + vfxRand() * 16,
+			alpha: 0.12 + vfxRand() * 0.2,
+		};
+	}
+
+	function syncRainPlayback() {
+		const shouldRun = Boolean(
+			rainCanvas &&
+			rainFrameCallback &&
+			rainHeroVisible &&
+			!document.hidden,
+		);
+		if (rainCanvas) rainCanvas.dataset.running = shouldRun ? "true" : "false";
+		if (shouldRun && !rainRaf && rainFrameCallback) {
+			rainLastFrameTime = 0;
+			rainRaf = requestAnimationFrame(rainFrameCallback);
+		} else if (!shouldRun && rainRaf) {
+			cancelAnimationFrame(rainRaf);
+			rainRaf = 0;
+		}
+	}
+
+	function initHeroRain() {
+		const hero = document.getElementById("home-hero");
+		if (!hero) return;
+		const heroElement: HTMLElement = hero;
+		if (prefersReducedMotion() || isMobile()) return;
+
+		let cfg = { enabled: true, intensity: 0.6, color: "" };
+		try {
+			if (hero.dataset.heroRain) cfg = { ...cfg, ...JSON.parse(hero.dataset.heroRain) };
+		} catch {
+			// 配置损坏时使用默认值
+		}
+		if (!cfg.enabled) return;
+		rainIntensity = Math.max(0, Math.min(1, cfg.intensity));
+		rainColorRgb = parseRainColor(cfg.color || "");
+
+		destroyHeroRain();
+
+		const canvas = document.createElement("canvas");
+		canvas.className = "home-hero__rain-canvas";
+		canvas.setAttribute("aria-hidden", "true");
+		hero.appendChild(canvas);
+		const ctx = canvas.getContext("2d", {
+			alpha: true,
+			desynchronized: true,
+		});
+		if (!ctx) {
+			canvas.remove();
+			return;
+		}
+		rainCanvas = canvas;
+		rainCtx = ctx;
+		// 雨滴是半透明动态层，适度限制 DPR 可避免高密度屏幕上成倍增加像素开销。
+		rainDpr = Math.min(window.devicePixelRatio || 1, 1.25);
+
+		function resize() {
+			if (!rainCanvas || !rainCtx) return;
+			const rect = heroElement.getBoundingClientRect();
+			rainCanvas.width = Math.round(rect.width * rainDpr);
+			rainCanvas.height = Math.round(rect.height * rainDpr);
+			rainCtx.setTransform(rainDpr, 0, 0, rainDpr, 0, 0);
+			// 雨滴数量随强度与画面宽度缩放（克制上限 ~60）
+			const target = Math.round((20 + rainIntensity * 40) * Math.min(1, rect.width / 1280));
+			rainDrops = Array.from({ length: target }, () => makeDrop(rect.width, rect.height, false));
+			collectRainEdges(heroElement);
+		}
+		resize();
+		rainResizeHandler = resize;
+		window.addEventListener("resize", resize);
+
+		// 仅在横幅或碰撞目标尺寸变化时重算；延迟刷新用于覆盖入场动画结束状态。
+		rainResizeObserver = new ResizeObserver(() => collectRainEdges(heroElement));
+		rainResizeObserver.observe(heroElement);
+		for (const target of heroElement.querySelectorAll<HTMLElement>(
+			".home-hero__viewfinder-corner, .home-hero__avatar-wrapper, .home-hero__speech-inner, .home-hero__focus-frame",
+		)) {
+			rainResizeObserver.observe(target);
+		}
+		rainEdgeRefreshTimer = window.setTimeout(
+			() => collectRainEdges(heroElement),
+			1400,
+		);
+
+		rainHeroVisible = true;
+		rainIntersectionObserver = new IntersectionObserver(
+			([entry]) => {
+				rainHeroVisible = Boolean(entry?.isIntersecting);
+				syncRainPlayback();
+			},
+			{ threshold: 0.01 },
+		);
+		rainIntersectionObserver.observe(heroElement);
+		rainVisibilityHandler = syncRainPlayback;
+		document.addEventListener("visibilitychange", rainVisibilityHandler);
+		rainScrollHandler = () => {
+			if (rainScrollRaf) return;
+			rainScrollRaf = requestAnimationFrame(() => {
+				rainScrollRaf = 0;
+				const rect = heroElement.getBoundingClientRect();
+				rainHeroVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+				syncRainPlayback();
+			});
+		};
+		window.addEventListener("scroll", rainScrollHandler, { passive: true });
+
+		function frame(timestamp: number) {
+			rainRaf = 0;
+			if (!rainCanvas || !rainCtx) return;
+			if (!rainHeroVisible || document.hidden) return;
+			// 在 120/144Hz 屏幕上仍限制到约 60FPS。
+			if (rainLastFrameTime && timestamp - rainLastFrameTime < 1000 / 60 - 1) {
+				rainRaf = requestAnimationFrame(frame);
+				return;
+			}
+			rainLastFrameTime = timestamp;
+			const w = rainCanvas.width / rainDpr;
+			const h = rainCanvas.height / rainDpr;
+			rainCtx.clearRect(0, 0, w, h);
+			const rgb = rainStroke();
+
+			// 雨珠 + 水痕拖尾
+			for (const d of rainDrops) {
+				const prevY = d.y;
+				d.y += d.vy;
+
+				// 撞击检测：穿过某条撞击线且落在其 x 区间内
+				let consumed = false;
+				for (const e of rainEdges) {
+					if (prevY < e.y && d.y >= e.y && d.x >= e.x1 && d.x <= e.x2) {
+						spawnSplash(d.x, e.y);
+						d.y = -vfxRand() * 40;
+						d.x = vfxRand() * w;
+						consumed = true;
+						break;
+					}
+				}
+				// 落到底部地面同样迸溅水花
+				if (!consumed && prevY < h && d.y >= h) {
+					spawnSplash(d.x, h - 1);
+					d.y = -vfxRand() * 40;
+					d.x = vfxRand() * w;
+				}
+
+				// 竖向水痕
+				rainCtx.strokeStyle = `rgba(${rgb}, ${d.alpha})`;
+				rainCtx.lineWidth = d.r;
+				rainCtx.beginPath();
+				rainCtx.moveTo(d.x, d.y - d.len);
+				rainCtx.lineTo(d.x, d.y);
+				rainCtx.stroke();
+				// 珠头高光
+				rainCtx.fillStyle = `rgba(${rgb}, ${Math.min(0.5, d.alpha + 0.18)})`;
+				rainCtx.beginPath();
+				rainCtx.arc(d.x, d.y, d.r * 0.9, 0, Math.PI * 2);
+				rainCtx.fill();
+			}
+
+			// 水花：扇形迸溅 + 重力回落 + 快速淡出
+			for (let i = rainSplashes.length - 1; i >= 0; i--) {
+				const p = rainSplashes[i];
+				p.life++;
+				p.vy += 0.16; // 重力
+				p.x += p.vx;
+				p.y += p.vy;
+				const t = 1 - p.life / p.maxLife;
+				if (t <= 0) {
+					rainSplashes.splice(i, 1);
+					continue;
+				}
+				rainCtx.fillStyle = `rgba(${rgb}, ${0.4 * t})`;
+				rainCtx.beginPath();
+				rainCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+				rainCtx.fill();
+			}
+
+			rainRaf = requestAnimationFrame(frame);
+		}
+		rainFrameCallback = frame;
+		syncRainPlayback();
+	}
+
+	function destroyHeroRain() {
+		if (rainRaf) {
+			cancelAnimationFrame(rainRaf);
+			rainRaf = 0;
+		}
+		if (rainEdgeRefreshTimer) {
+			window.clearTimeout(rainEdgeRefreshTimer);
+			rainEdgeRefreshTimer = 0;
+		}
+		if (rainResizeHandler) {
+			window.removeEventListener("resize", rainResizeHandler);
+			rainResizeHandler = null;
+		}
+		rainResizeObserver?.disconnect();
+		rainResizeObserver = null;
+		rainIntersectionObserver?.disconnect();
+		rainIntersectionObserver = null;
+		if (rainVisibilityHandler) {
+			document.removeEventListener("visibilitychange", rainVisibilityHandler);
+			rainVisibilityHandler = null;
+		}
+		if (rainScrollHandler) {
+			window.removeEventListener("scroll", rainScrollHandler);
+			rainScrollHandler = null;
+		}
+		if (rainScrollRaf) {
+			cancelAnimationFrame(rainScrollRaf);
+			rainScrollRaf = 0;
+		}
+		if (rainCanvas) {
+			rainCanvas.remove();
+			rainCanvas = null;
+		}
+		rainCtx = null;
+		rainDrops = [];
+		rainSplashes = [];
+		rainEdges = [];
+		rainFrameCallback = null;
+		rainHeroVisible = true;
+		rainLastFrameTime = 0;
+	}
+
+	// ============================================
+	// 初始化与清理（Swup 兼容）
+	// ============================================
+	function initHeroOpening() {
+		const hero = document.getElementById("home-hero");
+		if (!hero) return Promise.resolve();
+		if (prefersReducedMotion() || isMobile()) {
+			restoreSpeechText();
+			hero.classList.remove("home-hero--motion-pending");
+			hero.classList.add("home-hero--motion-ready");
+			return Promise.resolve();
+		}
+
+		splitSpeechText();
+
+		const occupation = hero.querySelector(".home-hero__occupation");
+		const nameLetters = hero.querySelectorAll(".home-hero__name-letter");
+		const badge = hero.querySelector(".home-hero__name-badge");
+		const avatar = hero.querySelector(".home-hero__avatar-group");
+		const speech = hero.querySelector(".home-hero__speech-inner");
+		const speechChars = hero.querySelectorAll(".home-hero__speech-char");
+		const rightPanel = hero.querySelector(".home-hero__right-panel");
+		const focusFrame = hero.querySelector(".home-hero__focus-frame");
+		const viewfinderCorners = hero.querySelectorAll(".home-hero__viewfinder-corner");
+		const focusDot = hero.querySelector(".home-hero__focus-dot");
+		const cameraParams = hero.querySelector(".home-hero__camera-params");
+
+		hero.classList.add("home-hero--motion-ready");
+
+		let resolveHeroTitleReady: () => void;
+		const heroTitleReady = new Promise<void>((resolve) => {
+			resolveHeroTitleReady = resolve;
+		});
+
+		heroOpeningTimeline = gsap.timeline({
+			defaults: { ease: "power4.out" },
+			onInterrupt: () => resolveHeroTitleReady(),
+		});
+
+		heroOpeningTimeline
+			// 1. 外四角取景框依次展开
+			.fromTo(viewfinderCorners, {
+				autoAlpha: 0,
+				scale: 0.3,
+			}, {
+				autoAlpha: 1,
+				scale: 1,
+				duration: 0.7,
+				stagger: 0.08,
+				ease: "expo.out",
+			}, 0.1)
+			// 2. 中心对焦框从放大到锁定
+			.fromTo(focusFrame, {
+				autoAlpha: 0,
+				scale: 1.7,
+			}, {
+				autoAlpha: 1,
+				scale: 1,
+				duration: 0.85,
+				ease: "expo.out",
+			}, 0.45)
+			.to(focusFrame, {
+				scale: 0.9,
+				duration: 0.2,
+				ease: "power2.inOut",
+			}, "-=0.1")
+			.to(focusFrame, {
+				scale: 1,
+				duration: 0.28,
+				ease: "power2.out",
+			})
+			// 3. 中心焦点闪烁出现
+			.fromTo(focusDot, {
+				autoAlpha: 0,
+				scale: 0,
+			}, {
+				autoAlpha: 1,
+				scale: 1,
+				duration: 0.25,
+				ease: "back.out(2.5)",
+			}, "-=0.05")
+			// 4. 拍摄参数面板滑入
+			.fromTo(cameraParams, {
+				autoAlpha: 0,
+				x: -16,
+			}, {
+				autoAlpha: 1,
+				x: 0,
+				duration: 0.6,
+				ease: "expo.out",
+			}, 0.95)
+			.fromTo(occupation, {
+				autoAlpha: 0,
+				y: 48,
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				duration: 0.92,
+				ease: "expo.out",
+			}, 0.12)
+			.fromTo(nameLetters, {
+				autoAlpha: 0,
+				y: 60,
+				scale: 0.82,
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				scale: 1,
+				duration: 0.45,
+				stagger: 0.03,
+				ease: "expo.out",
+				onComplete: () => resolveHeroTitleReady(),
+			}, 0.18)
+			.fromTo(badge, {
+				autoAlpha: 0,
+				y: 18,
+				scale: 0.7,
+				transformOrigin: "0% 50%",
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				scale: 1,
+				duration: 0.45,
+				ease: "expo.out",
+			}, 0.5 + nameLetters.length * 0.03)
+			.fromTo(avatar, {
+				autoAlpha: 0,
+				x: 36,
+				y: 12,
+				scale: 0.82,
+				clipPath: "circle(0% at 50% 50%)",
+			}, {
+				autoAlpha: 1,
+				x: 0,
+				y: 0,
+				scale: 1,
+				clipPath: "circle(76% at 50% 50%)",
+				duration: 1.05,
+				ease: "expo.out",
+				clearProps: "clipPath",
+			}, 0.72)
+			.fromTo(rightPanel, {
+				autoAlpha: 0,
+				x: 60,
+			}, {
+				autoAlpha: 1,
+				x: 0,
+				duration: 0.95,
+				ease: "power3.out",
+			}, 0.74)
+			.fromTo(speech, {
+				autoAlpha: 0,
+				y: 34,
+				scale: 0.92,
+				filter: "blur(10px)",
+				transformOrigin: "50% 100%",
+			}, {
+				autoAlpha: 1,
+				y: 0,
+				scale: 1,
+				filter: "blur(0px)",
+				duration: 0.92,
+				ease: "expo.out",
+				clearProps: "filter",
+			}, 0.9)
+			.fromTo(speechChars, {
+				autoAlpha: 0,
+			}, {
+				autoAlpha: 1,
+				duration: 0.05,
+				stagger: 0.05,
+				ease: "none",
+			}, 0.98);
+
+		hero.classList.remove("home-hero--motion-pending");
+		return heroTitleReady;
+	}
+
+	function initHomeScrollMotion() {
+		if (prefersReducedMotion() || isMobile()) {
+			document.querySelector(".home-page--motion-pending")?.classList.remove("home-page--motion-pending");
+			return;
+		}
+
+		const sections = Array.from(document.querySelectorAll<HTMLElement>(
+			".home-page > :not(#home-hero), .home-pending-layer",
+		)).filter((section, index, list) => list.indexOf(section) === index);
+
+		sections.forEach((section, index) => {
+			const title = section.querySelector(".home-section-title, [data-motion-title]");
+			const cards = section.querySelectorAll(".card-base, .post-card-wrapper, .home-pending, .stats-container, [data-motion-card]");
+			const images = section.classList.contains("home-cinematic-sequence")
+				? []
+				: section.querySelectorAll(
+						"img[data-home-motion-image]:not([data-shutter-image]):not([data-shutter-final-midground]):not([data-shutter-final-foreground]), [data-home-motion-image]:not([data-shutter-image]):not([data-shutter-final-midground]):not([data-shutter-final-foreground])",
+					);
+			if (!title && cards.length === 0 && images.length === 0) return;
+
+			const tl = gsap.timeline({
+				scrollTrigger: {
+					id: `home-motion-section-${index}`,
+					trigger: section,
+					start: "top 78%",
+					once: true,
+				},
+				defaults: { ease: "power4.out" },
+			});
+
+			if (title) {
+				tl.fromTo(title, {
+					autoAlpha: 0,
+					y: 110,
+					scale: 0.82,
+					clipPath: "inset(0 0 100% 0)",
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					scale: 1,
+					clipPath: "inset(0 0 0% 0)",
+					duration: 1.05,
+					ease: "expo.out",
+				});
+			}
+
+			if (cards.length > 0) {
+				tl.fromTo(cards, {
+					autoAlpha: 0,
+					y: 86,
+					rotateX: 12,
+					filter: "blur(12px)",
+					transformOrigin: "50% 100%",
+				}, {
+					autoAlpha: 1,
+					y: 0,
+					rotateX: 0,
+					filter: "blur(0px)",
+					duration: 1.05,
+					stagger: 0.12,
+					ease: "expo.out",
+				}, title ? "-=0.38" : 0);
+			}
+
+			if (images.length > 0) {
+				tl.fromTo(images, {
+					clipPath: "inset(0 0 100% 0)",
+					scale: 1.1,
+				}, {
+					clipPath: "inset(0 0 0% 0)",
+					scale: 1,
+					duration: 1.18,
+					stagger: 0.1,
+					ease: "expo.out",
+				}, "-=0.74");
+
+				images.forEach((image, imageIndex) => {
+					gsap.to(image, {
+						yPercent: -5,
+						ease: "none",
+						scrollTrigger: {
+							id: `home-motion-image-${index}-${imageIndex}`,
+							trigger: image,
+							start: "top bottom",
+							end: "bottom top",
+							scrub: 0.9,
+						},
+					});
+				});
+			}
+		});
+
+		document.querySelector(".home-page--motion-pending")?.classList.remove("home-page--motion-pending");
+	}
+
+	function destroyHeroCharacterFollow() {
+		characterFollowCleanup?.();
+		characterFollowCleanup = null;
+	}
+
+	function initHeroCharacterFollow() {
+		destroyHeroCharacterFollow();
+		if (!canUseCharacterFollow()) return;
+
+		const character = document.querySelector<HTMLElement>(".home-hero__character-duo");
+		if (!character) return;
+
+		let targetX = 0;
+		let targetY = 0;
+		let currentX = 0;
+		let currentY = 0;
+		let animationFrame = 0;
+
+		const writePosition = () => {
+			character.style.setProperty(
+				"--home-character-follow-x",
+				`${currentX.toFixed(3)}px`,
+			);
+			character.style.setProperty(
+				"--home-character-follow-y",
+				`${currentY.toFixed(3)}px`,
+			);
+		};
+
+		const animate = () => {
+			currentX += (targetX - currentX) * CHARACTER_FOLLOW_LERP;
+			currentY += (targetY - currentY) * CHARACTER_FOLLOW_LERP;
+
+			if (
+				Math.abs(targetX - currentX) <= 0.01 &&
+				Math.abs(targetY - currentY) <= 0.01
+			) {
+				currentX = targetX;
+				currentY = targetY;
+				animationFrame = 0;
+				writePosition();
+				return;
+			}
+
+			writePosition();
+			animationFrame = window.requestAnimationFrame(animate);
+		};
+
+		const requestAnimation = () => {
+			if (!animationFrame) animationFrame = window.requestAnimationFrame(animate);
+		};
+
+		const handlePointerMove = (event: PointerEvent) => {
+			if (document.documentElement.dataset.homeHeroVisible !== "true") return;
+			if (event.pointerType && event.pointerType !== "mouse") return;
+			const halfWidth = Math.max(1, window.innerWidth / 2);
+			const halfHeight = Math.max(1, window.innerHeight / 2);
+			const normalizedX = Math.max(
+				-1,
+				Math.min(1, (event.clientX - halfWidth) / halfWidth),
+			);
+			const normalizedY = Math.max(
+				-1,
+				Math.min(1, (event.clientY - halfHeight) / halfHeight),
+			);
+			targetX = normalizedX * CHARACTER_FOLLOW_MAX_X;
+			targetY = normalizedY * CHARACTER_FOLLOW_MAX_Y;
+			requestAnimation();
+		};
+
+		const resetTarget = () => {
+			targetX = 0;
+			targetY = 0;
+			requestAnimation();
+		};
+		const handleHeroVisibility = (event: Event) => {
+			const visible = (event as CustomEvent<{ visible?: boolean }>).detail?.visible;
+			if (visible === false) resetTarget();
+		};
+
+		window.addEventListener("pointermove", handlePointerMove, { passive: true });
+		window.addEventListener("blur", resetTarget);
+		window.addEventListener(HERO_VISIBILITY_EVENT, handleHeroVisibility);
+		document.documentElement.addEventListener("pointerleave", resetTarget);
+		character.dataset.pointerFollow = "ready";
+
+		characterFollowCleanup = () => {
+			window.removeEventListener("pointermove", handlePointerMove);
+			window.removeEventListener("blur", resetTarget);
+			window.removeEventListener(HERO_VISIBILITY_EVENT, handleHeroVisibility);
+			document.documentElement.removeEventListener("pointerleave", resetTarget);
+			if (animationFrame) window.cancelAnimationFrame(animationFrame);
+			character.style.removeProperty("--home-character-follow-x");
+			character.style.removeProperty("--home-character-follow-y");
+			delete character.dataset.pointerFollow;
+		};
+	}
+
+	// ============================================
+	// 上下班头像与状态牌
+	// ============================================
+	function initWorkStatus() {
+		const hero = document.getElementById("home-hero");
+		const avatar = document.getElementById("hero-avatar") as HTMLImageElement | null;
+		const badge = document.getElementById("work-status");
+		const statusText = badge?.querySelector(".home-hero__status-text");
+		if (!hero || !avatar || !badge || !statusText) return;
+		const workAvatar = hero.dataset.avatar;
+		if (workAvatar && avatar.getAttribute("src") !== workAvatar) {
+			avatar.setAttribute("src", workAvatar);
+		}
+		statusText.textContent = "上班中";
+		badge.classList.remove("is-off-work");
+	}
+
+	// ============================================
+	// 初始化与清理（Swup 兼容）
+	// ============================================
+	let initToken = 0;
+
+	function init() {
+		cleanup();
+		initHeroVisibility();
+		initHeroCharacterFollow();
+		void initHeroOpening();
+		initWorkStatus();
+
+		// 推迟 ScrollTrigger 初始化，避免阻塞 Hero 入场动画的首次渲染
+		requestAnimationFrame(() => {
+			initHomeScrollMotion();
+			initHeroRain();
+		});
+	}
+
+	function cleanup() {
+		killHomeMotion();
+		destroyHeroCharacterFollow();
+		destroyHeroRain();
+		destroyHeroVisibility();
+	}
+
+	async function scheduleHomeInit() {
+		++initToken;
+		cleanup();
+		if (!document.getElementById("home-hero")) return;
+
+		await waitForPageLoaderHidden();
+		if (!document.getElementById("home-hero")) return;
+
+		init();
+	}
+
+	function setupHomeMediaWatchers() {
+		if (homeMediaCleanup) return;
+		const mobileQuery = window.matchMedia("(max-width: 768px)");
+		const characterFollowQuery = window.matchMedia(
+			CHARACTER_FOLLOW_MEDIA_QUERY,
+		);
+		const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const handleChange = () => {
+			if (homeMediaRebuildTimer !== null) window.clearTimeout(homeMediaRebuildTimer);
+			homeMediaRebuildTimer = window.setTimeout(() => {
+				homeMediaRebuildTimer = null;
+				void scheduleHomeInit();
+			}, 120);
+		};
+		mobileQuery.addEventListener("change", handleChange);
+		characterFollowQuery.addEventListener("change", handleChange);
+		reducedMotionQuery.addEventListener("change", handleChange);
+		homeMediaCleanup = () => {
+			mobileQuery.removeEventListener("change", handleChange);
+			characterFollowQuery.removeEventListener("change", handleChange);
+			reducedMotionQuery.removeEventListener("change", handleChange);
+			if (homeMediaRebuildTimer !== null) {
+				window.clearTimeout(homeMediaRebuildTimer);
+				homeMediaRebuildTimer = null;
+			}
+		};
+	}
+
+	// 首次初始化：等页面加载遮罩完全撤掉后再播放首页入场
+	setupHomeMediaWatchers();
+	void scheduleHomeInit();
+
+	// Swup 兼容：使用 astro:page-load（每次导航完成触发）
+	document.addEventListener("astro:page-load", () => {
+		const hero = document.getElementById("home-hero");
+		if (hero) {
+			void scheduleHomeInit();
+		} else {
+			initToken += 1;
+			cleanup();
+		}
+	});
+</script>

@@ -1,0 +1,37 @@
+---
+import type { Category } from "../model/types";
+
+interface Props {
+	categories: Category[];
+}
+
+const { categories } = Astro.props;
+const chartData = categories.map(({ name, count, url }) => ({
+	name,
+	value: count,
+	url,
+}));
+const totalCount = categories.reduce(
+	(sum, category) => sum + category.count,
+	0,
+);
+---
+
+<category-rose class="category-rose" data-chart-data={JSON.stringify(chartData)}>
+	<div class="category-rose__layout">
+		<div class="category-rose__chart" data-category-rose-chart aria-label="文章分类统计图"></div>
+		<div class="category-rose__list">
+			{categories.map((category) => (
+				<a href={category.url} class="category-rose__list-item">
+					<span class="category-rose__list-name">{category.name}</span>
+					<span class="category-rose__list-count">{category.count} 篇</span>
+				</a>
+			))}
+			<div class="category-rose__list-total">共 {totalCount} 篇文章</div>
+		</div>
+	</div>
+</category-rose>
+
+<script>
+	import "../client/category-rose";
+</script>

@@ -1,0 +1,13 @@
+---
+import { siteConfig } from "@/config";
+import { WriterStudio } from "@/features/writing";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.write) return Astro.redirect("/404/");
+const title = "写文章";
+const description = "导入、编辑、预览并发布 Markdown 文章。";
+---
+
+<MainGridLayout {title} {description} contentWidth="wide" showSidebar={false}>
+	<WriterStudio client:load />
+</MainGridLayout>

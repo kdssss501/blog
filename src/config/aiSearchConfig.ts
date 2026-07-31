@@ -7,10 +7,13 @@
 
 export const aiSearchConfig = {
 	/** 第三方 AI API 地址 */
-	apiUrl: "https://api-inference.modelscope.cn/v1",
+	apiUrl: "https://api.deepseek.com",
 
 	/** 对话模型（显示在 AI 搜索弹窗标题） */
-	modelName: "deepseek-ai/DeepSeek-V4-Flash",
+	modelName: "deepseek-v4-flash",
+
+	/** 吸血鬼夜访聊天专用模型；与全局 AI 搜索人格独立配置。 */
+	vampireChatModel: "deepseek-v4-flash",
 
 	/** Embedding 模型（文本 → 向量，检索用） */
 	embeddingModel: "Qwen/Qwen3-Embedding-8B",

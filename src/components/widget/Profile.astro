@@ -1,145 +1,195 @@
 ---
 import Icon from "@components/common/Icon.astro";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
-import NumberTicker from "@/components/common/NumberTicker.svelte";
-import BubbleMenu from "@/components/features/BubbleMenu.svelte";
-import TypewriterText from "@/components/features/TypewriterText.astro";
-import { siteConfig } from "@/config";
 import { homeConfig } from "@/config/homeConfig";
 import {
 	getCategoryList,
 	getSortedPosts,
 	getTagList,
-} from "@/utils/content-utils";
+} from "@/features/posts/server";
 import { url } from "@/utils/url-utils";
 
-// 获取统计数据
 const posts = await getSortedPosts();
 const categories = await getCategoryList();
 const tags = await getTagList();
-
-// 计算总字数
-let totalWords = 0;
-for (const post of posts) {
-	if (post.body) {
-		let text = post.body
-			.replace(/```[\s\S]*?```/g, "")
-			.replace(/`[^`]*`/g, "")
-			.replace(/\s+/g, " ")
-			.trim();
-
-		const chineseChars = text.match(/[一-龥]/g) || [];
-		const englishChars = text.match(/[a-zA-Z]/g) || [];
-
-		totalWords += chineseChars.length + englishChars.length;
-	}
-}
-
-// 从配置中获取站点开始日期
-const siteStartDate = siteConfig.siteStartDate || "2025-01-01";
-
-// 计算运行天数（服务端计算）
-const startDate = new Date(siteStartDate);
-const today = new Date();
-const diffTime = Math.abs(today.getTime() - startDate.getTime());
-const runningDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-// 获取最新文章日期并计算活跃天数
-const latestPost = posts.reduce((latest, post) => {
-	if (!latest) return post;
-	return post.data.published > latest.data.published ? post : latest;
-}, posts[0]);
-
-let lastUpdateDays = 0;
-let isToday = false;
-if (latestPost) {
-	const lastPost = latestPost.data.published;
-	const timeSinceLastPost = Math.abs(today.getTime() - lastPost.getTime());
-	lastUpdateDays = Math.floor(timeSinceLastPost / (1000 * 60 * 60 * 24));
-	isToday = lastUpdateDays === 0;
-}
-
-const stats = [
-	{
-		icon: "material-symbols:article-outline",
-		label: "文章",
-		value: posts.length,
-	},
-	{
-		icon: "material-symbols:folder-outline",
-		label: "分类",
-		value: categories.length,
-	},
-	{
-		icon: "material-symbols:label-outline",
-		label: "标签",
-		value: tags.length,
-	},
-	{
-		icon: "material-symbols:text-ad-outline-rounded",
-		label: "字数",
-		value: totalWords,
-		formatted: true,
-	},
-	{
-		icon: "material-symbols:calendar-clock-outline",
-		label: "运行",
-		value: runningDays,
-		suffix: "天",
-	},
-	{
-		icon: "mingcute:heartbeat-line",
-		label: "活跃",
-		value: isToday ? 0 : lastUpdateDays,
-		suffix: isToday ? "今天" : "天前",
-	},
-];
+const bio = Array.isArray(homeConfig.bio) ? homeConfig.bio[0] : homeConfig.bio;
 ---
 
-<div class="section p-3 flex flex-col items-center gap-4">
-  <a
-    aria-label="Go to About Page"
-    href={url("/about/")}
-    class="group block relative w-60 h-60 overflow-hidden rounded-full border border-(--line-divider) shrink-0"
-  >
-    <ImageWrapper
-      src={homeConfig.avatar || ""}
-      alt="Profile Image of the Author"
-      class="w-full h-full"
-      loading="eager"
-      fetchpriority="high"
-      widths={[400]}
-      sizes="400px"
-    />
-  </a>
-  <div class="text-center w-full">
-    <TypewriterText text={homeConfig.bio || ""} speed={80} pauseTime={3000} class="text-xl text-(--content-meta)" />
-  </div>
-  <div class="w-full flex justify-center mt-2">
-    <BubbleMenu
-      links={homeConfig.links}
-      client:load
-    />
-  </div>
+<section class="profile-card">
+	<div class="profile-card__cover">
+		<img src={homeConfig.hero.backgroundImage} alt="" loading="eager" />
+	</div>
+	<a class="profile-card__avatar" href={url("/about/")} aria-label="查看关于页面">
+		<ImageWrapper
+			src={homeConfig.avatar || ""}
+			alt={`${homeConfig.displayName || homeConfig.name} 的头像`}
+			class="w-full h-full"
+			loading="eager"
+			fetchpriority="high"
+			widths={[160]}
+			sizes="80px"
+		/>
+	</a>
+	<div class="profile-card__body">
+		<h2>{homeConfig.displayName || homeConfig.name}</h2>
+		<p>{bio || "记录学习与生活的点滴"}</p>
+		<nav aria-label="个人链接">
+			{homeConfig.links.map((link) => (
+				<a href={link.url} aria-label={link.name} title={link.name} target={link.url.startsWith("http") ? "_blank" : undefined} rel={link.url.startsWith("http") ? "noopener noreferrer" : undefined}>
+					<Icon name={link.icon} />
+				</a>
+			))}
+		</nav>
+		<div class="profile-card__stats">
+			<a href="/posts/"><strong>{posts.length}</strong><span>文章</span></a>
+			<a href="/categories/"><strong>{categories.length}</strong><span>分类</span></a>
+			<a href="/archive/"><strong>{tags.length}</strong><span>标签</span></a>
+		</div>
+	</div>
+</section>
 
-  <!-- 站点统计 -->
-  <div class="flex flex-row flex-wrap justify-center gap-4 w-full mt-4 pt-4">
-    {stats.map((stat) => (
-      <div class="flex flex-col items-center gap-1">
-        <div class="flex items-center gap-1.5">
-          <Icon name={stat.icon} class="text-base text-neutral-600 dark:text-neutral-300" />
-          <span class="text-xs text-neutral-600 dark:text-neutral-300 font-medium">
-            {stat.label}
-          </span>
-        </div>
-        <NumberTicker
-          value={stat.value}
-          formatted={stat.formatted || false}
-          suffix={stat.suffix || ''}
-          class="text-sm font-bold text-neutral-900 dark:text-neutral-100"
-          client:visible
-        />
-      </div>
-    ))}
-  </div>
-</div>
+<style>
+	.profile-card {
+		position: relative;
+		overflow: hidden;
+		border: 1px solid var(--line-divider);
+		border-radius: 8px;
+		background: var(--card-bg);
+		box-shadow: 0 3px 12px rgb(0 0 0 / 5%);
+	}
+
+	.profile-card__cover {
+		height: 6.5rem;
+		overflow: hidden;
+		background: var(--btn-regular-bg);
+	}
+
+	.profile-card__cover img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.profile-card__avatar {
+		position: absolute;
+		top: 4.2rem;
+		left: 50%;
+		display: block;
+		width: 4.6rem;
+		height: 4.6rem;
+		overflow: hidden;
+		border: 4px solid var(--card-bg);
+		border-radius: 50%;
+		background: var(--card-bg);
+		transform: translateX(-50%);
+	}
+
+	.profile-card__avatar :global(img) {
+		object-fit: contain;
+		transform-origin: 50% 72%;
+		will-change: translate, rotate, scale;
+		animation: profile-roxy-idle 6.4s ease-in-out infinite;
+		transition: scale 280ms ease;
+	}
+
+	.profile-card__avatar:hover :global(img) {
+		scale: 1.04;
+	}
+
+	@keyframes profile-roxy-idle {
+		0%, 100% {
+			translate: 0 0;
+			rotate: 0deg;
+		}
+		50% {
+			translate: 0 -1.5%;
+			rotate: 0.3deg;
+		}
+	}
+
+	.profile-card__body {
+		padding: 2.75rem 1rem 1rem;
+		text-align: center;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.profile-card__avatar :global(img) {
+			animation: none;
+			transition: none;
+			translate: 0;
+			rotate: 0deg;
+			scale: 1;
+		}
+
+		.profile-card__avatar:hover :global(img) {
+			scale: 1;
+		}
+	}
+
+	.profile-card__body h2 {
+		margin: 0;
+		color: var(--deep-text);
+		font-size: 1rem;
+		font-weight: 900;
+	}
+
+	.profile-card__body > p {
+		margin: 0.4rem 0 0;
+		color: var(--content-meta);
+		font-size: 0.72rem;
+		line-height: 1.5;
+	}
+
+	.profile-card__body nav {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.45rem;
+		margin-top: 0.8rem;
+	}
+
+	.profile-card__body nav a {
+		display: grid;
+		width: 1.9rem;
+		height: 1.9rem;
+		place-items: center;
+		border-radius: 5px;
+		color: var(--content-meta);
+	}
+
+	.profile-card__body nav a:hover,
+	.profile-card__body nav a:focus-visible {
+		background: var(--btn-regular-bg);
+		color: var(--deep-text);
+	}
+
+	.profile-card__stats {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		margin-top: 0.9rem;
+		padding-top: 0.85rem;
+		border-top: 1px solid var(--line-divider);
+	}
+
+	.profile-card__stats a {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		color: var(--deep-text);
+		text-decoration: none;
+	}
+
+	.profile-card__stats a + a {
+		border-left: 1px solid var(--line-divider);
+	}
+
+	.profile-card__stats strong {
+		font-size: 0.85rem;
+	}
+
+	.profile-card__stats span {
+		color: var(--content-meta);
+		font-size: 0.62rem;
+	}
+</style>

@@ -1,0 +1,567 @@
+{
+  "source": "https://github.com/tianshihao2003/dumpling-theme.git",
+  "commit": "73b97596c09fb8b27ee7ab56221c270b35a21ae3",
+  "license": "MIT and user-provided resource authorization",
+  "items": [
+    {
+      "path": "public/assets/css/highlight-github-dark.min.css",
+      "sha256": "be40962767a1a600b11a0c6b7ae620a0387bac7819444a3cbf51c8d83404e643",
+      "size": 1324
+    },
+    {
+      "path": "public/assets/images/sakura.png",
+      "sha256": "427f7a363b07e17ab7900d38d315c2bb2e4e66f8239f837c72de4321931117d9",
+      "size": 43921
+    },
+    {
+      "path": "public/assets/images/屏幕截图 2026-02-25 144914.png",
+      "sha256": "714e6493642a15e068a9d3b9c1496d0930279bbdbbeb95388b23faac0636c9c5",
+      "size": 881
+    },
+    {
+      "path": "public/assets/js/firefly-twikoo-1.6.44.all.min.js",
+      "sha256": "aafb76b344e35147cb3f7548e1bf1588311b47f3042c4cf787218fb44b38a200",
+      "size": 610228
+    },
+    {
+      "path": "public/assets/js/highlight.min.js",
+      "sha256": "30ecef6c6f78426a75fa5f60f92780501a3619ec11367e3b67331576f3370812",
+      "size": 122939
+    },
+    {
+      "path": "public/assets/js/marked.min.js",
+      "sha256": "055c448a0e5fc69137f8b78968eb29a254814dd527d2af2389f7122b4189e09b",
+      "size": 40232
+    },
+    {
+      "path": "public/china-map.json",
+      "sha256": "4c8bb54be4c85bad2d088c7fe46c5611602b1fe99ee068658f1fe0e731ea7667",
+      "size": 582523
+    },
+    {
+      "path": "public/favicon/favicon-dark-128.png",
+      "sha256": "78c59162b90582c9e298176dc035225983a645a731065deb1a6a08c0d9afead1",
+      "size": 1745
+    },
+    {
+      "path": "public/favicon/favicon-dark-180.png",
+      "sha256": "63e402c37ad054188440594e9ef945567251306fb22f7e2c01b2b30ace667c20",
+      "size": 2382
+    },
+    {
+      "path": "public/favicon/favicon-dark-192.png",
+      "sha256": "971ef1b2c01a89005a91fd99a77bf490035f2271c3b59c23fefd3854e9f24aba",
+      "size": 2513
+    },
+    {
+      "path": "public/favicon/favicon-dark-32.png",
+      "sha256": "7004a6b456be971408cf6ac7dea97f39e5a41eb00c4d0be093e5df0b03872b76",
+      "size": 426
+    },
+    {
+      "path": "public/favicon/favicon-light-128.png",
+      "sha256": "e8a28741c11eecd4f33de70de94b6d87302e1d6324c834ae0f15b05e45fe4100",
+      "size": 2054
+    },
+    {
+      "path": "public/favicon/favicon-light-180.png",
+      "sha256": "d2a174bbaff45514f66ccd5e5ca63da38ce43327bfa9a646329316427c4bc7ea",
+      "size": 2786
+    },
+    {
+      "path": "public/favicon/favicon-light-192.png",
+      "sha256": "ab08515fa79cef05d169d17bb9bb053df49f05a461fe3cb06310f44231d2a237",
+      "size": 2942
+    },
+    {
+      "path": "public/favicon/favicon-light-32.png",
+      "sha256": "4f90ecdc392bd7e39c2fc6c9dfd465e6412cdd83d3693578672f772164e87464",
+      "size": 554
+    },
+    {
+      "path": "public/favicon/favicon.ico",
+      "sha256": "3af3b9013c717ba4f64fc467a1460ad15863682bc36f8b4e321dbd5d365e1133",
+      "size": 4542
+    },
+    {
+      "path": "public/pio/README.md",
+      "sha256": "f2e5232d9dcb6777cfbbc38e61c50e0b5787c22c95fc9839a8f6a7c90f184818",
+      "size": 4555
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/illyasviel.moc",
+      "sha256": "13fd57e431e8d131507e9de5046c212524cf3eff60727f87ea94ef9c616b703a",
+      "size": 393386
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/illyasviel.model.json",
+      "sha256": "d4436684631e2449965befb32c3b7ac834d1fafcfa5b90fc7db2e08ce067f47e",
+      "size": 1083
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_01.mtn",
+      "sha256": "8dd541c25bc52dd5ab2753c9002eaf0dffc283cee48440f0c70683acdac420a8",
+      "size": 10660
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_02.mtn",
+      "sha256": "93601f4d861b016d23003c23408399a0dc1ed7968290dc800ff6577e899eea90",
+      "size": 8733
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_03.mtn",
+      "sha256": "1bfbdb8bf830e665ff1c6f4831e4af64499c18c597628f3bf018b911b0c202e3",
+      "size": 11188
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_04.mtn",
+      "sha256": "b3d72069db9f859c101b0ac4ed4bbcb639e94fdc5a4dd1b1b3c0b6fc73b40d86",
+      "size": 7628
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_05.mtn",
+      "sha256": "ce535a2b92ff5a5067ff37d02853f573933b063824b0eed44ea6f0696cd86e4a",
+      "size": 10182
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_06.mtn",
+      "sha256": "46ea4fa1219d1bea3fd70d90ca5b31aebaddb821bdad14822c47d3e9952a54b7",
+      "size": 8321
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_07.mtn",
+      "sha256": "b85257660e79a5f6545a3b695e3cf016afea7a52a675cb01a5432dc3433f76f3",
+      "size": 8424
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_08.mtn",
+      "sha256": "b1211e6fb32e346d89b80044846f4fb7b946d9cdd1b0a2576e9622e26539baad",
+      "size": 10439
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_09.mtn",
+      "sha256": "34687c9fc1067e40de2e1eba3a8496e1a8387beba7622b91b1458aa0cc15c9ac",
+      "size": 10330
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_10.mtn",
+      "sha256": "88cfe531ffb58b90f20f8db479a066268ab42da7c9b998f90145dcf2a0b5c2c9",
+      "size": 11650
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_11.mtn",
+      "sha256": "ec5790ea706b7e37ece21bdb95fd903c23dceeed4f6fc68b9688a9aa0ba22f63",
+      "size": 7918
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_12.mtn",
+      "sha256": "fecde50cdbd4b28234dba4bd7936260501a234708993a35edcdf87ce43a0c09f",
+      "size": 14952
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_13.mtn",
+      "sha256": "3633f9da1a2377c8907d72aafd1f8425e6af3599c21de67bb90ae3127a9085b8",
+      "size": 11456
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_14.mtn",
+      "sha256": "d8c49c042a4925330467a32157fdda1d45e91745ee125079ca8ec69506f21419",
+      "size": 12978
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/motions/Ylia_15.mtn",
+      "sha256": "49a3b02cdaa234f5c48e94393bf0b278a535527e82f1a0bc156563cd3d249f36",
+      "size": 20167
+    },
+    {
+      "path": "public/pio/models/live2d/illyasviel/textures/texture_00.png",
+      "sha256": "e7599c3e3bfaa201384de52a60b7c285b71e985711ee6fd78a9743b8991c33ed",
+      "size": 1173235
+    },
+    {
+      "path": "public/pio/models/live2d/snow_miku/model.json",
+      "sha256": "1385e4df215170e5b0b8f4e43af1a73c1ce72f1e27ada61b75b820dc28052975",
+      "size": 493
+    },
+    {
+      "path": "public/pio/models/live2d/snow_miku/model.moc",
+      "sha256": "7cc632597eb36eff64bc15e0cb4236c9cfadd194ae80c6cba7c37091ca68d963",
+      "size": 315236
+    },
+    {
+      "path": "public/pio/models/live2d/snow_miku/motions/idle/idle.mtn",
+      "sha256": "62fac8ca74894379e24dfb2bdad218b61406b5a827fd59365f2770fefe3e614f",
+      "size": 35937
+    },
+    {
+      "path": "public/pio/models/live2d/snow_miku/textures/texture_00.png",
+      "sha256": "ea49b7e2a7f5d207ef57f83c58d1638f3664efaed9d9bf7d995e7120dede1e9b",
+      "size": 5661607
+    },
+    {
+      "path": "public/pio/models/spine/firefly/1310.atlas",
+      "sha256": "8d984dc23879cc0cc0b4ce35ce7022cff7d3b36fc9abc49f394f028949073025",
+      "size": 3640
+    },
+    {
+      "path": "public/pio/models/spine/firefly/1310.json",
+      "sha256": "f525c3b975caeae4ae19e1bf6c0f590905a69071c1b8f6f466d45d4b968cc96c",
+      "size": 541896
+    },
+    {
+      "path": "public/pio/models/spine/firefly/1310.png",
+      "sha256": "acd4f56951e58df2ed04c7d765349b4cd46018a702200d9388dbeeff49f2738e",
+      "size": 411762
+    },
+    {
+      "path": "public/pio/models/spine/firefly/1310.spine",
+      "sha256": "346a7553edf80ca6c14dc8db20bbc30918839d8e5e474f73aff0526a7bf9ee28",
+      "size": 143368
+    },
+    {
+      "path": "public/pio/models/spine/firefly/audio/使一颗心免于哀伤-哼唱.wav",
+      "sha256": "4db69018f8a91d70a9b5a1c4cfedf2d43c5796eeb128e2ab88763fa6ef2aecb8",
+      "size": 7488044
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E眉毛.png",
+      "sha256": "e786fc6b78391492e5973b14813ba5fa08fdd980859765531900cc75f85fbf1a",
+      "size": 876
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E眼珠.png",
+      "sha256": "c5af3690295d27f2002ab8b639137923b62ad70bca28e924837096beaab428d1",
+      "size": 5733
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E眼白.png",
+      "sha256": "9ce42fe9c6ad59d3ceec20a0180bf7ba25bab138719d48aad5bb4d4bb325e143",
+      "size": 2480
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E眼皮.png",
+      "sha256": "b7284acb157c1927a980630aaa87ed4b7f5486bc30d86a2e60f3c0be1a3137a9",
+      "size": 456
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E眼角.png",
+      "sha256": "48ece3e38c940e4180604e3ace0205fe8cc066a8cba5062d4de5ff90659bd131",
+      "size": 1018
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E睫毛.png",
+      "sha256": "33b6ec3d3ac81a77e7d5bcd29ca4fd1b082bfa31462d93c620f34e62a96801a7",
+      "size": 3819
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E脸1.png",
+      "sha256": "15274882faf0c1bb53619f9dcfefd920778bee95737fa108268dc3cd1822e2eb",
+      "size": 9414
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/E脸2.png",
+      "sha256": "2823b14332fdbfa3c39e8c4c2264b9cf91d604d8df58305b81960fd50fb8fa9e",
+      "size": 9203
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/L大臂.png",
+      "sha256": "359fa5a2928d19ce24b7b32e50cd32f2426fad52ca7d52000d3776609a60da78",
+      "size": 1078
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/L大臂衣袖.png",
+      "sha256": "6c90e4c91cebd81aa39102f44f12347a1d967ea9618c8257c802eb693455ab55",
+      "size": 4674
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/L大臂衣袖后.png",
+      "sha256": "c829575aeb96db864b21e14406a82ecfcf20acbae4b2aa1af7d02967c7d72b4a",
+      "size": 3107
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/L正常左小臂.png",
+      "sha256": "09113b10bc590527e58d88a48069b6d89629eea493bc48fbb6480c91ee13554c",
+      "size": 5361
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/L正常左手.png",
+      "sha256": "086091b3eda73444f36492ba01a626b89607056c9afdb1369817fe9d0fac81bb",
+      "size": 1610
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/L正常左袖口.png",
+      "sha256": "e60c5f3b566c16ad41f79cb999df6641bd6e70c9ae954917f8abf4c8df7e111b",
+      "size": 1129
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/M嘴巴.png",
+      "sha256": "f8cd0716837e11d5c753cee42c0a7e58a4a2e05f292d13954a87514c8ab0bd2a",
+      "size": 283
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/M笑口.png",
+      "sha256": "935942516049afdd5a2961232c0e208e5142532da08d252dd9d65734029251ad",
+      "size": 684
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/M说话.png",
+      "sha256": "8e95f3e943e6042c50dac1e4e595878b7a55fadb44338e8b7f4d9ec6c0e422c9",
+      "size": 649
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/R大臂.png",
+      "sha256": "efb5148f7bfc34b01bf0bb5c341fbae42037e45612381a7e5d97b8dd0be2c13b",
+      "size": 1242
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/R大臂衣袖.png",
+      "sha256": "909dcc62f60e7be83df5d6d4b38812b7bfaf6935dd2a19e6461da036f1bbb3d3",
+      "size": 3456
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/R大臂衣袖后.png",
+      "sha256": "1caaa4e162a1570352cfcd5229e8cdf4ab300cf9be2c946cb7d79dac5d86638c",
+      "size": 2237
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/R正常右小臂.png",
+      "sha256": "e10d0286a39c84f92e0dc39d3f63ce5a7aad9fee5177a71b8a90570611cd8b48",
+      "size": 2116
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/R正常右手.png",
+      "sha256": "a996907019b3655872f95a6867c81cefd517623e5ffd3429f4f1403086d4ecd1",
+      "size": 1220
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/X眼.png",
+      "sha256": "f8e31c53e903e2316963979b186b00f6108f881bec362f12b0cd2300a82dbad6",
+      "size": 4507
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发1.png",
+      "sha256": "c0a77554fa25956d73524408c55dedf89ee2110a091e44f3abaf40287e37756f",
+      "size": 17284
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发10.png",
+      "sha256": "386798e0667cb4d100abf04696612fdff9b32bad03f41963fcfb64c096085a35",
+      "size": 4438
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发11内阴影.png",
+      "sha256": "2d45459a05f5c32b775127f433cbd7d4466ce214d6c5497ec29bfe63316c8b58",
+      "size": 1799
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发2.png",
+      "sha256": "e8b20ad52925781c33a4cda8a232bd1e31925220e34c166619dce7ad876c26c6",
+      "size": 10045
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发3.png",
+      "sha256": "08fa875b3f87690d3ae9f89cde12c2cb19d5d32043f192f20b8d6f51727f1ce7",
+      "size": 24865
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发4.png",
+      "sha256": "a1061eba73497dfbe014c101795105fa8bb63bcda0bfa08d4fc6fe5a989cb06e",
+      "size": 12808
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发5.png",
+      "sha256": "89b263a095a71635acb0dbe7028219efd165762c88bb3981e07b3a1119fc8d39",
+      "size": 4472
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发6.png",
+      "sha256": "4a4ade2b32c711fbfb82d65f72bb1274aa2bf1564e62c6477774d14b0be72fc2",
+      "size": 3102
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发7.png",
+      "sha256": "19ad095467e40c70c3cef770ee6dd166966b9bc3c2a7e7d11680d5546dfcc8b4",
+      "size": 6280
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发8.png",
+      "sha256": "35523790e38284f587010f274ec6fed4b45834bf2055347eed1ccfe0caded6f7",
+      "size": 8427
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发9.png",
+      "sha256": "c149c6d0c24743d1cbfb2e6e9f674ba9b2a8ad3a34bd58f8ce840d8b88b6c3f0",
+      "size": 7675
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发带.png",
+      "sha256": "393456e3a75adddb496f2454b3a71c1db45c8d814d2ca24815d6b5a8a9193afd",
+      "size": 9893
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发影子.png",
+      "sha256": "3033eab63aca9b3f6344d01b2f1984164c9e748b80826e79bc4ecec101b33ffd",
+      "size": 4579
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发饰1.png",
+      "sha256": "2f4387d5c1bd41e02753d0ef660e99e8d612a3a280a89fef492584f35d00493c",
+      "size": 6223
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发饰2.png",
+      "sha256": "ef6dbb668e2cb827a78c3cb9a397d270dc64da7344165d0adcd96124cb7575d1",
+      "size": 3847
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/发饰3.png",
+      "sha256": "508a1c2df2b297683d192fac71f40de753faf44d38388d34a244d3f022e552ec",
+      "size": 2591
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/可爱花朵.png",
+      "sha256": "9e3f7b616b6a7dc6b57ed9dd31a83aea541cc1aeaa77b5fc1bf006515f2f8b6a",
+      "size": 31475
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/右大腿.png",
+      "sha256": "8d45365c58c564220970cdd228a5fcefd04067ee3a185f521167b5bd87a5b589",
+      "size": 2541
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/右小腿.png",
+      "sha256": "3d2e12f8ce47565e02da9e4e9ef9622432661a2814dac2577d5bdae10d0d788b",
+      "size": 6298
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/后发1.png",
+      "sha256": "173853458a66a1f1a31763d5f8c2e2bf41172c353e6d761a946724244336f1ed",
+      "size": 13004
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/后发2.png",
+      "sha256": "16077e50aae2faf46830f7028c7471f3a241211fdf32bc329c4b97261225f4d0",
+      "size": 24305
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/后发3.png",
+      "sha256": "2f7489e2011ddb4b231cc680569033918cdd902b40c09ea6b88149ecac1749d9",
+      "size": 29135
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/后发4.png",
+      "sha256": "d1b0b075292f1460c29b32ed5f1e2e8327e8e45da71cf27b49d63ec09610bd08",
+      "size": 33673
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/后摆.png",
+      "sha256": "03e80e876306829bf146484e1e6990f6ab1f5891b37031b03bde533226a771e4",
+      "size": 23913
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/后脑勺.png",
+      "sha256": "d255955e1029b404a5c20158e5568b8d17f748baedb1c4f6e152ddefad6ca2bd",
+      "size": 9607
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/左大腿.png",
+      "sha256": "20bb889d08f837b7a89ea30faa01bc4ff6ebbb5bc8afcc5886448b215a09a893",
+      "size": 2927
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/左小腿.png",
+      "sha256": "bcd5ccf1feaf86ee446463a233d6d02d19d993b6a6f1d3b89bb050a295a0bdab",
+      "size": 7723
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/星星1.png",
+      "sha256": "eca495065812a84f4d5b1ec515a968ce1e95b77a9cb4212a40b9ce2132e66f76",
+      "size": 3785
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/星星2.png",
+      "sha256": "183f7ec0fdb4f8f8d36f63a059355ff4cd388397e2a58fbfd975c05f089d0db7",
+      "size": 8901
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/星星3.png",
+      "sha256": "9ae2d7b6d78afb48af87f9db0714bfb03ab6eccfbfd1b76cb36b7d84c6cdcfe2",
+      "size": 7122
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/星星4.png",
+      "sha256": "8e39adbf9410551640056f416465083b2baf81c6d2705da96fe30d2f5460f388",
+      "size": 6740
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/生气符号1.png",
+      "sha256": "fa43983ed2090bd57a548d73761fb2e940fd3ca1a5496fb797bc02a2c2d33c17",
+      "size": 4555
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/生气符号2.png",
+      "sha256": "5d898c895618afbd86233035cd86b1b53ef1119c153b016915fe7daa29f8c6c0",
+      "size": 1674
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/胸饰.png",
+      "sha256": "26a38fbfe699b33c803b9737782f8a7a4251b091baa51e9dfd08e00e23f5a376",
+      "size": 1956
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/脸红.png",
+      "sha256": "2ea943353026760dc8881b852bdbb7518164f97961bd23cd42c1d3e161c30b19",
+      "size": 5609
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/裙边.png",
+      "sha256": "1a6997a1309cbae68d0a1358f54162258b21eb86bf5d8787926647925650dea4",
+      "size": 1411
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/身体.png",
+      "sha256": "b2d8c3bb15474149bc988168f29ace5b05bc50fe00522012fcb8610878dffdba",
+      "size": 23474
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/问号.png",
+      "sha256": "361ca3248800ead16f3f13a57675e71417784b4bad5b0feadda67a4633e33043",
+      "size": 3363
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/领子.png",
+      "sha256": "44e30b669ca2699ac7f1be6ee049a2cbf85a308b0a2304cdb6c5fc4075daf297",
+      "size": 4596
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/领结.png",
+      "sha256": "4f22d1b84156d98fdc1d5f106c629eb4b584a8c5297c8583257fd0d553e433db",
+      "size": 5036
+    },
+    {
+      "path": "public/pio/models/spine/firefly/images/鼻子.png",
+      "sha256": "a9ecb8e984f02c8daa34c7027bcafe0b654314943c38d1a58a79669e9851dedb",
+      "size": 132
+    },
+    {
+      "path": "public/pio/static/live2d-sdk/live2d-wrapper.js",
+      "sha256": "ac17424dc17d4f2a04fce152b92a65cbbb6e48f70a42a38b1eb16d5b841704b0",
+      "size": 7416
+    },
+    {
+      "path": "public/pio/static/live2d-sdk/live2d.min.js",
+      "sha256": "3b73115c8b0e15595a52ccf59abfe2e00bb1c976897c928b92b5fab2088bf366",
+      "size": 151108
+    },
+    {
+      "path": "public/pio/static/spine-player.min.css",
+      "sha256": "9fab21b66bc4c49f14fe5af0eb9d174f03e13d9f59913714ca64f5cc0f1e7ba3",
+      "size": 26054
+    },
+    {
+      "path": "public/pio/static/spine-player.min.js",
+      "sha256": "7bf75f0c742a514b9aa8cdcd3de30bbadb8489879adc92c2ad1be0853bf38fb4",
+      "size": 254391
+    }
+  ]
+}

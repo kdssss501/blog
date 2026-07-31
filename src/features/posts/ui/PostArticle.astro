@@ -1,0 +1,168 @@
+---
+import Comment from "@components/comment/index.astro";
+import Icon from "@components/common/Icon.astro";
+import Markdown from "@components/common/Markdown.astro";
+import EncryptedPost from "@components/features/EncryptedPost.astro";
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+import CoverImage from "@/components/common/CoverImage.astro";
+import PostFooterActions from "@/components/misc/PostFooterActions.astro";
+import { coverImageConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { ArtworkAttribution } from "@/shared/content/artwork";
+import { formatDateToYYYYMMDD } from "@/utils/date-utils";
+import { getFileDirFromPath, getPostUrlBySlug, url } from "@/utils/url-utils";
+import type { PostEntry } from "../model/types";
+import PostMetadata from "./PostMeta.astro";
+
+interface Props {
+	entry: PostEntry;
+	Content: AstroComponentFactory;
+	words: number;
+	minutes: number;
+	processedImage: string;
+	apiUrls: string[];
+	posterCoverUrl: string;
+	posterAvatarUrl: string | null;
+	posterUrl: string;
+	imageAttribution: ArtworkAttribution;
+}
+
+const {
+	entry,
+	Content,
+	words,
+	minutes,
+	processedImage,
+	apiUrls,
+	posterCoverUrl,
+	posterAvatarUrl,
+	posterUrl,
+	imageAttribution,
+} = Astro.props;
+const lastModified = entry.data.updated || entry.data.published;
+const outdatedThreshold = siteConfig.outdatedThreshold ?? 1;
+---
+
+<article class="post-article">
+	<div id="post-container" class="card-base post-article__surface">
+		<div class="post-article__metrics onload-animation">
+			<span><Icon name="material-symbols:notes-rounded" />{words} {i18n(I18nKey.wordsCount)}</span>
+			<span>
+				<Icon name="material-symbols:schedule-outline-rounded" />
+				{minutes} {i18n(minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
+			</span>
+			{entry.data.password && (
+				<span><Icon name="material-symbols:lock-outline" />{i18n(I18nKey.postEncrypted)}</span>
+			)}
+		</div>
+
+		<header class="post-article__header onload-animation">
+			<h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title">
+				{entry.data.title}
+			</h1>
+			<PostMetadata
+				className="post-article__metadata"
+				published={entry.data.published}
+				updated={entry.data.updated}
+				category={entry.data.category || undefined}
+				tags={entry.data.tags}
+				id={entry.id}
+				posterTitle={entry.data.title}
+				posterDescription={entry.data.description}
+				{posterCoverUrl}
+				{posterAvatarUrl}
+				{posterUrl}
+			/>
+			{!processedImage && <div class="post-article__divider" />}
+		</header>
+
+		{processedImage && coverImageConfig.enableInPost && (
+			<>
+				<CoverImage
+					id="post-cover"
+					src={processedImage}
+					basePath={getFileDirFromPath(entry.filePath || "")}
+					class="post-article__cover banner-container onload-animation"
+					preview={false}
+					loading="eager"
+					fetchpriority="high"
+					{apiUrls}
+				/>
+				{imageAttribution && (
+					<a
+						class="post-article__artwork-credit"
+						href={imageAttribution.sourceUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						插图：{imageAttribution.artist} · {imageAttribution.theme} · {imageAttribution.license}
+					</a>
+				)}
+			</>
+		)}
+
+		{entry.data.password ? (
+			<EncryptedPost password={entry.data.password} slug={entry.id} hint={entry.data.passwordHint}>
+				<Markdown class="mb-6 markdown-content onload-animation"><Content /></Markdown>
+				<PostFooterActions
+					title={entry.data.title}
+					published={entry.data.published}
+					id={entry.id}
+					author={entry.data.author}
+					sourceLink={entry.data.sourceLink}
+					licenseName={entry.data.licenseName}
+					licenseUrl={entry.data.licenseUrl}
+				/>
+			</EncryptedPost>
+		) : (
+			<>
+				<Markdown class="mb-6 markdown-content onload-animation"><Content /></Markdown>
+				<PostFooterActions
+					title={entry.data.title}
+					published={entry.data.published}
+					id={entry.id}
+					author={entry.data.author}
+					sourceLink={entry.data.sourceLink}
+					licenseName={entry.data.licenseName}
+					licenseUrl={entry.data.licenseUrl}
+				/>
+			</>
+		)}
+	</div>
+</article>
+
+{siteConfig.showLastModified && (
+	<post-freshness
+		class="post-freshness card-base"
+		data-date={lastModified.toISOString()}
+		data-threshold={outdatedThreshold}
+		hidden
+	>
+		<Icon name="material-symbols:history-rounded" />
+		<div>
+			<p>
+				{i18n(I18nKey.lastModifiedPrefix)}{formatDateToYYYYMMDD(lastModified)}
+				<span data-post-days-ago data-template={i18n(I18nKey.lastModifiedDaysAgo)}></span>
+			</p>
+			<p data-post-outdated-warning hidden>{i18n(I18nKey.lastModifiedOutdated)}</p>
+		</div>
+	</post-freshness>
+)}
+
+<nav class="post-navigation" aria-label="文章前后导航">
+	<a href={entry.data.nextSlug ? getPostUrlBySlug(entry.data.nextSlug) : url("/")} class="post-navigation__link">
+		<Icon name="material-symbols:chevron-left-rounded" />
+		<span>{entry.data.nextTitle || i18n(I18nKey.home)}</span>
+	</a>
+	<a href={entry.data.prevSlug ? getPostUrlBySlug(entry.data.prevSlug) : url("/")} class="post-navigation__link post-navigation__link--next">
+		<span>{entry.data.prevTitle || i18n(I18nKey.home)}</span>
+		<Icon name="material-symbols:chevron-right-rounded" />
+	</a>
+</nav>
+
+{entry.data.comment && !entry.data.password && <Comment post={entry} />}
+
+<script>
+	import "../client/post-freshness";
+</script>

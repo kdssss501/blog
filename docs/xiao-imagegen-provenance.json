@@ -1,0 +1,392 @@
+{
+  "schemaVersion": 2,
+  "recordedDate": "2026-07-26",
+  "generator": {
+    "skill": "imagegen",
+    "provider": "Jiuqiu Workbench API",
+    "model": "gpt-image-2"
+  },
+  "referenceInputs": {
+    "count": 4,
+    "source": "user-supplied screenshots",
+    "allowedUse": [
+      "composition reference",
+      "visual mood reference"
+    ],
+    "prohibitedUse": [
+      "edit target",
+      "runtime asset"
+    ]
+  },
+  "runtime": {
+    "route": "/live2D/",
+    "character": "vampire VTuber",
+    "assetDirectory": "public/assets/images/xiao/vampire-gothic",
+    "introAssetDirectory": "public/assets/images/xiao/chain-cinematic-v2",
+    "modelDelivery": "development-only read-only source proxy",
+    "modelDeliveryBoundary": "The Cubism source model is read through VAMPIRE_LIVE2D_SOURCE_DIR and is not copied into public assets.",
+    "soulLinkBoundary": "SoulLink is the emotion-to-parameter adapter for the existing Cubism model; it is not a substitute for, or a claim of, a generated Live2D model."
+  },
+  "operations": [
+    {
+      "operationId": "5491ad62-b6f6-40bd-a30f-29bd5ee25b2f",
+      "settings": {
+        "size": "3840x2160",
+        "quality": "high",
+        "outputFormat": "png",
+        "transparentOutput": false
+      },
+      "tasks": [
+        {
+          "taskId": 4118,
+          "idempotencyKey": "codex-imagegen-5491ad62-b6f6-40bd-a30f-29bd5ee25b2f-0",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-gothic-broadcast-v2/01-workspace-preview.txt",
+          "output": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4118-0.png",
+          "role": "composition-and-mood-reference",
+          "runtimeStatus": "not-shipped"
+        },
+        {
+          "taskId": 4119,
+          "idempotencyKey": "codex-imagegen-5491ad62-b6f6-40bd-a30f-29bd5ee25b2f-1",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-gothic-broadcast-v2/02-stage-background.txt",
+          "output": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4119-0.png",
+          "role": "production-stage-background",
+          "runtimeStatus": "shipped"
+        }
+      ]
+    },
+    {
+      "operationId": "ad357478-ce57-4dab-8989-45fc6250c132",
+      "settings": {
+        "size": "2880x2880",
+        "quality": "high",
+        "outputFormat": "png",
+        "transparentOutput": true
+      },
+      "tasks": [
+        {
+          "taskId": 4120,
+          "idempotencyKey": "codex-imagegen-ad357478-ce57-4dab-8989-45fc6250c132-0",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-gothic-broadcast-v2/03-silver-ornaments.txt",
+          "output": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4120-0.png",
+          "role": "production-silver-ornament-atlas",
+          "runtimeStatus": "shipped"
+        },
+        {
+          "taskId": 4122,
+          "idempotencyKey": "codex-imagegen-ad357478-ce57-4dab-8989-45fc6250c132-2",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-gothic-broadcast-v2/05-envelope-effects.txt",
+          "output": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4122-0.png",
+          "role": "production-envelope-effects-atlas",
+          "runtimeStatus": "shipped"
+        }
+      ]
+    },
+    {
+      "operationId": "cf3a2d61-638a-4c66-997f-1ca7d37398c6",
+      "settings": {
+        "model": "gpt-image-2",
+        "size": "2048x1152",
+        "quality": "high",
+        "outputFormat": "png",
+        "transparentOutput": false
+      },
+      "tasks": [
+        {
+          "taskId": 5649,
+          "idempotencyKey": "codex-imagegen-cf3a2d61-638a-4c66-997f-1ca7d37398c6-0",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-chain-cinematic-v2/01-moonlit-establishing.txt",
+          "output": "generated-art/vampire-chain-cinematic-v2/workbench-task-5649-0.png",
+          "role": "cinematic-establishing-shot",
+          "runtimeStatus": "shipped-derived"
+        },
+        {
+          "taskId": 5650,
+          "idempotencyKey": "codex-imagegen-cf3a2d61-638a-4c66-997f-1ca7d37398c6-1",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-chain-cinematic-v2/02-red-eye-closeup.txt",
+          "output": "generated-art/vampire-chain-cinematic-v2/workbench-task-5650-0.png",
+          "role": "cinematic-crimson-eye-shot",
+          "runtimeStatus": "shipped-derived"
+        },
+        {
+          "taskId": 5651,
+          "idempotencyKey": "codex-imagegen-cf3a2d61-638a-4c66-997f-1ca7d37398c6-2",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-chain-cinematic-v2/03-white-transformation.txt",
+          "output": "generated-art/vampire-chain-cinematic-v2/workbench-task-5651-0.png",
+          "role": "cinematic-white-form-shot",
+          "runtimeStatus": "shipped-derived"
+        },
+        {
+          "taskId": 5652,
+          "idempotencyKey": "codex-imagegen-cf3a2d61-638a-4c66-997f-1ca7d37398c6-3",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-chain-cinematic-v2/04-fog-silhouette.txt",
+          "output": "generated-art/vampire-chain-cinematic-v2/workbench-task-5652-0.png",
+          "role": "cinematic-black-form-shot",
+          "runtimeStatus": "shipped-derived"
+        },
+        {
+          "taskId": 5653,
+          "idempotencyKey": "codex-imagegen-cf3a2d61-638a-4c66-997f-1ca7d37398c6-4",
+          "outputImageKeys": [],
+          "prompt": "docs/plans/vampire-chain-cinematic-v2/05-final-portrait.txt",
+          "output": "generated-art/vampire-chain-cinematic-v2/workbench-task-5653-0.png",
+          "role": "cinematic-final-portrait",
+          "runtimeStatus": "shipped-derived"
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "path": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4118-0.png",
+      "taskId": 4118,
+      "role": "reference-only-workspace-preview",
+      "width": 3840,
+      "height": 2160,
+      "hasAlpha": false,
+      "bytes": 10433027,
+      "sha256": "d7f69551589948dfbe861ff991ff8b5335bad5e0b7a8afb6a912ef3403b37206"
+    },
+    {
+      "path": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4119-0.png",
+      "taskId": 4119,
+      "role": "raw-production-stage-background",
+      "width": 3840,
+      "height": 2160,
+      "hasAlpha": false,
+      "bytes": 10582675,
+      "sha256": "1ae847ab3e70284a46e7af9a19eec2aa498b6542adbdbd83cbb3c9b35de8272a"
+    },
+    {
+      "path": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4120-0.png",
+      "taskId": 4120,
+      "role": "raw-green-background-silver-ornament-atlas",
+      "width": 2880,
+      "height": 2880,
+      "hasAlpha": false,
+      "bytes": 7670870,
+      "sha256": "a48ad115c8ec4256a298b5101cb16c79cb380b2d8f415032a50e99ea50bdeea3"
+    },
+    {
+      "path": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4122-0.png",
+      "taskId": 4122,
+      "role": "raw-green-background-envelope-effects-atlas",
+      "width": 2880,
+      "height": 2880,
+      "hasAlpha": false,
+      "bytes": 6197973,
+      "sha256": "9221b865780c8e321c26acf1dec18134d48797ab058700e91aedceca57d539e0"
+    },
+    {
+      "path": "public/assets/images/xiao/vampire-gothic/stage-background-4k.png",
+      "taskId": 4119,
+      "role": "archived-stage-background",
+      "derivedFrom": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4119-0.png",
+      "derivation": "byte-identical approved background",
+      "width": 3840,
+      "height": 2160,
+      "hasAlpha": false,
+      "bytes": 10582675,
+      "sha256": "1ae847ab3e70284a46e7af9a19eec2aa498b6542adbdbd83cbb3c9b35de8272a"
+    },
+    {
+      "path": "public/assets/images/xiao/vampire-gothic/silver-ornaments-atlas-4k.png",
+      "taskId": 4120,
+      "role": "runtime-silver-ornament-atlas",
+      "derivedFrom": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4120-0.png",
+      "derivation": "scripts/clean-workbench-chroma-alpha.mjs removed the green RGB background and generated RGBA",
+      "width": 2880,
+      "height": 2880,
+      "hasAlpha": true,
+      "bytes": 5850492,
+      "sha256": "982bec3f5dbfeac8512ab43feb179b52e4eb4b701e92cc43edb6493dc99f1b73"
+    },
+    {
+      "path": "public/assets/images/xiao/vampire-gothic/envelope-effects-atlas-4k.png",
+      "taskId": 4122,
+      "role": "runtime-envelope-effects-atlas",
+      "derivedFrom": "generated-art/vampire-gothic-broadcast-v2/workbench-task-4122-0.png",
+      "derivation": "scripts/clean-workbench-chroma-alpha.mjs removed the green RGB background and generated RGBA",
+      "width": 2880,
+      "height": 2880,
+      "hasAlpha": true,
+      "bytes": 4681768,
+      "sha256": "2020800152d12149936e92bad2b20f47fc1543cdbb6dbfc13b8b7bc07d72a8fb"
+    },
+    {
+      "path": "public/assets/images/xiao/vampire-gothic/envelope-sequence-atlas.png",
+      "taskId": 4122,
+      "role": "runtime-envelope-sequence-atlas",
+      "derivedFrom": "public/assets/images/xiao/vampire-gothic/envelope-effects-atlas-4k.png",
+      "derivation": "scripts/generate-vampire-effect-sequences.mjs; twelve transparent PNG frames at 15fps",
+      "width": 2880,
+      "height": 720,
+      "hasAlpha": true,
+      "bytes": 2281461,
+      "sha256": "2b593933d1f4c8e535d78b47ef2eebdddb3037ab1f87dcecaa1f09c5bd8689f6"
+    },
+    {
+      "path": "generated-art/vampire-chain-cinematic-v2/workbench-task-5649-0.png",
+      "taskId": 5649,
+      "role": "raw-cinematic-establishing-shot",
+      "width": 2048,
+      "height": 1152,
+      "hasAlpha": false,
+      "bytes": 2877305,
+      "sha256": "4152a1570f10d554a13f4db772e5d8468240b48fd9ad389d6e0a86ff1e31bb6f"
+    },
+    {
+      "path": "generated-art/vampire-chain-cinematic-v2/workbench-task-5650-0.png",
+      "taskId": 5650,
+      "role": "raw-cinematic-red-eye-shot",
+      "width": 2048,
+      "height": 1152,
+      "hasAlpha": false,
+      "bytes": 2344897,
+      "sha256": "88c293c854591ebee266ee7f2306dd03af3106e75c222c4be114eaa225319f96"
+    },
+    {
+      "path": "generated-art/vampire-chain-cinematic-v2/workbench-task-5651-0.png",
+      "taskId": 5651,
+      "role": "raw-cinematic-white-form-shot",
+      "width": 2048,
+      "height": 1152,
+      "hasAlpha": false,
+      "bytes": 2709571,
+      "sha256": "8426b33b23554aa88c16b6c1562a9abf84da0f97ecb4b79e43a0c151a795cd05"
+    },
+    {
+      "path": "generated-art/vampire-chain-cinematic-v2/workbench-task-5652-0.png",
+      "taskId": 5652,
+      "role": "raw-cinematic-silhouette-shot",
+      "width": 2048,
+      "height": 1152,
+      "hasAlpha": false,
+      "bytes": 2838175,
+      "sha256": "93450e502e87a4596e1fd09cb4f1ba9b5d0cd8f03c5692c84a566d6a269f5e27"
+    },
+    {
+      "path": "generated-art/vampire-chain-cinematic-v2/workbench-task-5653-0.png",
+      "taskId": 5653,
+      "role": "raw-cinematic-final-portrait",
+      "width": 2048,
+      "height": 1152,
+      "hasAlpha": false,
+      "bytes": 2559689,
+      "sha256": "8ee741e3a0f2be25268ea0bcc53614a4a62d4cc5cbbfc885ad709d81bceba87e"
+    },
+    {
+      "path": "public/assets/images/xiao/chain-cinematic-v2/shot-01.webp",
+      "taskId": 5649,
+      "role": "runtime-cinematic-shot-01",
+      "derivedFrom": "generated-art/vampire-chain-cinematic-v2/workbench-task-5649-0.png",
+      "derivation": "local resize and WebP encoding for the 10.8 second cinematic",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 130466,
+      "sha256": "3025e08fb0327726f0771649a3558bc97053f20e3975fdcb8e464c0b08551fed"
+    },
+    {
+      "path": "public/assets/images/xiao/chain-cinematic-v2/shot-02.webp",
+      "taskId": 5650,
+      "role": "runtime-cinematic-shot-02",
+      "derivedFrom": "generated-art/vampire-chain-cinematic-v2/workbench-task-5650-0.png",
+      "derivation": "local resize and WebP encoding for the 10.8 second cinematic",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 62172,
+      "sha256": "b0fa7ce347b4de98f618e383d9b48430896284327cbd388500eeb9e42c52be4f"
+    },
+    {
+      "path": "public/assets/images/xiao/chain-cinematic-v2/shot-03.webp",
+      "taskId": 5651,
+      "role": "runtime-cinematic-shot-03-white-form",
+      "derivedFrom": "generated-art/vampire-chain-cinematic-v2/workbench-task-5651-0.png",
+      "derivation": "local resize and WebP encoding for the 10.8 second cinematic",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 105440,
+      "sha256": "03704f7f268ca95358a87b3d13cc2a09bcefe0482b44d4df503d83ee20e8b7e5"
+    },
+    {
+      "path": "public/assets/images/xiao/chain-cinematic-v2/shot-04.webp",
+      "taskId": 5652,
+      "role": "runtime-cinematic-shot-04",
+      "derivedFrom": "generated-art/vampire-chain-cinematic-v2/workbench-task-5652-0.png",
+      "derivation": "local resize and WebP encoding for the 10.8 second cinematic",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 123186,
+      "sha256": "1cde664598605cbb1095bdbb4800c2384fe961e620c5b53b3db7aa838cae4239"
+    },
+    {
+      "path": "public/assets/images/xiao/chain-cinematic-v2/shot-05.webp",
+      "taskId": 5653,
+      "role": "runtime-cinematic-shot-05",
+      "derivedFrom": "generated-art/vampire-chain-cinematic-v2/workbench-task-5653-0.png",
+      "derivation": "local resize and WebP encoding for the 10.8 second cinematic",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 100090,
+      "sha256": "42705e3940670b8615afc47d0c026c7bcf9e082ee84d576d0212c6bfc8aa1750"
+    }
+  ],
+  "videos": [
+    {
+      "path": "public/assets/images/xiao/chain-cinematic-v2/vampire-cinematic.webm",
+      "role": "runtime-cinematic-micro-video",
+      "derivedFromTasks": [5649, 5650, 5651, 5652, 5653],
+      "derivation": "FFmpeg VP9, 1280x720, 30fps, 10.8 seconds, silent; slow push-ins and crossfades",
+      "width": 1280,
+      "height": 720,
+      "durationMs": 10800,
+      "hasAudio": false,
+      "bytes": 1654406,
+      "sha256": "2a74c26bef652222398cbaed934d0586eccec4ca31acc0a9e869e30e819b1ed3"
+    }
+  ],
+  "runtimeOverrides": [
+    {
+      "path": "public/assets/images/xiao/vampire-gothic/task-4250-1.png",
+      "role": "runtime-stage-background",
+      "source": "user-supplied local asset",
+      "width": 2048,
+      "height": 1152,
+      "hasAlpha": false,
+      "bytes": 3924551,
+      "sha256": "5d4caa035a0b00ac9e1ed2ff453d806732521b426ebce235e628fe0b7d029afe"
+    }
+  ],
+  "historical": {
+    "retiredIntroChain": {
+      "operationId": "e4e977c6-92be-4c1f-a27e-3d23ca6f16db",
+      "taskId": 5594,
+      "runtimeStatus": "removed",
+      "reason": "The generated horizontal-chain PNG was replaced by the Yuimi title-chain Canvas renderer."
+    },
+    "chainRenderer": {
+      "source": "Yuimi-chaya.github.io/src/themes/kisara/pages/HomePage.astro",
+      "localImplementation": "src/features/xiao/client/vampire-chain-canvas.ts",
+      "runtimeMarker": "data-chain-source=yuimi-code-port",
+      "assetType": "code-rendered Canvas; no chain bitmap is shipped"
+    },
+    "aemeath": {
+      "status": "superseded-reference-only",
+      "runtimeStatus": "not-used",
+      "boundary": "Historical Aemeath materials remain outside this runtime asset inventory and must not be configured for /live2D/."
+    }
+  }
+}

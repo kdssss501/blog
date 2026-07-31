@@ -1,0 +1,114 @@
+---
+import { getCollection } from "astro:content";
+import Icon from "@components/common/Icon.astro";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { siteConfig } from "@/config";
+import {
+	getCategoryList,
+	getSortedPosts,
+	getTagList,
+} from "@/features/posts/server";
+
+const [posts, categories, tags, moments, notebooks, places, albums] =
+	await Promise.all([
+		getSortedPosts(),
+		getCategoryList(),
+		getTagList(),
+		getCollection("moments"),
+		getCollection("notebooks"),
+		getCollection("places"),
+		getCollection("album"),
+	]);
+const runningDays = Math.max(
+	1,
+	Math.ceil(
+		(Date.now() -
+			new Date(siteConfig.siteStartDate || "2025-01-01").getTime()) /
+			86_400_000,
+	),
+);
+const totalWords = posts.reduce((total, post) => {
+	const text = (post.body || "")
+		.replace(/```[\s\S]*?```/g, "")
+		.replace(/`[^`]*`/g, "")
+		.replace(/\s+/g, " ");
+	return (
+		total +
+		(text.match(/[\u3400-\u9fff]/g) || []).length +
+		(text.match(/[a-zA-Z]+/g) || []).length
+	);
+}, 0);
+const latestTimestamp = Math.max(
+	...posts.map((post) => (post.data.updated || post.data.published).getTime()),
+	...moments.map((moment) => moment.data.published.getTime()),
+	...notebooks.map((notebook) => notebook.data.date?.getTime() || 0),
+);
+const activeDays = Math.max(
+	0,
+	Math.floor((Date.now() - latestTimestamp) / 86_400_000),
+);
+const lastActive =
+	activeDays === 0 ? "今天" : activeDays === 1 ? "昨天" : `${activeDays} 天前`;
+const stats = [
+	{
+		icon: "material-symbols:article-outline-rounded",
+		label: "文章",
+		value: posts.length,
+	},
+	{
+		icon: "material-symbols:coffee-outline-rounded",
+		label: "动态",
+		value: moments.length,
+	},
+	{
+		icon: "material-symbols:format-list-bulleted-rounded",
+		label: "记录次数",
+		value: notebooks.length + places.length + albums.length,
+	},
+	{
+		icon: "material-symbols:folder-outline-rounded",
+		label: "分类",
+		value: categories.length,
+	},
+	{
+		icon: "material-symbols:label-outline-rounded",
+		label: "标签",
+		value: tags.length,
+	},
+	{
+		icon: "material-symbols:subject-rounded",
+		label: "总字数",
+		value: totalWords.toLocaleString("zh-CN"),
+	},
+	{
+		icon: "material-symbols:calendar-clock-outline-rounded",
+		label: "运行时长",
+		value: `${runningDays} 天`,
+	},
+	{
+		icon: "material-symbols:favorite-outline-rounded",
+		label: "最后活动",
+		value: lastActive,
+	},
+];
+---
+
+<WidgetLayout name="站点统计" id="sidebar-stats">
+	<div class="sidebar-stats">
+		{stats.map((stat) => (
+			<div class="sidebar-stats__row">
+				<Icon name={stat.icon} />
+				<span>{stat.label}</span>
+				<strong>{stat.value}</strong>
+			</div>
+		))}
+	</div>
+</WidgetLayout>
+
+<style>
+	.sidebar-stats { display:grid; gap:.12rem; }
+	.sidebar-stats__row { display:grid; min-height:2.15rem; grid-template-columns:1.25rem minmax(0,1fr) auto; align-items:center; gap:.55rem; color:var(--deep-text); }
+	.sidebar-stats__row :global(svg) { width:1.05rem; height:1.05rem; }
+	.sidebar-stats__row span { font-size:.76rem; }
+	.sidebar-stats__row strong { font-size:.83rem; font-weight:950; white-space:nowrap; }
+</style>

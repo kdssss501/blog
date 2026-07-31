@@ -1,0 +1,30 @@
+---
+import WidgetLayout from "@components/common/WidgetLayout.astro";
+import avatarImage from "@/assets/images/roxy-avatar.png";
+import { homeConfig, siteConfig } from "@/config";
+
+const start = new Date(siteConfig.siteStartDate || "2026-01-01");
+const days = Math.max(
+	1,
+	Math.floor((Date.now() - start.getTime()) / 86_400_000) + 1,
+);
+---
+
+<WidgetLayout id="journey-widget" name="相伴时光">
+	<div class="journey-widget">
+		<strong>{homeConfig.displayName || homeConfig.name} 的博客已运行</strong>
+		<img src={avatarImage.src} alt="" width="52" height="52" loading="lazy" />
+		<p><b>{days}</b><span>天</span></p>
+		<small>记录、创造与持续更新</small>
+	</div>
+</WidgetLayout>
+
+<style>
+	.journey-widget { display:grid; justify-items:center; gap:.65rem; padding:.25rem 0; text-align:center; }
+	.journey-widget > strong { color:var(--deep-text); font-size:.85rem; }
+	.journey-widget img { width:3.25rem; height:3.25rem; border:2px solid var(--deep-text); border-radius:50%; object-fit:cover; }
+	.journey-widget p { display:flex; align-items:baseline; gap:.25rem; margin:0; }
+	.journey-widget b { color:var(--deep-text); font-size:2rem; line-height:1; }
+	.journey-widget p span { color:var(--primary); font-weight:800; }
+	.journey-widget small { color:var(--content-meta); }
+</style>

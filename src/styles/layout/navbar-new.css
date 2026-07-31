@@ -127,6 +127,13 @@ html:has(.home-hero).dark .navbar-seg {
 	}
 }
 
+/* fqzlr 的移动端只保留底部命令 Dock，顶部胶囊不重复占用首屏。 */
+@media (max-width: 768px) {
+	#top-row {
+		display: none !important;
+	}
+}
+
 /* ── Logo ── */
 .navbar-logo {
 	display: flex;

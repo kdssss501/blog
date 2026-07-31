@@ -1,0 +1,207 @@
+---
+import Icon from "@components/common/Icon.astro";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+
+const fallbackItems = [
+	{
+		title: "AI 工具与创作工作流",
+		hot: "站内示例",
+		url: "/posts/",
+		image: "/assets/illustrations/fate-throne/98522947-p0.webp",
+	},
+	{
+		title: "Astro 与前端性能优化",
+		hot: "站内示例",
+		url: "/posts/",
+		image: "/assets/illustrations/fate-throne/89514781-p0.webp",
+	},
+	{
+		title: "动漫、游戏与生活记录",
+		hot: "站内示例",
+		url: "/moments/",
+		image: "/assets/illustrations/fate-throne/84782057-p0.webp",
+	},
+	{
+		title: "相册中的新插画",
+		hot: "站内示例",
+		url: "/album/",
+		image: "/assets/illustrations/fate-throne/87446888-p0.webp",
+	},
+	{
+		title: "最近更新与站点日志",
+		hot: "站内示例",
+		url: "/changelog/",
+		image: "/assets/illustrations/fate-throne/101297457-p0.webp",
+	},
+];
+const fallbackPayload = JSON.stringify(fallbackItems).replace(/</g, "\\u003c");
+---
+
+<hot-ranking
+	class="hot-ranking"
+	data-endpoint="https://api-hot.imsyy.top/douyin"
+	data-cache-key="sidebar-hot-ranking:v1"
+>
+	<WidgetLayout name="抖音热搜" id="hot-ranking-list">
+		<button slot="title-icon" type="button" class="hot-ranking__refresh" data-hot-refresh title="刷新热榜" aria-label="刷新热榜">
+			<Icon name="material-symbols:refresh-rounded" />
+		</button>
+		<ol class="hot-ranking__list" data-hot-list>
+			{fallbackItems.map((item, index) => (
+				<li>
+					<a href={item.url}>
+						<strong>{index + 1}</strong>
+						<span><b>{item.title}</b><small>{item.hot}</small></span>
+						<img src={item.image} alt="" width="38" height="38" loading="lazy" decoding="async" />
+					</a>
+				</li>
+			))}
+		</ol>
+		<script is:inline type="application/json" data-hot-fallback set:html={fallbackPayload}></script>
+	</WidgetLayout>
+</hot-ranking>
+
+<script>
+	type HotItem = { title: string; hot: string; url: string; image?: string };
+	type HotCache = { expiresAt: number; items: HotItem[] };
+
+	class HotRankingElement extends HTMLElement {
+		private fallback: HotItem[] = [];
+
+		connectedCallback() {
+			if (this.dataset.initialized === "true") return;
+			this.dataset.initialized = "true";
+			try {
+				this.fallback = JSON.parse(
+					this.querySelector<HTMLScriptElement>("[data-hot-fallback]")?.textContent || "[]",
+				) as HotItem[];
+			} catch {
+				this.fallback = [];
+			}
+			this.querySelector("[data-hot-refresh]")?.addEventListener("click", () =>
+				this.load(true),
+			);
+			const cached = this.readCache();
+			if (cached) this.render(cached.items);
+			window.requestIdleCallback?.(() => this.load(false), { timeout: 1_500 }) ||
+				window.setTimeout(() => this.load(false), 350);
+		}
+
+		private readCache(allowExpired = false): HotCache | null {
+			try {
+				const raw = localStorage.getItem(this.dataset.cacheKey || "");
+				if (!raw) return null;
+				const cache = JSON.parse(raw) as HotCache;
+				if (!Array.isArray(cache.items) || cache.items.length < 3) return null;
+				if (!allowExpired && cache.expiresAt <= Date.now()) return null;
+				return cache;
+			} catch {
+				return null;
+			}
+		}
+
+		private writeCache(items: HotItem[]) {
+			try {
+				const cache: HotCache = { expiresAt: Date.now() + 15 * 60_000, items };
+				localStorage.setItem(this.dataset.cacheKey || "", JSON.stringify(cache));
+			} catch {}
+		}
+
+		private async load(force: boolean) {
+			const fresh = this.readCache();
+			if (!force && fresh) {
+				this.render(fresh.items);
+				return;
+			}
+			const refresh = this.querySelector<HTMLButtonElement>("[data-hot-refresh]");
+			refresh?.setAttribute("aria-busy", "true");
+			const controller = new AbortController();
+			const timeout = window.setTimeout(() => controller.abort(), 4_500);
+			try {
+				const response = await fetch(this.dataset.endpoint || "", {
+					signal: controller.signal,
+					headers: { Accept: "application/json" },
+				});
+				if (!response.ok) throw new Error(`Hot ranking HTTP ${response.status}`);
+				const payload = await response.json();
+				const source = Array.isArray(payload?.data)
+					? payload.data
+					: Array.isArray(payload?.result)
+						? payload.result
+						: [];
+				const items = source
+					.map((item: Record<string, unknown>) => ({
+						title: String(item.title || item.name || "").trim(),
+						hot: String(item.hot || item.hotValue || item.extra || "热榜").trim(),
+						url: String(item.url || item.mobileUrl || "#"),
+						image: String(item.pic || item.cover || item.image || ""),
+					}))
+					.filter((item: HotItem) => item.title)
+					.slice(0, 5);
+				if (items.length < 3) throw new Error("Hot ranking payload is empty");
+				this.writeCache(items);
+				this.render(items);
+				this.dataset.source = "remote";
+			} catch {
+				const stale = this.readCache(true);
+				this.render(stale?.items || this.fallback);
+				this.dataset.source = stale ? "stale-cache" : "fallback";
+			} finally {
+				window.clearTimeout(timeout);
+				refresh?.removeAttribute("aria-busy");
+			}
+		}
+
+		private safeUrl(value: string) {
+			try {
+				const parsed = new URL(value, window.location.origin);
+				return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "#";
+			} catch {
+				return "#";
+			}
+		}
+
+		private render(items: HotItem[]) {
+			const rows = this.querySelectorAll<HTMLAnchorElement>("[data-hot-list] a");
+			rows.forEach((row, index) => {
+				const item = items[index] || this.fallback[index];
+				if (!item) return;
+				row.href = this.safeUrl(item.url);
+				const title = row.querySelector("b");
+				const hot = row.querySelector("small");
+				const image = row.querySelector<HTMLImageElement>("img");
+				if (title) title.textContent = item.title;
+				if (hot) hot.textContent = item.hot;
+				if (image && item.image && /^https?:\/\//.test(item.image)) {
+					image.src = item.image;
+					image.referrerPolicy = "no-referrer";
+				}
+			});
+		}
+	}
+
+	if (!customElements.get("hot-ranking")) {
+		customElements.define("hot-ranking", HotRankingElement);
+	}
+</script>
+
+<style is:global>
+	.hot-ranking { display:block; }
+	.hot-ranking__refresh { display:grid; width:1.75rem; height:1.75rem; place-items:center; border:0; border-radius:50%; background:transparent; color:var(--deep-text); cursor:pointer; }
+	.hot-ranking__refresh:hover,
+	.hot-ranking__refresh:focus-visible { background:var(--btn-regular-bg); color:var(--primary); }
+	.hot-ranking__refresh[aria-busy="true"] svg { animation:hot-ranking-spin .75s linear infinite; }
+	.hot-ranking__list { display:grid; margin:0; padding:0; list-style:none; }
+	.hot-ranking__list li + li { border-top:1px solid var(--line-divider); }
+	.hot-ranking__list a { display:grid; min-width:0; grid-template-columns:1.15rem minmax(0,1fr) 2.35rem; align-items:center; gap:.5rem; padding:.45rem 0; color:var(--deep-text); text-decoration:none; }
+	.hot-ranking__list a:hover b,
+	.hot-ranking__list a:focus-visible b { color:var(--primary); }
+	.hot-ranking__list a > strong { color:var(--content-meta); font-size:.78rem; font-weight:950; text-align:center; }
+	.hot-ranking__list li:nth-child(-n+3) a > strong { color:#ef3757; }
+	.hot-ranking__list a > span { display:grid; min-width:0; gap:.12rem; }
+	.hot-ranking__list b { overflow:hidden; font-size:.7rem; line-height:1.25; text-overflow:ellipsis; white-space:nowrap; transition:color .18s ease; }
+	.hot-ranking__list small { color:var(--content-meta); font-size:.56rem; }
+	.hot-ranking__list img { width:2.35rem; height:2.35rem; border-radius:5px; object-fit:cover; }
+	@keyframes hot-ranking-spin { to { transform:rotate(1turn); } }
+	@media (prefers-reduced-motion:reduce) { .hot-ranking__refresh[aria-busy="true"] svg { animation:none; } }
+</style>

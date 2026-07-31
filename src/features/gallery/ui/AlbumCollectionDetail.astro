@@ -1,0 +1,135 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Icon from "@components/common/Icon.astro";
+
+interface Props {
+	album: CollectionEntry<"album">;
+}
+const { album } = Astro.props;
+const hasFateCinematic = album.id === "04-fate";
+const photos = album.data.photos.map((photo, index) =>
+	typeof photo === "string"
+		? {
+				src: photo,
+				alt: `${album.data.title}照片 ${index + 1}`,
+				caption: "",
+				sourceUrl: undefined,
+				sensitive: false,
+			}
+		: {
+				src: photo.src,
+				alt: photo.alt || `${album.data.title}照片 ${index + 1}`,
+				caption: photo.caption || "",
+				sourceUrl: photo.sourceUrl,
+				sensitive: photo.sensitive,
+			},
+);
+---
+
+<article class="album-detail" data-pagefind-body>
+	<a class="album-detail__back" href="/album/"><Icon name="material-symbols:arrow-left-rounded" />返回相册</a>
+	<header>
+		<p>PHOTO STORY</p>
+		<h1 data-pagefind-meta="title">{album.data.title}</h1>
+		{album.data.subtitle && <h2>{album.data.subtitle}</h2>}
+		<div><span>{album.data.date.toLocaleDateString("zh-CN")}</span>{album.data.location && <span>{album.data.location}</span>}<span>{photos.length} 张照片</span></div>
+		{album.data.tags.length > 0 && <nav>{album.data.tags.map((tag) => <span>#{tag}</span>)}</nav>}
+		{album.data.contentRating !== "all-ages" && (
+			<p class="album-detail__content-warning">
+				<Icon name="material-symbols:visibility-off-outline-rounded" />
+				本相册包含成人向内容，相关图片默认隐藏，需逐张点击查看。
+			</p>
+		)}
+		{hasFateCinematic && (
+			<button
+				type="button"
+				class="album-detail__cinematic"
+				data-cinematic-trigger
+				data-cinematic-clip="fgo-art-cut"
+				data-cinematic-mode="preview"
+			>
+				<Icon name="material-symbols:play-circle-outline-rounded" />
+				<span><small>2.5 SEC</small><strong>观看 FGO 艺术瞬间</strong></span>
+			</button>
+		)}
+	</header>
+	<div class="album-detail__grid">
+		{photos.map((photo, index) => (
+			<figure class:list={{ "is-sensitive": photo.sensitive }}>
+				<div class="album-detail__media">
+					<a href={photo.src} data-fancybox={`album-${album.id}`} data-caption={photo.caption || photo.alt}>
+						<img src={photo.src} alt={photo.alt} loading={index < 2 ? "eager" : "lazy"} decoding="async" />
+					</a>
+					{photo.sensitive && (
+						<button type="button" class="album-detail__reveal" data-sensitive-reveal aria-label={`查看 ${photo.alt}`}>
+							<Icon name="material-symbols:visibility-off-outline-rounded" />
+							<strong>成人向内容</strong>
+							<span>点击查看</span>
+						</button>
+					)}
+				</div>
+				{(photo.caption || photo.sourceUrl) && (
+					<figcaption>
+						{photo.caption && <span>{photo.caption}</span>}
+						{photo.sourceUrl && <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">Pixiv 原作</a>}
+					</figcaption>
+				)}
+			</figure>
+		))}
+	</div>
+</article>
+
+<script>
+	function setupSensitivePhotos() {
+		document.querySelectorAll<HTMLButtonElement>("[data-sensitive-reveal]").forEach((button) => {
+			if (button.dataset.ready === "true") return;
+			button.dataset.ready = "true";
+			button.addEventListener("click", () => {
+				button.closest("figure")?.classList.add("is-revealed");
+				button.remove();
+			});
+		});
+	}
+
+	setupSensitivePhotos();
+	document.addEventListener("astro:page-load", setupSensitivePhotos);
+</script>
+
+<style>
+	.album-detail { display:grid; gap:1.5rem; }
+	.album-detail__back { display:inline-flex; width:fit-content; align-items:center; gap:.4rem; color:var(--content-meta); text-decoration:none; }
+	.album-detail > header { display:grid; gap:.4rem; padding-bottom:1.2rem; border-bottom:1px solid var(--line-divider); }
+	.album-detail header > p { margin:0; color:var(--primary); font:700 .68rem/1 ui-monospace,monospace; }
+	.album-detail h1 { margin:0; font-size:2.2rem; }
+	.album-detail h2 { margin:0; color:var(--content-meta); font-size:1rem; font-weight:500; }
+	.album-detail header > div,.album-detail header nav { display:flex; flex-wrap:wrap; gap:.55rem 1rem; color:var(--content-meta); font-size:.76rem; }
+	.album-detail header nav span { color:var(--primary); }
+	.album-detail__content-warning { display:flex; width:fit-content; align-items:center; gap:.45rem; margin:.45rem 0 0; padding:.55rem .7rem; border:1px solid color-mix(in srgb,var(--primary) 55%,var(--line-divider)); background:color-mix(in srgb,var(--primary) 8%,transparent); color:var(--deep-text); font-size:.75rem; }
+	.album-detail__content-warning svg { flex:0 0 auto; color:var(--primary); font-size:1.1rem; }
+	.album-detail__cinematic { display:inline-grid; width:fit-content; min-height:2.8rem; grid-template-columns:auto 1fr; align-items:center; gap:.55rem; margin-top:.4rem; padding:.45rem .7rem; border:1px solid var(--deep-text); border-radius:.4rem; background:transparent; color:var(--deep-text); text-align:left; cursor:pointer; transition:background-color .18s ease,color .18s ease,transform .18s ease; }
+	.album-detail__cinematic > svg { font-size:1.45rem; }
+	.album-detail__cinematic span { display:grid; gap:.12rem; }
+	.album-detail__cinematic small { font:700 .52rem/1 ui-monospace,monospace; color:var(--content-meta); }
+	.album-detail__cinematic strong { font-size:.76rem; }
+	.album-detail__cinematic:hover,.album-detail__cinematic:focus-visible { background:var(--deep-text); color:var(--page-bg); outline:none; transform:translateY(-1px); }
+	.album-detail__cinematic:hover small,.album-detail__cinematic:focus-visible small { color:inherit; }
+	.album-detail__grid { columns:3 15rem; column-gap:.85rem; }
+	.album-detail figure { break-inside:avoid; margin:0 0 .85rem; overflow:hidden; border:1px solid var(--line-divider); border-radius:.5rem; background:var(--card-bg); }
+	.album-detail__media { position:relative; overflow:hidden; }
+	.album-detail figure .album-detail__media > a { display:block; overflow:hidden; }
+	.album-detail figure img { display:block; width:100%; height:auto; transition:transform .25s ease; }
+	.album-detail figure:hover img { transform:scale(1.025); }
+	.album-detail figure.is-sensitive:not(.is-revealed) .album-detail__media > a { pointer-events:none; }
+	.album-detail figure.is-sensitive:not(.is-revealed) img { filter:blur(28px) brightness(.45) saturate(.7); transform:scale(1.12); }
+	.album-detail__reveal { position:absolute; inset:0; display:grid; place-content:center; justify-items:center; gap:.25rem; width:100%; padding:1rem; border:0; background:rgb(8 8 10 / 34%); color:#fff; cursor:pointer; }
+	.album-detail__reveal svg { width:2rem; height:2rem; }
+	.album-detail__reveal strong { font-size:.8rem; }
+	.album-detail__reveal span { font-size:.68rem; opacity:.82; }
+	.album-detail__reveal:focus-visible { outline:2px solid #fff; outline-offset:-4px; }
+	.album-detail figcaption { display:flex; align-items:flex-start; justify-content:space-between; gap:.65rem; padding:.6rem .75rem; color:var(--content-meta); font-size:.75rem; }
+	.album-detail figcaption span { min-width:0; overflow-wrap:anywhere; }
+	.album-detail figcaption a { flex:0 0 auto; color:var(--primary); font-weight:700; text-decoration:none; }
+	.album-detail figcaption a:hover { text-decoration:underline; }
+	@media (max-width:600px) { .album-detail h1 { font-size:1.7rem; } .album-detail__grid { columns:2 9rem; } }
+	@media (prefers-reduced-motion:reduce) { .album-detail__cinematic { transition:none; } }
+</style>

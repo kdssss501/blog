@@ -1,0 +1,73 @@
+---
+import { siteConfig, wallpaperConfig } from "@/config";
+
+interface Props {
+	title?: string;
+}
+
+const { title = siteConfig.title } = Astro.props;
+const initialSlide = wallpaperConfig.slides[0];
+const isHome = Astro.url.pathname === "/";
+---
+
+<section
+	id="page-wallpaper-banner"
+	class="page-wallpaper-banner"
+	data-page-wallpaper-banner
+	style={`--page-wallpaper-position: ${initialSlide.position};`}
+	aria-label={title}
+	hidden={isHome}
+>
+	<div class="page-wallpaper-banner__shade" aria-hidden="true"></div>
+	<div class="page-wallpaper-banner__stars" aria-hidden="true"></div>
+	<h1 class="page-wallpaper-banner__title" data-page-wallpaper-title>{title}</h1>
+	<div class="page-wallpaper-banner__waves" data-wave-surface aria-hidden="true">
+		<svg
+			class="page-wallpaper-banner__waves-svg"
+			viewBox="0 24 150 28"
+			preserveAspectRatio="none"
+			focusable="false"
+			shape-rendering="geometricPrecision"
+		>
+			<defs>
+				<path
+					id="page-wallpaper-gentle-wave"
+					d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v48h-352z"
+				/>
+			</defs>
+			<g class="page-wallpaper-banner__parallax">
+				<use href="#page-wallpaper-gentle-wave" x="48" y="0" />
+				<use href="#page-wallpaper-gentle-wave" x="48" y="3" />
+				<use href="#page-wallpaper-gentle-wave" x="48" y="5" />
+				<use href="#page-wallpaper-gentle-wave" x="48" y="7" />
+			</g>
+		</svg>
+	</div>
+</section>
+
+<script>
+	function syncPageWallpaperBanner() {
+		const banner = document.getElementById("page-wallpaper-banner");
+		if (!banner) return;
+		const isHome = window.location.pathname === "/";
+		document.documentElement.dataset.pageWallpaperBanner = isHome
+			? "off"
+			: "on";
+		banner.toggleAttribute("hidden", isHome);
+		if (isHome) return;
+
+		const routeTitle = document.querySelector<HTMLElement>(
+			"#swup-container > h1.sr-only",
+		)?.textContent?.trim();
+		const title = banner.querySelector<HTMLElement>(
+			"[data-page-wallpaper-title]",
+		);
+		if (title && routeTitle) {
+			title.textContent = routeTitle;
+			banner.setAttribute("aria-label", routeTitle);
+		}
+	}
+
+	syncPageWallpaperBanner();
+	document.addEventListener("astro:page-load", syncPageWallpaperBanner);
+</script>

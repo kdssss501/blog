@@ -1,4 +1,5 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
+@source "../**/*.{astro,html,js,svelte,ts,tsx}";
 
 /* === 布局层 === */
 @import './transition.css';
@@ -13,9 +14,9 @@
 /* === 组件层 === */
 @import './components/post-page.css';
 @import './components/page-loader.css';
+@import './components/cinematic-player.css';
 @import './components/post-card.css';
 @import './components/article-catalog.css';
-@import './components/animated-tabs.css';
 @import './components/bubble-menu.css';
 @import './components/category-bubble-menu.css';
 @import './components/page-title.css';
@@ -26,6 +27,7 @@
 @import './components/home-display-layer.css';
 @import './components/home-portfolio-shutter.css';
 @import './components/home-ticker.css';
+@import './components/page-wallpaper-banner.css';
 @import './components/floating-dock.css';
 @import './components/mobile-dock.css';
 @import './components/friend-card.css';
@@ -40,7 +42,6 @@
 @import './components/friend-rules-modal.css';
 @import './components/live2d-widget.css';
 @import './components/floating-button.css';
-@import './components/guestbook-modals.css';
 @import './components/about-canvas.css';
 @import './components/ai-search.css';
 
@@ -60,8 +61,12 @@
 @import './pages/calendar.css';
 @import './pages/article-list.css';
 @import './pages/music-visualizer.css';
-@import './pages/treehole.css';
 @import './pages/notebook.css';
+@import './pages/activity-admin.css';
+@import './pages/activity.css';
+@import './pages/notebook-admin.css';
+@import './pages/rss.css';
+@import './pages/post-article.css';
 
 
 @plugin '@tailwindcss/typography';
@@ -311,9 +316,9 @@ html {
         align-items: center;
         justify-content: center;
         border-radius: 0.75rem;
-        border: 2px solid #000;
-        background: #fff;
-        color: #000;
+		border: 2px solid var(--primary);
+		background: #fff;
+		color: var(--primary);
         transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
         overflow: hidden;
         position: relative;
@@ -321,14 +326,14 @@ html {
         cursor: pointer;
     }
     .dock-btn:hover {
-        background: #000;
-        color: #fff;
-        border-color: #fff;
+		background: var(--primary);
+		color: #fff;
+		border-color: #fff;
     }
     :root.dark .dock-btn {
-        border-color: #fff;
-        background: #000;
-        color: #fff;
+		border-color: var(--primary);
+		background: #000;
+		color: var(--primary);
     }
     :root.dark .dock-btn:hover {
         background: #fff;
@@ -745,94 +750,177 @@ html {
   @apply text-sm text-(--text-secondary) text-center mb-2;
 }
 
-/* ============================================
-   首页文章卡片边框 - 全局样式（避免 Swup 缓存导致样式失效）
-   ============================================ */
-
-/* 网格/瀑布流模式卡片外边框 */
-.post-card-wrapper {
-  border: 2px solid #000 !important;
+html[data-wallpaper-mode="none"] body {
+  background-color: var(--page-bg);
+  background-image: none;
 }
 
-:root.dark .post-card-wrapper {
-  border-color: #fff !important;
+@media (max-width: 768px) {
+	html {
+		scrollbar-width: none;
+	}
+
+	html::-webkit-scrollbar {
+		display: none;
+	}
 }
 
-/* 列表模式卡片间分隔线 */
-.list-mode .post-card-item {
-  border-bottom: 2px solid #000 !important;
+html[data-wallpaper-mode="banner"] body,
+html[data-wallpaper-mode="full"] body,
+html[data-wallpaper-mode="overlay"] body {
+  position: relative;
+  background-color: transparent;
+  background-image: none;
 }
 
-:root.dark .list-mode .post-card-item {
-  border-bottom-color: #fff !important;
+html[data-wallpaper-mode="full"] body::before,
+html[data-wallpaper-mode="overlay"] body::before {
+  position: fixed;
+  z-index: -1;
+  inset: calc(var(--wallpaper-overlay-blur, 0px) * -1);
+  background-image: var(--site-wallpaper);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  content: "";
+  pointer-events: none;
 }
 
-/* 布局切换 tabs 边框 */
-.animated-tabs {
-  border: 2px solid #000 !important;
+html[data-wallpaper-mode="full"] body::before {
+  filter: none;
+  opacity: 1;
 }
 
-:root.dark .animated-tabs {
-  border-color: #fff !important;
+html[data-wallpaper-mode="overlay"] body::before {
+  filter: blur(var(--wallpaper-overlay-blur, 2px));
+  opacity: var(--wallpaper-overlay-opacity, .88);
 }
 
-/* ============================================
-   分页控件样式 - 黑白粗边框、圆角、加粗字体
-   ============================================ */
-
-/* 分页按钮基础样式 */
-.pagination-btn,
-.pagination-page {
-  border: 2px solid #000 !important;
-  border-radius: 0.75rem !important;
-  font-weight: 700 !important;
-  font-size: 1.125rem !important;
-  background: #fff !important;
-  color: #000 !important;
-  transition: background-color 150ms ease, color 150ms ease !important;
+html[data-wallpaper-mode="banner"][data-page-wallpaper-banner="on"] #main-grid-wrapper {
+  box-sizing: border-box;
+  padding-top: clamp(28rem, 68vh, 42rem);
 }
 
-/* 分页按钮悬停 */
-.pagination-btn:hover,
-.pagination-page:hover {
-  background: #000 !important;
-  color: #fff !important;
+html[data-wallpaper-mode="banner"] .page-wallpaper-banner,
+html[data-gradient-transition="on"] body::before {
+  transition: opacity 560ms ease, filter 560ms ease, background-image 560ms ease;
 }
 
-/* 当前页码 */
-.pagination-current {
-  border: 2px solid #000 !important;
-  border-radius: 0.75rem !important;
-  font-weight: 700 !important;
-  font-size: 1.125rem !important;
-  background: #000 !important;
-  color: #fff !important;
+html[data-wallpaper-mode="overlay"] {
+  --card-bg: oklch(1 0 0 / var(--wallpaper-card-opacity, .68));
 }
 
-/* 禁用状态 */
-.pagination-btn.disabled,
-.pagination-btn[disabled] {
-  opacity: 0.3 !important;
-  pointer-events: none !important;
+:root.dark[data-wallpaper-mode="overlay"] {
+  --card-bg: oklch(.13 0 0 / var(--wallpaper-card-opacity, .68));
 }
 
-/* 暗黑模式 */
-:root.dark .pagination-btn,
-:root.dark .pagination-page {
-  border-color: #fff !important;
-  background: #000 !important;
-  color: #fff !important;
+html[data-wallpaper-mode="overlay"] :is(
+  .card-base,
+  .widget,
+  .dock-drawer,
+  .float-panel,
+  .card-base-transparent,
+  .post-card,
+  .article-card,
+  .pagination-shell
+) {
+  background-color: var(--card-bg) !important;
+  backdrop-filter: blur(calc(10px + var(--wallpaper-overlay-blur, 2px))) saturate(1.16);
+  -webkit-backdrop-filter: blur(calc(10px + var(--wallpaper-overlay-blur, 2px))) saturate(1.16);
 }
 
-:root.dark .pagination-btn:hover,
-:root.dark .pagination-page:hover {
-  background: #fff !important;
-  color: #000 !important;
+/* fqzlr 风格显示偏好：标题、轮播淡化与全局水波纹。 */
+html[data-wallpaper-title="off"] .home-hero__name-group {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0.75rem);
 }
 
-:root.dark .pagination-current {
-  border-color: #fff !important;
-  background: #fff !important;
-  color: #000 !important;
+html[data-gradient-transition="on"] .home-hero__name-group {
+  transition: opacity 360ms ease, visibility 360ms ease, transform 360ms ease;
 }
 
+html[data-gradient-transition="on"] .home-hero__video {
+  transition: opacity 560ms ease, filter 560ms ease;
+}
+
+html.is-wallpaper-switching body::before,
+html.is-wallpaper-switching .page-wallpaper-banner {
+  opacity: 0 !important;
+}
+
+.wallpaper-water-ripple {
+  position: fixed;
+  z-index: 55;
+  top: var(--ripple-y);
+  left: var(--ripple-x);
+  width: 1rem;
+  height: 1rem;
+  margin: -0.5rem 0 0 -0.5rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 78%, #fff);
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 25%, color-mix(in oklch, var(--primary) 18%, transparent) 48%, transparent 70%);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 30%, transparent),
+    inset 0 0 1.15rem color-mix(in oklch, var(--primary) 24%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  will-change: width, height, margin, opacity, filter;
+  animation: wallpaper-water-ripple 920ms cubic-bezier(.16,.72,.24,1) forwards;
+}
+
+.wallpaper-water-ripple::after {
+  position: absolute;
+  inset: 13%;
+  border: 1px solid color-mix(in oklch, var(--primary) 48%, #fff);
+  border-radius: inherit;
+  content: "";
+  opacity: 0.75;
+}
+
+@keyframes wallpaper-water-ripple {
+  0% {
+    width: 0.75rem;
+    height: 0.75rem;
+    margin: -0.375rem 0 0 -0.375rem;
+    opacity: 0.75;
+    filter: blur(0);
+  }
+  72% { opacity: 0.4; }
+  100% {
+    width: min(34vw, 24rem);
+    height: min(34vw, 24rem);
+    margin: max(-17vw, -12rem) 0 0 max(-17vw, -12rem);
+    opacity: 0;
+    filter: blur(1px);
+  }
+}
+
+html[data-water-ripple="off"] .wallpaper-water-ripple {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wallpaper-water-ripple {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  html[data-wallpaper-mode="banner"][data-page-wallpaper-banner="on"] #main-grid-wrapper {
+    padding-top: min(72svh, 34rem);
+  }
+
+  html[data-wallpaper-mode="full"] body::before,
+  html[data-wallpaper-mode="overlay"] body::before {
+    position: fixed;
+    background-image: var(--site-wallpaper-mobile, var(--site-wallpaper));
+  }
+}
+
+html:has(.xiao-hub, .writer-studio, .config-studio) #live2d-widget,
+html:has(.xiao-hub, .writer-studio, .config-studio) #live2d-trigger,
+html:has(.xiao-hub, .writer-studio, .config-studio) .model-message-container {
+  display: none !important;
+}

@@ -1,0 +1,33 @@
+---
+import Icon from "@components/common/Icon.astro";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+
+const quotes = [
+	["不要等待机会，而要创造机会。", "佚名"],
+	["把复杂的问题拆小，把重要的事情做完。", "今日笔记"],
+	["凡是过往，皆为序章。", "莎士比亚"],
+	["慢一点没有关系，方向正确就好。", "今日笔记"],
+	["生活明朗，万物可爱。", "季羡林"],
+] as const;
+const today = new Date();
+const quote =
+	quotes[
+		(today.getFullYear() * 372 + today.getMonth() * 31 + today.getDate()) %
+			quotes.length
+	];
+---
+
+<WidgetLayout name="今日一言" id="sidebar-quote">
+	<blockquote class="sidebar-quote">
+		<Icon name="material-symbols:format-quote-rounded" />
+		<p>“{quote[0]}”</p>
+		<footer>—— {quote[1]}</footer>
+	</blockquote>
+</WidgetLayout>
+
+<style>
+	.sidebar-quote { position:relative; margin:0; padding:.15rem .1rem .1rem; color:var(--content-text); }
+	.sidebar-quote > :global(svg) { position:absolute; top:-.3rem; left:-.15rem; width:1.5rem; height:1.5rem; color:var(--line-divider); }
+	.sidebar-quote p { position:relative; margin:.25rem 0 0; font-size:.86rem; font-style:italic; font-weight:650; line-height:1.75; }
+	.sidebar-quote footer { margin-top:.55rem; color:var(--content-meta); font-size:.7rem; text-align:right; }
+</style>

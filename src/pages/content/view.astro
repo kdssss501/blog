@@ -1,0 +1,11 @@
+---
+import { PublishedContentView } from "@/features/writing";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "公开内容";
+const description = "查看从写作台发布的内容。";
+---
+
+<MainGridLayout {title} {description} contentWidth="article" showSidebar={false}>
+	<PublishedContentView />
+</MainGridLayout>

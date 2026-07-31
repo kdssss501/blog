@@ -1,0 +1,25 @@
+---
+import { getCollection } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import { siteConfig } from "@/config";
+import { AlbumCollectionDetail } from "@/features/gallery";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+export const getStaticPaths = (async () => {
+	const albums = await getCollection(
+		"album",
+		({ data }) => data.draft !== true,
+	);
+	return albums.map((album) => ({
+		params: { slug: album.id },
+		props: { album },
+	}));
+}) satisfies GetStaticPaths;
+
+const { album } = Astro.props;
+if (!siteConfig.pages.album) return Astro.redirect("/404/");
+---
+
+<MainGridLayout title={album.data.title} description={album.data.subtitle} contentWidth="wide">
+	<AlbumCollectionDetail {album} />
+</MainGridLayout>

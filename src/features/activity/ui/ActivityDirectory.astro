@@ -1,0 +1,43 @@
+---
+import avatarImage from "@/assets/images/roxy-avatar.png";
+import PageTitle from "@/components/common/PageTitle.astro";
+import { homeConfig } from "@/config/homeConfig";
+import type { NormalizedActivity } from "../model/activity-content";
+import MomentsFeed from "./MomentsFeed.svelte";
+
+interface Props {
+	title: string;
+	description: string;
+	initialItems?: NormalizedActivity[];
+}
+
+const { title, description, initialItems = [] } = Astro.props;
+const momentPreviews = [
+	"/assets/illustrations/fate-throne/98522947-p0.webp",
+	"/assets/illustrations/fate-throne/89514781-p0.webp",
+	"/assets/illustrations/fate-throne/84782057-p0.webp",
+	"/assets/illustrations/fate-throne/87446888-p0.webp",
+	"/assets/illustrations/fate-throne/101297457-p0.webp",
+];
+---
+
+<section class="moments-page">
+	<header class="moments-page__hero">
+		<img class="moments-page__hero-image" src="/assets/illustrations/fate-throne/59561306-p0.webp" alt="" />
+		<div class="moments-page__hero-shade"></div>
+		<div class="moments-page__hero-copy">
+			<PageTitle {title} eyebrow="Moments" variant="stacked" />
+			<p>{description}</p>
+		</div>
+		<div class="moments-page__preview-grid" aria-label="动态图片预览">
+			{momentPreviews.map((src) => <img src={src} alt="" loading="lazy" />)}
+		</div>
+	</header>
+	<h2 class="moments-page__section-title">置顶</h2>
+	<MomentsFeed
+		client:load
+		author={homeConfig.displayName || homeConfig.name}
+		avatarUrl={avatarImage.src}
+		{initialItems}
+	/>
+</section>

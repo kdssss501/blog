@@ -1,0 +1,100 @@
+---
+import Icon from "@components/common/Icon.astro";
+import {
+	type DockCommandId,
+	dockCommands,
+	MOBILE_PRIMARY_COMMANDS,
+	MOBILE_TOOL_COMMANDS,
+} from "@/app/shell/model/dock-command";
+import { announcementConfig, spineModelConfig } from "@/config";
+import { musicPlayerConfig } from "@/config/musicConfig";
+
+const isGuestbookPage = ["/guestbook/", "/life/guestbook/"].includes(
+	Astro.url.pathname,
+);
+
+const available = (id: DockCommandId) => {
+	if (id === "announcement") return announcementConfig.items.length > 0;
+	if (id === "music") return musicPlayerConfig.showInNavbar !== false;
+	if (id === "spine") return Boolean(spineModelConfig?.enable);
+	return true;
+};
+const primaryCommands = MOBILE_PRIMARY_COMMANDS.map((id) => dockCommands[id]);
+const toolCommands = MOBILE_TOOL_COMMANDS.filter(available).map(
+	(id) => dockCommands[id],
+);
+---
+
+<nav class="mobile-dock" id="mobile-dock" aria-label="移动端快捷工具">
+	{primaryCommands.map((command) => (
+		<button
+			class:list={[
+				"mobile-dock__btn",
+				command.id === "search" && "mobile-dock__btn--center",
+			]}
+			data-dock-command={command.id}
+			type="button"
+			aria-label={command.label}
+			aria-expanded={command.id === "tools" || command.id === "menu" ? "false" : undefined}
+		>
+			<span class="mobile-dock__icon">
+				{command.id === "theme" ? (
+					<>
+						<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline data-theme-icon="light" />
+						<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="hidden" data-theme-icon="dark" />
+					</>
+				) : command.id === "tools" || command.id === "menu" ? (
+					<>
+						<Icon name={command.icon} is:inline data-surface-icon="closed" />
+						<Icon name="material-symbols:close-rounded" is:inline class="hidden" data-surface-icon="open" />
+					</>
+				) : (
+					<Icon name={command.icon} is:inline />
+				)}
+			</span>
+			{command.id !== "search" && <span class="mobile-dock__label">{command.label}</span>}
+		</button>
+	))}
+</nav>
+
+<div class="mobile-dock__overlay" id="mobile-dock-overlay" aria-hidden="true"></div>
+
+<section
+	class="mobile-dock__sheet"
+	id="mobile-dock-sheet"
+	aria-label="页面工具"
+	aria-hidden="true"
+	role="dialog"
+>
+	<header class="mobile-dock__sheet-title">
+		<Icon name="material-symbols:grid-view-outline-rounded" is:inline />
+		<span>页面工具</span>
+	</header>
+	<div class="mobile-dock__sheet-grid">
+		{toolCommands.map((command) => (
+			<button
+				class:list={[
+					"mobile-dock__sheet-item",
+					command.visibility !== "always" && "hide",
+				]}
+				data-dock-command={command.id}
+				hidden={command.id === "guestbook" && isGuestbookPage}
+				disabled={command.id === "guestbook" && isGuestbookPage}
+				aria-disabled={command.id === "guestbook" ? isGuestbookPage : undefined}
+				type="button"
+				aria-label={command.label}
+			>
+				<span class="mobile-dock__sheet-item-icon">
+					<Icon name={command.icon} is:inline />
+				</span>
+				<span class="mobile-dock__sheet-item-label">{command.label}</span>
+			</button>
+		))}
+	</div>
+</section>
+
+<script>
+	import { initDockController } from "@/app/shell/client/dock-controller";
+
+	initDockController();
+</script>

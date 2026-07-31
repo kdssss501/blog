@@ -1,0 +1,375 @@
+{
+  "title": "Artoria cinematic scroll sequence v2",
+  "createdAt": "2026-07-26T01:48:10.717Z",
+	"generatedFrames": 24,
+	"fallbackFrames": [],
+  "sourceVideo": "public/assets/videos/artoria-original.mp4",
+  "imagegen": {
+    "provider": "Jiuqiu workbench",
+    "model": "gpt-image-2",
+    "requestedSize": "3840x1600",
+    "quality": "high"
+  },
+  "frames": [
+    {
+      "frame": "01",
+      "sourceTime": 0.05,
+      "caption": "风从很远的地方来，替她擦亮了剑锋。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-01-0_05.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-01.webp",
+      "operationId": "ae3d8977-bb6c-4574-9d31-a1a730092756",
+      "taskId": 4165,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "02",
+      "sourceTime": 0.65,
+      "caption": "她把沉默握在手中，像握住一场未醒的黎明。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-02-0_65.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-02.webp",
+      "operationId": null,
+      "taskId": 4168,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "03",
+      "sourceTime": 1.25,
+      "caption": "光穿过旧日，留下一个尚未说完的名字。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-03-1_25.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-03.webp",
+      "operationId": null,
+      "taskId": 4167,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "04",
+      "sourceTime": 1.8,
+      "caption": "当世界褪成纯白，她仍沿着誓言前行。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-04-1_80.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-04.webp",
+      "operationId": null,
+      "taskId": 4166,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "05",
+      "sourceTime": 2.35,
+      "caption": "没有掌声的时刻，也值得郑重地站立。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-05-2_35.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-05.webp",
+      "operationId": null,
+      "taskId": 4169,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "06",
+      "sourceTime": 2.9,
+      "caption": "每一次回身，都是命运重新落笔。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-06-2_90.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-06.webp",
+      "operationId": null,
+      "taskId": 4171,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "07",
+      "sourceTime": 3.45,
+      "caption": "她学会在迟疑之前，先迈出一步。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-07-3_45.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-07.webp",
+      "operationId": null,
+      "taskId": 4170,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "08",
+      "sourceTime": 4,
+      "caption": "风追上裙摆，时间却被留在身后。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-08-4_00.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-08.webp",
+      "operationId": null,
+      "taskId": 4172,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "09",
+      "sourceTime": 4.55,
+      "caption": "背对人群时，心仍朝着那束光。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-09-4_55.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-09.webp",
+      "operationId": null,
+      "taskId": 4175,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "10",
+      "sourceTime": 4.72,
+      "caption": "同一把剑，也曾映照过不同的夜。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-10-4_72.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-10.webp",
+      "operationId": null,
+      "taskId": 4173,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "11",
+      "sourceTime": 5.05,
+      "caption": "火焰记得她的名字，城市记得她的影子。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-11-5_05.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-11.webp",
+      "operationId": null,
+      "taskId": 4176,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "12",
+      "sourceTime": 5.22,
+      "caption": "有些告别，不在终点，而在选择发生的那一刻。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-12-5_22.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-12.webp",
+      "operationId": null,
+      "taskId": 4174,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "13",
+      "sourceTime": 5.55,
+      "caption": "王座很高，高不过她不肯低下的目光。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-13-5_55.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-13.webp",
+      "operationId": null,
+      "taskId": 4179,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "14",
+      "sourceTime": 5.72,
+      "caption": "偶尔也让海风，把战争吹得远一些。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-14-5_72.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-14.webp",
+      "operationId": null,
+      "taskId": 4180,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "15",
+      "sourceTime": 6.05,
+      "caption": "花环不是冠冕，只是春天短暂的拥抱。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-15-6_05.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-15.webp",
+      "operationId": null,
+      "taskId": 4177,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "16",
+      "sourceTime": 6.22,
+      "caption": "冬雪落下时，愿旧伤终于有了温度。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-16-6_22.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-16.webp",
+      "operationId": null,
+      "taskId": 4178,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "17",
+      "sourceTime": 6.55,
+      "caption": "星海辽阔，仍装得下一颗固执的心。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-17-6_55.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-17.webp",
+      "operationId": null,
+      "taskId": 4183,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "18",
+      "sourceTime": 6.72,
+      "caption": "人间的橱窗亮起，她也只是路过寻常的一天。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-18-6_72.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-18.webp",
+      "operationId": null,
+      "taskId": 4181,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "19",
+      "sourceTime": 7.05,
+      "caption": "褪下盔甲以后，脚步仍知道归途。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-19-7_05.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-19.webp",
+      "operationId": null,
+      "taskId": 4184,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "20",
+      "sourceTime": 7.55,
+      "caption": "黄昏替她换上白裙，也替往事按下静音。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-20-7_55.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-20.webp",
+      "operationId": null,
+      "taskId": 4182,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "21",
+      "sourceTime": 8.1,
+      "caption": "她从光里走来，不问故事是否有人记得。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-21-8_10.png",
+      "output": "public/assets/images/home/artoria-scroll-4k/frame-21.webp",
+      "operationId": null,
+      "taskId": 4185,
+      "status": {
+        "kind": "generated",
+        "width": 3840,
+        "height": 1600,
+        "note": "Jiuqiu image-generation output."
+      }
+    },
+    {
+      "frame": "22",
+      "sourceTime": 8.65,
+      "caption": "原野没有挽留，风却一直跟随。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-22-8_65.png",
+		"output": "public/assets/images/home/artoria-scroll-4k/frame-22.webp",
+		"operationId": "9623b512-1d21-4544-af2c-f5475e80b49e",
+		"taskId": 4195,
+		"status": {
+			"kind": "generated",
+			"width": 3840,
+			"height": 1600,
+			"note": "Jiuqiu image-generation output."
+		}
+    },
+    {
+      "frame": "23",
+      "sourceTime": 9.2,
+      "caption": "直到身影走远，春天才慢慢合上眼睛。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-23-9_20.png",
+		"output": "public/assets/images/home/artoria-scroll-4k/frame-23.webp",
+		"operationId": "99e4261a-4c17-44dc-a690-22e18f58be5c",
+		"taskId": 4196,
+		"status": {
+			"kind": "generated",
+			"width": 3840,
+			"height": 1600,
+			"note": "Jiuqiu image-generation output."
+		}
+    },
+    {
+      "frame": "24",
+      "sourceTime": 9.82,
+      "caption": "最后留在画面里的，是她曾经来过的风。",
+      "reference": "generated-art/artoria-cinematic-v2/references/ref-24-9_82.png",
+		"output": "public/assets/images/home/artoria-scroll-4k/frame-24.webp",
+		"operationId": "42d97a66-78f4-4b22-964b-ae8a528c36fe",
+		"taskId": 4197,
+		"status": {
+			"kind": "generated",
+			"width": 3840,
+			"height": 1600,
+			"note": "Jiuqiu image-generation output; downloaded by recovering the same operation after a transient TLS interruption."
+		}
+    }
+  ]
+}

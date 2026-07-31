@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: 16:9 opening cinematic keyframe for a Live2D vampire page
+Input images: Image 1 is the black-form character identity and costume reference; Image 2 is the white-form identity reference. Preserve the same adult vampire woman's face, pointed ears, long twin-tail silhouette, black gothic dress, red eyes, and delicate proportions.
+Primary request: first shot of a tightly directed anime opening, a moonlit ruined chapel corridor seen through tall iron window frames, the vampire woman standing motionless in the middle distance while cold fog crosses the floor.
+Style/medium: original premium Japanese 2D animation key art, precise cel shading, cinematic compositing, restrained texture, crisp character drawing, not photorealistic.
+Composition/framing: wide 16:9 establishing shot, slightly low camera, deep perspective, character offset just right of center, clean central field remains readable beneath a title overlay.
+Lighting/mood: cold cyan moonlight, charcoal blacks, small controlled crimson eye accents, ominous quiet before impact.
+Constraints: preserve character identity and black outfit; no text; no title; no logos; no watermark; no chains; no bats; no borders; fill the entire frame.
+Avoid: generic gothic wallpaper, decorative UI, excessive red haze, muddy shadows, fisheye distortion, extra characters.

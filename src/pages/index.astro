@@ -1,16 +1,44 @@
 ---
-import HomeDataLayer from "@components/layout/HomeDataLayer.astro";
-import HomeDisplayLayer from "@components/layout/HomeDisplayLayer.astro";
-import HomeHero from "@components/layout/HomeHero.astro";
-import HomeTicker from "@components/layout/HomeTicker.astro";
+import {
+	HomeDataLayer,
+	HomeDisplayLayer,
+	HomeHero,
+	HomePhotoDeck,
+	HomeTicker,
+} from "@/features/home";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 ---
 
 <MainGridLayout>
 	<div class="home-page home-page--motion-pending">
 		<HomeHero />
-		<HomeTicker />
-		<HomeDataLayer />
 		<HomeDisplayLayer />
+		<HomeTicker />
+		<HomePhotoDeck />
+		<HomeDataLayer />
 	</div>
 </MainGridLayout>
+
+<script is:inline>
+	(() => {
+		const revealPendingHome = () => {
+			window.setTimeout(() => {
+				document
+					.querySelectorAll(".home-page--motion-pending, .home-hero--motion-pending")
+					.forEach((element) => {
+						element.classList.remove(
+							"home-page--motion-pending",
+							"home-hero--motion-pending",
+						);
+					});
+			}, 2400);
+		};
+
+		revealPendingHome();
+		if (document.documentElement.dataset.homeMotionFallback !== "ready") {
+			document.documentElement.dataset.homeMotionFallback = "ready";
+			document.addEventListener("astro:page-load", revealPendingHome);
+			document.addEventListener("swup:contentReplaced", revealPendingHome);
+		}
+	})();
+</script>

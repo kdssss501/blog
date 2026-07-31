@@ -1,0 +1,179 @@
+---
+import Icon from "@components/common/Icon.astro";
+import { getFriendTags } from "../model/filter";
+import type { FriendLink } from "../model/types";
+import FriendCard from "./FriendCard.astro";
+
+interface Props {
+	items: FriendLink[];
+	pageSize?: number;
+	allLabel?: string;
+}
+
+const { items, pageSize = 9, allLabel = "全部" } = Astro.props;
+const tags = getFriendTags(items);
+---
+
+<friend-directory data-page-size={pageSize}>
+	{items.length > 0 && (
+		<div class="friend-filter-tabs" role="group" aria-label="友链分类筛选">
+			<button type="button" data-tag="all" class="friend-tab-btn is-active" aria-pressed="true">
+				{allLabel}
+			</button>
+			{tags.map((tag) => (
+				<button type="button" data-tag={tag} class="friend-tab-btn" aria-pressed="false">
+					{tag}
+				</button>
+			))}
+		</div>
+	)}
+
+	<div class="friends-summary" aria-live="polite" data-friends-summary></div>
+	<div class="friends-grid" data-friends-grid>
+		{items.map((item, index) => (
+			<div
+				class="friend-card"
+				data-tags={(item.tags ?? []).join(",")}
+				data-title={item.title}
+				hidden={index >= pageSize}
+			>
+				<FriendCard
+					title={item.title}
+					href={item.siteurl}
+					imgurl={item.imgurl}
+					desc={item.desc}
+					tags={item.tags}
+				/>
+			</div>
+		))}
+	</div>
+
+	<div class="friends-empty" data-friends-empty hidden={items.length > 0}>
+		<Icon name="material-symbols:group-off-outline-rounded" />
+		<span>暂无匹配的友链</span>
+	</div>
+
+	<nav class="friends-pagination" data-friends-pagination hidden aria-label="友链分页">
+		<button type="button" class="friends-page-btn" data-page-prev aria-label="上一页">
+			<Icon name="material-symbols:chevron-left-rounded" />
+		</button>
+		<div class="friends-page-nums" data-page-nums></div>
+		<button type="button" class="friends-page-btn" data-page-next aria-label="下一页">
+			<Icon name="material-symbols:chevron-right-rounded" />
+		</button>
+	</nav>
+</friend-directory>
+
+<script>
+	class FriendDirectoryElement extends HTMLElement {
+		private activeTag = "all";
+		private page = 1;
+		private readonly handleClick = (event: Event) => {
+			const target = event.target as Element | null;
+			const button = target?.closest("button");
+			if (!button || !this.contains(button)) return;
+
+			if (button.matches("[data-tag]")) {
+				this.activeTag = (button as HTMLElement).dataset.tag || "all";
+				this.page = 1;
+				this.render();
+				return;
+			}
+			if (button.matches("[data-page-prev]")) this.page -= 1;
+			else if (button.matches("[data-page-next]")) this.page += 1;
+			else if (button.matches("[data-page-go]")) {
+				this.page = Number((button as HTMLElement).dataset.pageGo) || 1;
+			} else return;
+
+			this.render();
+			this.scrollIntoView({
+				behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+				block: "start",
+			});
+		};
+
+		connectedCallback() {
+			this.addEventListener("click", this.handleClick);
+			this.render();
+		}
+
+		disconnectedCallback() {
+			this.removeEventListener("click", this.handleClick);
+		}
+
+		private get pageSize() {
+			return Math.max(1, Number(this.dataset.pageSize) || 9);
+		}
+
+		private loadAvatar(card: HTMLElement) {
+			const image = card.querySelector<HTMLImageElement>(".friend-card-avatar");
+			const avatar = image?.closest<HTMLElement>(".friend-card-left");
+			if (!image || !avatar || image.dataset.loaded) return;
+			image.dataset.loaded = "true";
+			image.addEventListener("load", () => avatar.classList.add("is-loaded"), { once: true });
+			image.addEventListener("error", () => avatar.classList.add("is-error"), { once: true });
+			image.src = image.dataset.src || "";
+			if (image.complete && image.naturalWidth > 0) avatar.classList.add("is-loaded");
+		}
+
+		private renderPagination(totalPages: number) {
+			const navigation = this.querySelector<HTMLElement>("[data-friends-pagination]");
+			if (!navigation) return;
+			navigation.hidden = totalPages <= 1;
+			const previous = navigation.querySelector<HTMLButtonElement>("[data-page-prev]");
+			const next = navigation.querySelector<HTMLButtonElement>("[data-page-next]");
+			if (previous) previous.disabled = this.page <= 1;
+			if (next) next.disabled = this.page >= totalPages;
+
+			const numbers = navigation.querySelector<HTMLElement>("[data-page-nums]");
+			if (!numbers) return;
+			const fragment = document.createDocumentFragment();
+			for (let value = 1; value <= totalPages; value += 1) {
+				const button = document.createElement("button");
+				button.type = "button";
+				button.className = `friends-page-num${value === this.page ? " is-active" : ""}`;
+				button.dataset.pageGo = String(value);
+				button.textContent = String(value);
+				button.setAttribute("aria-label", `第 ${value} 页`);
+				button.setAttribute("aria-current", value === this.page ? "page" : "false");
+				fragment.append(button);
+			}
+			numbers.replaceChildren(fragment);
+		}
+
+		private render() {
+			const cards = Array.from(this.querySelectorAll<HTMLElement>(".friend-card"));
+			const matched = cards.filter((card) => {
+				if (this.activeTag === "all") return true;
+				return (card.dataset.tags || "").split(",").includes(this.activeTag);
+			});
+			const totalPages = Math.max(1, Math.ceil(matched.length / this.pageSize));
+			this.page = Math.min(totalPages, Math.max(1, this.page));
+			const start = (this.page - 1) * this.pageSize;
+			const visible = new Set(matched.slice(start, start + this.pageSize));
+
+			for (const card of cards) {
+				card.hidden = !visible.has(card);
+				card.classList.toggle("animate-fade-in-up", visible.has(card));
+				if (visible.has(card)) this.loadAvatar(card);
+			}
+
+			this.querySelectorAll<HTMLButtonElement>("[data-tag]").forEach((button) => {
+				const active = button.dataset.tag === this.activeTag;
+				button.classList.toggle("is-active", active);
+				button.setAttribute("aria-pressed", String(active));
+			});
+
+			const empty = this.querySelector<HTMLElement>("[data-friends-empty]");
+			if (empty) empty.hidden = matched.length > 0;
+			const summary = this.querySelector<HTMLElement>("[data-friends-summary]");
+			if (summary) summary.textContent = `${matched.length} 个站点`;
+			this.renderPagination(totalPages);
+		}
+	}
+
+	if (!customElements.get("friend-directory")) {
+		customElements.define("friend-directory", FriendDirectoryElement);
+	}
+</script>
+

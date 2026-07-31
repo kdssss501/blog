@@ -1,0 +1,15 @@
+---
+import { siteConfig } from "@/config";
+import { ChangelogTimeline } from "@/features/records";
+import { getChangelogEntries } from "@/features/records/server";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.changelog) return Astro.redirect("/404/");
+const title = "更新日志";
+const description = "记录博客项目的功能迭代、问题修复与重要变更。";
+const entries = await getChangelogEntries();
+---
+
+<MainGridLayout {title} {description}>
+	<ChangelogTimeline client:load {entries} />
+</MainGridLayout>

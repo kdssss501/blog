@@ -1,4 +1,4 @@
-import { getSortedPosts } from "@/utils/content-utils";
+import { getSortedPosts } from "@/features/posts/server";
 
 export async function GET(): Promise<Response> {
 	const posts = await getSortedPosts();

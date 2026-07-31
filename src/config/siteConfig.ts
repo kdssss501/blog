@@ -33,11 +33,15 @@ export const siteConfig: SiteConfig = {
 	// 主题色
 	themeColor: {
 		// 主题色的默认色相，范围从 0 到 360。例如：红色：0，青色：200，蓝绿色：250，粉色：345
-		hue: 0,
+		hue: 310,
 		// 是否对访问者隐藏主题色选择器
 		fixed: false,
 		// 默认模式："light" 亮色，"dark" 暗色
-		defaultMode: "dark",
+		defaultMode: "light",
+	},
+
+	card: {
+		border: true,
 	},
 
 	// 页面整体宽度（单位：rem）
@@ -48,52 +52,20 @@ export const siteConfig: SiteConfig = {
 	// Favicon 配置
 	favicon: [
 		{
-			src: "/favicon/favicon.ico",
+			src: "/favicon/roxy-32.png",
 			sizes: "32x32",
 		},
 		{
-			src: "/favicon/favicon-16x16.png",
-			sizes: "16x16",
-		},
-		{
-			src: "/favicon/favicon-32x32.png",
-			sizes: "32x32",
-		},
-		{
-			src: "/favicon/favicon-48x48.png",
-			sizes: "48x48",
-		},
-		{
-			src: "/favicon/favicon.svg",
-			sizes: "any",
-		},
-		{
-			src: "/favicon/apple-touch-icon.png",
+			src: "/favicon/roxy-apple-touch-icon.png",
 			sizes: "180x180",
 		},
 		{
-			src: "/favicon/apple-touch-icon-152x152.png",
-			sizes: "152x152",
-		},
-		{
-			src: "/favicon/apple-touch-icon-167x167.png",
-			sizes: "167x167",
-		},
-		{
-			src: "/favicon/apple-touch-icon-180x180.png",
-			sizes: "180x180",
-		},
-		{
-			src: "/favicon/android-chrome-192x192.png",
+			src: "/favicon/roxy-192.png",
 			sizes: "192x192",
 		},
 		{
-			src: "/favicon/android-chrome-512x512.png",
+			src: "/favicon/roxy-512.png",
 			sizes: "512x512",
-		},
-		{
-			src: "/favicon/safari-pinned-tab.svg",
-			sizes: "any",
 		},
 	],
 
@@ -107,8 +79,8 @@ export const siteConfig: SiteConfig = {
 		// 4. 网络图片: { type: "url", value: "https://example.com/logo.png", alt: "Logo" }
 		logo: {
 			type: "image",
-			value: "assets/images/logo.png",
-			alt: "logo",
+			value: "assets/images/roxy-mark.png",
+			alt: "Roxy",
 		},
 		// 导航栏标题
 		title: "kdssss的博客",
@@ -149,7 +121,8 @@ export const siteConfig: SiteConfig = {
 	// OpenGraph图片功能,注意开启后要渲染很长时间，不建议本地调试的时候开启
 	generateOgImages: false,
 
-	defaultOgImage: "/assets/images/aut.webp",
+	// 仅在资源完成授权登记后配置默认 OG 图；未配置时使用页面自身元数据。
+	defaultOgImage: undefined,
 
 	// 页面开关配置 - 控制特定页面的访问权限，设为false会返回404
 	pages: {
@@ -165,33 +138,33 @@ export const siteConfig: SiteConfig = {
 		collections: true,
 		// 日历页面开关
 		calendar: true,
-		// 树洞页面开关
-		treehole: true,
 		// 笔记本页面开关
 		notebook: true,
+		activity: true,
+		album: true,
+		friendFeed: true,
+		books: true,
+		moviesGames: true,
+		musicPage: true,
+		changelog: true,
+		routines: true,
+		places: true,
+		projects: true,
+		write: true,
+		config: true,
+		xiao: true,
 	},
 
 	// 分类导航栏开关，在首页和归档页顶部显示分类快捷导航
 	categoryBar: true,
 
-	// 文章列表布局配置
+	// 文章列表布局，与 dumpling-theme 的公开配置保持一致。
 	postListLayout: {
-		// 默认布局模式："list" 列表模式（单列布局），"grid" 网格模式（多列布局）
-		defaultMode: "list",
-		// 移动端默认布局模式，不设置则跟随 defaultMode
-		mobileDefaultMode: "list",
-		// 是否在文章列表中显示标签
-		showTags: true,
-		// 文章简介显示行数，设为 0 则不截断
-		descriptionLines: 2,
-		// 是否允许用户切换布局
+		defaultMode: "grid",
 		allowSwitch: true,
-		// 网格布局配置，仅在 defaultMode 为 "grid" 或允许切换布局时生效
 		grid: {
-			// 是否开启瀑布流布局，同时有封面图和无封面图的混合文章推荐开启
 			masonry: false,
-			// 网格模式卡片最小宽度(px)，浏览器根据容器宽度自动计算列数
-			columnWidth: 320,
+			columns: 3,
 		},
 	},
 
@@ -199,6 +172,12 @@ export const siteConfig: SiteConfig = {
 	pagination: {
 		// 每页显示的文章数量
 		postsPerPage: 10,
+	},
+
+	mapConfig: {
+		center: [104.195, 35.861],
+		zoom: 4,
+		showMarkers: true,
 	},
 
 	// 统计分析

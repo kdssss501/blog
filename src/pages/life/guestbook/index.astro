@@ -1,0 +1,11 @@
+---
+import { siteConfig } from "@/config";
+import { GuestbookBoard } from "@/features/guestbook";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.guestbook) return Astro.redirect("/404/");
+---
+
+<MainGridLayout title="留言板" description="有什么想说的，留个言吧。" showSidebar={true} sidebarVariant="social">
+	<GuestbookBoard client:only="svelte" />
+</MainGridLayout>

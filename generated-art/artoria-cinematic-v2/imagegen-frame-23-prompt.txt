@@ -1,0 +1,5 @@
+The input image is the EDIT TARGET for frame 23 of an existing cinematic anime sequence. Re-render this exact moment as a polished 4K cinematic anime still on a 2.40:1 widescreen canvas, extending the environment naturally to the left and right only.
+
+This is an exit frame. Preserve only the same tiny cropped remnant of Artoria already visible at the extreme left edge: the small white dress edge and bare foot, with the same crop, scale, position, stride, and direction. Do not bring her body, face, head, torso, arms, or additional clothing back into the frame. Do not invent another person or silhouette. Preserve the bright spring grassland, blue-white sky, clouds, horizon, sunlight direction, airy exposure, and quiet farewell mood exactly, with the open empty field remaining the subject.
+
+Use refined anime-film linework, detailed grass and clouds, restrained cinematic color grading, and crisp 4K detail consistent with the preceding sequence. Remove any source subtitle, label, logo, or watermark. Generate no text, black bars, border, frame, UI, signature, or watermark.

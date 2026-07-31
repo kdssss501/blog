@@ -169,7 +169,7 @@ analytics: {
 
 ### 本项目获取 UV/PV 的实现
 
-实现位于 `src/components/layout/HomeDataLayer.astro`，核心流程：
+实现位于 `src/features/home/ui/HomeDataLayer.astro`，核心流程：
 
 1. 从 `siteConfig.analytics.umamiAnalytics` 取出 `scriptUrl`（推导出 base url）和 `shareId`
 2. 通过 `shareId` 调用 `GET /api/share/{shareId}` 获取 `websiteId` 和 `token`（1 小时缓存）

@@ -1,0 +1,168 @@
+---
+import FontManager from "@components/features/FontManager.astro";
+import { homeConfig, siteConfig } from "@/config";
+import { defaultFavicons } from "@/constants/icon";
+import type { Favicon } from "@/types/config";
+import { url } from "@/utils/url-utils";
+
+import "@/styles/variables.css";
+
+interface Props {
+	title: string;
+	description: string;
+	background: string;
+}
+
+const { title, description, background } = Astro.props;
+const pageTitle = `${title} - ${siteConfig.title}`;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const siteLang = siteConfig.lang.replace("_", "-");
+const favicons: Favicon[] =
+	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
+---
+
+<!doctype html>
+<html lang={siteLang} class="xiao-fullscreen-document">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#080405" />
+		<meta name="color-scheme" content="dark" />
+		<title>{pageTitle}</title>
+		<meta name="description" content={description} />
+		<meta name="author" content={homeConfig.name} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={siteConfig.title} />
+		<meta property="og:url" content={Astro.url} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={description} />
+		<link rel="canonical" href={canonicalUrl} />
+		<link rel="preload" as="image" href={background} fetchpriority="high" />
+		{favicons.map((favicon) => (
+			<link
+				rel={favicon.src.includes("apple-touch-icon") ? "apple-touch-icon" : "icon"}
+				href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src}
+				sizes={favicon.sizes}
+				media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`}
+			/>
+		))}
+		<slot name="head" />
+		<FontManager />
+	</head>
+	<body class="xiao-fullscreen-body" data-page-mode="xiao">
+		<main class="xiao-fullscreen-shell" data-xiao-shell>
+			<img
+				class="xiao-fullscreen-shell__background"
+				src={background}
+				alt=""
+				aria-hidden="true"
+				width="2048"
+				height="1152"
+				decoding="async"
+				fetchpriority="high"
+			/>
+			<div class="xiao-fullscreen-shell__content">
+				<slot />
+			</div>
+		</main>
+	</body>
+</html>
+
+<style is:global>
+	.xiao-fullscreen-document,
+	.xiao-fullscreen-document body {
+		width: 100%;
+		height: 100%;
+		min-height: 100%;
+		overflow: hidden;
+		overscroll-behavior: none;
+		background: #080405;
+	}
+
+	.xiao-fullscreen-document {
+		box-sizing: border-box;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.xiao-fullscreen-document *,
+	.xiao-fullscreen-document *::before,
+	.xiao-fullscreen-document *::after {
+		box-sizing: inherit;
+	}
+
+	.xiao-fullscreen-body {
+		margin: 0;
+		color-scheme: dark;
+	}
+
+	.xiao-fullscreen-shell {
+		position: relative;
+		isolation: isolate;
+		width: 100vw;
+		height: 100vh;
+		height: 100dvh;
+		overflow: hidden;
+		background: #080405;
+	}
+
+	.xiao-fullscreen-shell__background {
+		position: absolute;
+		z-index: 0;
+		inset: 0;
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		object-position: center;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.xiao-fullscreen-shell__content {
+		position: absolute;
+		z-index: 1;
+		inset: 0;
+		min-width: 0;
+		min-height: 0;
+	}
+
+	.xiao-fullscreen-shell .xiao-hub {
+		width: 100%;
+		height: 100%;
+		margin-inline: 0;
+		background: transparent;
+	}
+
+	.xiao-fullscreen-shell .xiao-workspace {
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		background: transparent;
+	}
+
+	.xiao-fullscreen-shell .xiao-workspace__scene {
+		background: transparent;
+	}
+
+	/* 背景由 SSR 图片层负责；保留 Canvas 节点以兼容现有镜头与特效控制器。 */
+	.xiao-fullscreen-shell .xiao-scene__backdrop {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.xiao-fullscreen-shell .inline-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	@supports not (height: 100dvh) {
+		.xiao-fullscreen-shell {
+			height: 100vh;
+		}
+	}
+</style>

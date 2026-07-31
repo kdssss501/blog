@@ -218,9 +218,6 @@ export const ru: Translation = {
 	[Key.postEncrypted]: "Эта статья зашифрована",
 
 	// Макет списка сообщений
-	[Key.postListLayout]: "Макет списка сообщений",
-	[Key.postListLayoutList]: "Список",
-	[Key.postListLayoutGrid]: "Сетка",
 
 	// Страница спонсоров
 	[Key.sponsor]: "Спонсор",
@@ -370,34 +367,8 @@ export const ru: Translation = {
 	[Key.calendarNearestBirthday]: "Ближайшие дни рождения",
 	[Key.calendarNearestSchedule]: "Ближайшие события",
 
-	// Древо тайн
-	[Key.treehole]: "Древо тайн",
-	[Key.treeholeDescription]:
-		"Анонимные признания, безопасный выход. Здесь нет личностей, только голоса. Публикация после проверки.",
-	[Key.treeholePlaceholder]: "Оставь свои мысли здесь, никто не знает, кто ты...",
-	[Key.treeholeSubmit]: "Опустить",
-	[Key.treeholeSubmitting]: "Опускаю...",
-	[Key.treeholeSubmitted]: "Опущено",
-	[Key.treeholeSubmittedHint]: "Ваше признание отправлено и появится здесь после проверки.",
-	[Key.treeholeEmpty]: "Древо тихо. Станьте первым, кто признается.",
-	[Key.treeholeLoading]: "Слушаю древо...",
-	[Key.treeholeLoadMore]: "Слушать ещё",
-	[Key.treeholeResonance]: "Отклик",
-	[Key.treeholeResonated]: "Откликнулись",
-	[Key.treeholeReply]: "Ответ",
-	[Key.treeholeReplyPlaceholder]: "Напишите тёплый ответ...",
-	[Key.treeholeReplySubmit]: "Отправить ответ",
-	[Key.treeholeReplies]: "ответов",
-	[Key.treeholeAdmin]: "Управление",
-	[Key.treeholeAdminToken]: "Админ Token",
-	[Key.treeholeAdminLogin]: "Войти",
-	[Key.treeholeAdminPending]: "На проверке",
-	[Key.treeholeAdminApprove]: "Одобрить",
-	[Key.treeholeAdminReject]: "Отклонить",
-	[Key.treeholeAdminEmpty]: "Нет содержимого на проверке",
-	[Key.treeholeAdminUnauthorized]: "Token недействителен или не задан",
-
 	// Блокнот
 	[Key.notebook]: "Блокнот",
-	[Key.notebookDescription]: "Записывайте моменты жизни и учёбы, организуя по блокнотам.",
+	[Key.notebookDescription]:
+		"Записывайте моменты жизни и учёбы, организуя по блокнотам.",
 };

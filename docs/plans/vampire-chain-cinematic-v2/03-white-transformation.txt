@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: 16:9 opening cinematic keyframe for a Live2D vampire page
+Input images: Image 1 is the black-form identity reference; Image 2 is the required white-form character and costume reference. Preserve Image 2's white hair, white gothic dress, same face, pointed ears, red eyes, and delicate proportions.
+Primary request: third shot in the same continuous anime opening, the vampire's white form emerging through a controlled white exposure bloom, turning three quarters toward camera as ribbons and hair arc in one clean motion.
+Scene/backdrop: the same ruined chapel reduced to pale window geometry and drifting silver dust so continuity remains clear.
+Style/medium: original premium Japanese 2D animation key art, precise cel shading, luminous but readable highlights, cinematic compositing.
+Composition/framing: medium close shot from waist up, centered silhouette with slight diagonal camera roll, enough darker edge detail to survive a flash transition.
+Lighting/mood: porcelain white, pale silver and cold cyan with a narrow rose-red accent in the eyes; supernatural reveal, not bridal softness.
+Constraints: use the white outfit shape from Image 2; retain readable face and garment edges; no text; no title; no logos; no watermark; no chains; no bats; fill the entire frame.
+Avoid: blown-out blank frame, angel wings, halo, wedding veil, extra accessories, generic white dress redesign.

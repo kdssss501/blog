@@ -1,0 +1,17 @@
+---
+import { siteConfig } from "@/config";
+import { PlaceDirectory } from "@/features/records";
+import { getPlaceEntries } from "@/features/records/server";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+if (!siteConfig.pages.places) return Astro.redirect("/404/");
+const title = "足迹";
+const description = "记录去过的地方，以及值得再次想起的片段。";
+const entries = await getPlaceEntries();
+const amapKey = import.meta.env.PUBLIC_AMAP_KEY ?? "";
+const amapSecurityCode = import.meta.env.PUBLIC_AMAP_SECURITY_CODE ?? "";
+---
+
+<MainGridLayout {title} {description} showSidebar={true} sidebarVariant="social">
+	<PlaceDirectory {entries} {amapKey} {amapSecurityCode} />
+</MainGridLayout>

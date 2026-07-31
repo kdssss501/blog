@@ -3,7 +3,8 @@ import { Picture } from "astro:assets";
 import * as path from "node:path";
 import Icon from "@components/common/Icon.astro";
 import type { ImageMetadata } from "astro";
-import { navBarConfig, siteConfig } from "@/config";
+import { createNavigation } from "@/app";
+import { siteConfig } from "@/config";
 import { LinkPresets } from "@/constants/link-presets";
 import { getFallbackFormat, getImageFormats } from "@/utils/image-utils";
 import { url } from "@/utils/url-utils";
@@ -12,7 +13,7 @@ import DropdownMenu from "./DropdownMenu.astro";
 const navbarTitle = siteConfig.navbar.title || siteConfig.title;
 void siteConfig.navbar.widthFull;
 
-let links = navBarConfig.links.map((item) => {
+let links = createNavigation(siteConfig.pages).links.map((item) => {
 	if (typeof item === "number") return LinkPresets[item];
 	return item;
 });
@@ -67,7 +68,7 @@ if (isLocalSrcLogo) {
 				) : (
 					<Icon name="material-symbols:home-pin-outline" is:inline class="text-[1.35rem] flex-shrink-0" />
 				)}
-				<span class="navbar-logo-text font-mono uppercase tracking-[0.12em] text-xs font-semibold ml-2">{navbarTitle}</span>
+				<span class="navbar-logo-text font-mono uppercase tracking-[0.12em] text-xs font-semibold ml-2" data-runtime-site-title>{navbarTitle}</span>
 			</a>
 		</div>
 
@@ -95,7 +96,7 @@ if (isLocalSrcLogo) {
 <!-- 样式已迁移至 src/styles/layout/navbar-new.css -->
 
 <script>
-import { requestSearchModalToggle } from "@/utils/search-modal-controller";
+import { requestSearchModalToggle } from "@/features/search/client";
 
 let _hoverSliderAbortController: AbortController | null = null;
 let _hoverSliderMouseEnterHandlers: Array<[Element, (e: Event) => void]> = [];

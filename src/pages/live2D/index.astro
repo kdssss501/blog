@@ -1,0 +1,41 @@
+---
+import { siteConfig, xiaoConfig } from "@/config";
+import { XiaoHub } from "@/features/xiao";
+import XiaoFullscreenLayout from "@/layouts/XiaoFullscreenLayout.astro";
+import "@/styles/pages/xiao.css";
+import "@/styles/pages/xiao-immersive.css";
+
+if (!siteConfig.pages.xiao) return Astro.redirect("/404/");
+const title = "吸血鬼夜访 · SoulLink";
+const description = "由 SoulLink 情绪驱动的吸血鬼 Live2D 对话舞台。";
+---
+
+<XiaoFullscreenLayout
+	{title}
+	{description}
+	background={xiaoConfig.stage.background}
+>
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		href={xiaoConfig.intro.posterPath}
+		fetchpriority="high"
+	/>
+	<link
+		slot="head"
+		rel="preload"
+		as="video"
+		type="video/webm"
+		href={xiaoConfig.intro.videoPath}
+	/>
+	<XiaoHub
+		client:load
+		intro={xiaoConfig.intro}
+		background={xiaoConfig.stage.background}
+		effectsAtlas={xiaoConfig.stage.effectsAtlas}
+		envelopeSequenceAtlas={xiaoConfig.stage.envelopeSequenceAtlas}
+		modelPath={xiaoConfig.stage.modelPath}
+		cubismCorePath={xiaoConfig.stage.cubismCorePath}
+	/>
+</XiaoFullscreenLayout>

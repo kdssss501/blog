@@ -1,76 +1,97 @@
-/**
- * Vite 插件：在 dev 模式下拦截 /api/ 请求，使用 functions/[...api].ts 的处理逻辑
- * 构建模式下不生效，生产环境由 Cloudflare Pages Functions 处理
- */
-import { pathToFileURL } from "node:url";
+import { loadEnv } from "vite";
 
-let apiHandler = null;
-
-async function loadHandler() {
-	if (apiHandler) return apiHandler;
+async function forwardResponseBody(response, outgoing) {
+	if (!response.body) {
+		outgoing.end();
+		return;
+	}
+	const reader = response.body.getReader();
 	try {
-		// 动态导入 functions/[...api].ts 的处理逻辑
-		const functionsPath = pathToFileURL(
-			require("path").resolve(process.cwd(), "functions/[...api].ts")
-		).href;
-		// 使用 vite 的 ssrLoadModule 来加载 TS 文件
-		return null; // 实际加载在 configureServer 中完成
-	} catch {
-		return null;
+		while (true) {
+			const next = await reader.read();
+			if (next.done) break;
+			if (outgoing.destroyed) {
+				await reader.cancel();
+				return;
+			}
+			const canContinue = outgoing.write(Buffer.from(next.value));
+			if (!canContinue) {
+				await new Promise((resolve) => outgoing.once("drain", resolve));
+			}
+		}
+		outgoing.end();
+	} finally {
+		reader.releaseLock();
 	}
 }
 
+/**
+ * 开发模式 API 适配器：把 /api/* 请求转交给生产共用的 Functions 入口。
+ */
 export default function devApiPlugin() {
+	let fileEnvironment = {};
+	const environmentKeys = [
+		"BLOG_ADMIN_TOKEN",
+		"NOTEBOOK_ADMIN_TOKEN",
+		"ACTIVITY_ADMIN_TOKEN",
+		"GITHUB_CONTENT_TOKEN",
+		"GITHUB_REPOSITORY",
+		"GITHUB_BRANCH",
+		"AI_API_KEY",
+		"ALLOWED_ORIGINS",
+		"PUBLIC_SITE_URL",
+	];
+	const getDevEnvironment = () =>
+		Object.fromEntries(
+			environmentKeys.flatMap((key) => {
+				const value = process.env[key] ?? fileEnvironment[key];
+				return typeof value === "string" && value.trim() ? [[key, value]] : [];
+			}),
+		);
+
 	return {
 		name: "dev-api-plugin",
-		apply: "serve", // 仅在 dev 模式生效
+		apply: "serve",
+		enforce: "pre",
+		configResolved(config) {
+			fileEnvironment = loadEnv(config.mode, config.envDir, "");
+		},
 		configureServer(server) {
-			// 拦截 /api/ 开头的请求
 			server.middlewares.use(async (req, res, next) => {
-				const url = req.url;
-				if (!url || !url.startsWith("/api/")) {
-					return next();
-				}
+				const requestPath = req.url;
+				if (!requestPath?.startsWith("/api/")) return next();
 
 				try {
-					// 使用 vite 的 ssrLoadModule 加载 functions 模块
-					const mod = await server.ssrLoadModule("/functions/[...api].ts");
+					const mod = await server.ssrLoadModule(
+						"/src/server/api/node-runtime.ts",
+					);
 					const handler = mod.default;
-
-					if (!handler || !handler.fetch) {
-						res.statusCode = 500;
-						res.setHeader("Content-Type", "application/json");
-						res.end(JSON.stringify({ error: "API handler not loaded" }));
-						return;
+					if (typeof handler?.fetch !== "function") {
+						throw new Error("API handler does not expose fetch()");
 					}
 
-					// 构造完整的 URL
-					const fullUrl = `http://localhost:${server.config.server.port || 4321}${url}`;
-					const request = new Request(fullUrl, {
+					const host =
+						req.headers.host ||
+						`127.0.0.1:${server.config.server.port || 4321}`;
+					const request = new Request(new URL(requestPath, `http://${host}`), {
 						method: req.method,
 						headers: new Headers(req.headers),
-						body: req.method !== "GET" && req.method !== "HEAD" ? req : undefined,
+						body:
+							req.method !== "GET" && req.method !== "HEAD" ? req : undefined,
 						duplex: "half",
 					});
 
-					const response = await handler.fetch(
-						request,
-						{},
-						{ waitUntil: async (p) => p }
-					);
-
+					const response = await handler.fetch(request, getDevEnvironment());
 					res.statusCode = response.status;
 					response.headers.forEach((value, key) => {
 						res.setHeader(key, value);
 					});
-
-					const body = await response.text();
-					res.end(body);
-				} catch (err) {
-					console.error("[dev-api-plugin] Error:", err);
+					await forwardResponseBody(response, res);
+				} catch (error) {
+					console.error("[dev-api-plugin] Error:", error);
 					res.statusCode = 500;
 					res.setHeader("Content-Type", "application/json");
-					res.end(JSON.stringify({ error: String(err) }));
+					res.end(JSON.stringify({ error: String(error) }));
 				}
 			});
 		},

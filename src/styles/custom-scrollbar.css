@@ -1,8 +1,4 @@
 /* 通用自定义滚动条样式 */
-html {
-    scrollbar-gutter: stable;
-}
-
 html,
 body,
 .custom-scrollbar {

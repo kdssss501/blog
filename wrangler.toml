@@ -11,5 +11,10 @@ binding = "DB"
 database_name = "kdssss-blog-db"
 database_id = "YOUR_D1_DATABASE_ID_HERE"
 
+# Optional R2 image host used by POST /api/content/assets.
+# [[r2_buckets]]
+# binding = "CONTENT_ASSETS"
+# bucket_name = "kdssss-blog-assets"
+
 # D1 初始化 SQL（首次部署时执行）：
 #   npx wrangler d1 execute kdssss-blog-db --remote --file=./functions/_d1_init.sql

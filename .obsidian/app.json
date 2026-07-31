@@ -1,0 +1,7 @@
+{
+  "attachmentFolderPath": "public/uploads/content",
+  "newFileLocation": "folder",
+  "newFileFolderPath": "src/content/posts/notes",
+  "useMarkdownLinks": true,
+  "strictLineBreaks": false
+}

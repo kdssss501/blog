@@ -204,11 +204,6 @@ enum I18nKey {
 	// 加密
 	postEncrypted = "postEncrypted",
 
-	// 文章布局
-	postListLayout = "postListLayout",
-	postListLayoutList = "postListLayoutList",
-	postListLayoutGrid = "postListLayoutGrid",
-
 	// 赞助页面
 	sponsor = "sponsor",
 	sponsorTitle = "sponsorTitle",
@@ -353,32 +348,6 @@ enum I18nKey {
 	qqGroup = "qqGroup",
 	navPosts = "navPosts",
 	navMy = "navMy",
-
-	// 树洞
-	treehole = "treehole",
-	treeholeDescription = "treeholeDescription",
-	treeholePlaceholder = "treeholePlaceholder",
-	treeholeSubmit = "treeholeSubmit",
-	treeholeSubmitting = "treeholeSubmitting",
-	treeholeSubmitted = "treeholeSubmitted",
-	treeholeSubmittedHint = "treeholeSubmittedHint",
-	treeholeEmpty = "treeholeEmpty",
-	treeholeLoading = "treeholeLoading",
-	treeholeLoadMore = "treeholeLoadMore",
-	treeholeResonance = "treeholeResonance",
-	treeholeResonated = "treeholeResonated",
-	treeholeReply = "treeholeReply",
-	treeholeReplyPlaceholder = "treeholeReplyPlaceholder",
-	treeholeReplySubmit = "treeholeReplySubmit",
-	treeholeReplies = "treeholeReplies",
-	treeholeAdmin = "treeholeAdmin",
-	treeholeAdminToken = "treeholeAdminToken",
-	treeholeAdminLogin = "treeholeAdminLogin",
-	treeholeAdminPending = "treeholeAdminPending",
-	treeholeAdminApprove = "treeholeAdminApprove",
-	treeholeAdminReject = "treeholeAdminReject",
-	treeholeAdminEmpty = "treeholeAdminEmpty",
-	treeholeAdminUnauthorized = "treeholeAdminUnauthorized",
 
 	// 笔记本
 	notebook = "notebook",

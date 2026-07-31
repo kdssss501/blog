@@ -68,12 +68,18 @@ const size = config.size || { width: 280, height: 250 };
 	<div class="live2d-group-indicator" id="live2d-group-indicator" />
 </div>
 
-<div class="live2d-trigger" id="live2d-trigger" title="显示看板娘">
+<button
+	type="button"
+	class="live2d-trigger"
+	id="live2d-trigger"
+	title="显示看板娘"
+	aria-label="显示看板娘"
+>
 	<div class="live2d-trigger-inner">
 		<Icon name="fa7-regular:address-card" class="text-lg" />
 		<span class="live2d-trigger-text">看板娘</span>
 	</div>
-</div>
+</button>
 
 <MessageBox />
 
@@ -111,6 +117,8 @@ const size = config.size || { width: 280, height: 250 };
 			widgetElement: null,
 			domAbortController: null,
 			pageListenersBound: false,
+			responsiveListenerBound: false,
+			wasVisibleBeforeMobile: false,
 		};
 	}
 
@@ -290,6 +298,7 @@ const size = config.size || { width: 280, height: 250 };
 		if (widget) {
 			widget.style.visibility = "hidden";
 			widget.style.pointerEvents = "none";
+			widget.style.opacity = "0";
 		}
 		g.isWidgetVisible = false;
 		updateTriggerVisibility(true);
@@ -367,6 +376,10 @@ const size = config.size || { width: 280, height: 250 };
 				resolution: resolution,
 				autoDensity: true,
 			});
+			// 小尺寸固定组件使用 30FPS，保持动作流畅并减少与滚动特效争抢渲染时间。
+			if (g.app.ticker) {
+				g.app.ticker.maxFPS = 30;
+			}
 
 			g.model = await PIXI.live2d.Live2DModel.from(modelPathUrl);
 
@@ -926,6 +939,7 @@ function initTrigger() {
 		} else {
 			widget.style.visibility = "hidden";
 			widget.style.pointerEvents = "none";
+			widget.style.opacity = "0";
       widget.classList.remove(
         "live2d-entering",
         "live2d-ready",
@@ -957,9 +971,6 @@ function initTrigger() {
 	 * Swup / Astro 页面加载后的状态恢复
 	 */
 	async function handlePageLoad() {
-		// 移动端不加载 Live2D
-		if (window.innerWidth <= 480) return;
-
 		// 如果 DOM 被替换了，需要重新初始化 PIXI
 		if (g.initialized && detectDOMReplacement()) {
 			if (g.domAbortController) {
@@ -997,9 +1008,9 @@ function initTrigger() {
 		// 回访用户（缓存可见）此前每页都在此处同步拉取 pixi，改为空闲时初始化。
 		const startInitialize = () => { initialize(); };
 		if (typeof requestIdleCallback === "function") {
-			requestIdleCallback(startInitialize, { timeout: 2000 });
+			requestIdleCallback(startInitialize, { timeout: 3500 });
 		} else {
-			setTimeout(startInitialize, 200);
+			setTimeout(startInitialize, 1200);
 		}
 	}
 
@@ -1034,11 +1045,6 @@ function initTrigger() {
 	// ============================================================
 	async function initialize() {
 		if (g.initialized) return;
-		// 移动端默认不加载 Live2D（由 CSS 隐藏 widget 和 trigger）
-		if (window.innerWidth <= 480) {
-			g.initialized = true;
-			return;
-		}
 
 		// 创建新的 AbortController 用于管理所有事件监听器
 		if (g.domAbortController) {
@@ -1050,6 +1056,12 @@ function initTrigger() {
 
 		g.stateManager = await Live2DStateManager.getInstance();
 		initTrigger();
+		// 移动端只初始化入口；点击入口时再由 showLive2DWidget 加载模型。
+		if (window.innerWidth <= 768) {
+			applyHiddenWidgetState();
+			g.initialized = true;
+			return;
+		}
 
 		const cachedVisibility = g.stateManager.getCachedVisibility();
 		if (shouldHideWidget(cachedVisibility)) {
@@ -1065,11 +1077,30 @@ function initTrigger() {
 		g.initialized = true;
 	}
 
+	function bindResponsiveVisibility() {
+		if (g.responsiveListenerBound) return;
+		g.responsiveListenerBound = true;
+		const mobileQuery = window.matchMedia("(max-width: 768px)");
+		mobileQuery.addEventListener("change", (event) => {
+			if (event.matches) {
+				g.wasVisibleBeforeMobile = Boolean(g.isWidgetVisible);
+				applyHiddenWidgetState();
+				return;
+			}
+			if (g.wasVisibleBeforeMobile && !shouldHideWidget(g.stateManager?.getCachedVisibility())) {
+				void showLive2DWidget();
+			} else {
+				restoreDOMState();
+			}
+		});
+	}
+
 	// ============================================================
 	// 启动入口
 	// ============================================================
 	if (!g.pageListenersBound) {
 		g.pageListenersBound = true;
+		bindResponsiveVisibility();
 
 		if (document.readyState === "loading") {
 			document.addEventListener("DOMContentLoaded", handlePageLoad);

@@ -1,0 +1,19 @@
+Reference images 1 and 2 are official Aemeath SUBJECT references. Reference image 3 is the approved new Aemeath identity anchor and is the PRIMARY identity reference. Reference image 4 is the rejected first expression board and is a NEGATIVE QUALITY reference only: do not copy its stiff repeated face, identical eyes, or pasted-on mouth changes.
+
+Create a lively animation and expression reference board for the exact same canonical Wuthering Waves Aemeath. Use a clean 4:3 pale neutral background and three clearly separated rows with consistent scale, generous spacing, and no black bars.
+
+TOP ROW: five head-and-upper-torso emotional acting poses. They must be unmistakably different emotions while preserving the same skull, face proportions, amber eyes, bangs, high left-side ponytail, cyan-white hair ornament, collar, and costume identity.
+
+1. Calm attentive listening: soft direct gaze, relaxed upper lids, tiny closed smile, natural asymmetric brows, easy shoulders.
+2. Bright playful delight: genuine open smile, lifted cheeks, gently narrowed crescent lower lids, brighter highlights, slight friendly head tilt and buoyant ponytail tips.
+3. Focused battle concentration: lowered inner brows, narrowed upper lids, centered sharp pupils, closed determined mouth, chin slightly lowered, firm shoulder line without anger caricature.
+4. Tender worry and sadness: raised inner brows, softened wet lower lids, slightly lowered gaze, compressed mouth corners, faint cheek tension, head subtly inclined; emotional but not crying melodrama.
+5. Surprised delight: widened upper lids, visible lower sclera only subtly, slightly smaller centered pupils, raised brows, naturally open rounded mouth, small backward head response.
+
+Every top-row expression must coordinate eyebrows, upper and lower eyelids, pupil size and gaze, cheek lift or tension, mouth corners, jaw opening, head angle, neck, shoulders, and a small amount of secondary hair movement. Do not reuse identical eye shapes. Do not merely paste five mouths onto one frozen face. Keep changes suitable for Live2D parameters and do not distort her identity.
+
+MIDDLE ROW: six isolated neutral phoneme mouth close-ups on the same neutral lower face: closed/rest M-B-P, slightly open consonant, open A, wide I/E, rounded U, rounded O. Keep the jaw and lip construction anatomically plausible, clean, centered, and progressively distinct. These are phoneme shapes, not emotional faces.
+
+BOTTOM ROW: four natural upper-body gesture studies with coordinated gaze and shoulder motion: a small relaxed wave, one hand resting lightly near the heart, a clear conversational pointing gesture angled away from camera, and an elegant cyan-energy casting pose with an open foreshortened hand. Preserve the correct asymmetric sleeves in all gestures and draw exactly five plausible fingers with proper palm perspective.
+
+Rendering: polished anime game model sheet, crisp linework, readable eyes and mouth shapes, subtle facial shading, lively but controlled acting. No labels, text, letters, numbers, speech bubbles, logos, watermark, extra characters, alternate costume, mirrored hair ornament, generic idol face, dead eyes, plastic smile, repeated identical eyes, malformed fingers, black empty region, or cropped cells.

@@ -1,6 +1,5 @@
 import { handleAIChat } from "./workers/ai-chat.js";
 import { handleGuestbook } from "./workers/guestbook.js";
-import { handleTreehole } from "./workers/treehole.js";
 
 /** ASSETS 不可用时的兜底 HTML，避免纯文本 "Not Found" */
 function plainNotFound() {
@@ -40,16 +39,13 @@ function plainNotFound() {
 export default {
 	async fetch(request, env) {
 		const url = new URL(request.url);
+		const path = url.pathname.replace(/\/+$/, "") || "/";
 
 		if (url.pathname.startsWith("/api/guestbook")) {
 			return handleGuestbook(request, env, url);
 		}
 
-		if (url.pathname.startsWith("/api/treehole")) {
-			return handleTreehole(request, env, url);
-		}
-
-		if (url.pathname === "/api/ai-chat") {
+		if (path === "/api/ai-chat") {
 			return handleAIChat(request, env);
 		}
 

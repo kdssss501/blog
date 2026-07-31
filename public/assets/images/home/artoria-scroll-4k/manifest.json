@@ -1,0 +1,206 @@
+{
+  "width": 3840,
+  "height": 1600,
+  "encoding": {
+    "format": "webp",
+    "mode": "lossless",
+    "source": "generated-art/artoria-cinematic-v2/generated"
+  },
+  "frames": [
+    {
+      "index": 0,
+      "sourceTime": 0.05,
+      "caption": "风从很远的地方来，替她擦亮了剑锋。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-01.webp",
+      "taskId": 4165,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 1,
+      "sourceTime": 0.65,
+      "caption": "她把沉默握在手中，像握住一场未醒的黎明。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-02.webp",
+      "taskId": 4168,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 2,
+      "sourceTime": 1.25,
+      "caption": "光穿过旧日，留下一个尚未说完的名字。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-03.webp",
+      "taskId": 4167,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 3,
+      "sourceTime": 1.8,
+      "caption": "当世界褪成纯白，她仍沿着誓言前行。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-04.webp",
+      "taskId": 4166,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 4,
+      "sourceTime": 2.35,
+      "caption": "没有掌声的时刻，也值得郑重地站立。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-05.webp",
+      "taskId": 4169,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 5,
+      "sourceTime": 2.9,
+      "caption": "每一次回身，都是命运重新落笔。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-06.webp",
+      "taskId": 4171,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 6,
+      "sourceTime": 3.45,
+      "caption": "她学会在迟疑之前，先迈出一步。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-07.webp",
+      "taskId": 4170,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 7,
+      "sourceTime": 4,
+      "caption": "风追上裙摆，时间却被留在身后。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-08.webp",
+      "taskId": 4172,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 8,
+      "sourceTime": 4.55,
+      "caption": "背对人群时，心仍朝着那束光。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-09.webp",
+      "taskId": 4175,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 9,
+      "sourceTime": 4.72,
+      "caption": "同一把剑，也曾映照过不同的夜。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-10.webp",
+      "taskId": 4173,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 10,
+      "sourceTime": 5.05,
+      "caption": "火焰记得她的名字，城市记得她的影子。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-11.webp",
+      "taskId": 4176,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 11,
+      "sourceTime": 5.22,
+      "caption": "有些告别，不在终点，而在选择发生的那一刻。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-12.webp",
+      "taskId": 4174,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 12,
+      "sourceTime": 5.55,
+      "caption": "王座很高，高不过她不肯低下的目光。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-13.webp",
+      "taskId": 4179,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 13,
+      "sourceTime": 5.72,
+      "caption": "偶尔也让海风，把战争吹得远一些。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-14.webp",
+      "taskId": 4180,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 14,
+      "sourceTime": 6.05,
+      "caption": "花环不是冠冕，只是春天短暂的拥抱。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-15.webp",
+      "taskId": 4177,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 15,
+      "sourceTime": 6.22,
+      "caption": "冬雪落下时，愿旧伤终于有了温度。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-16.webp",
+      "taskId": 4178,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 16,
+      "sourceTime": 6.55,
+      "caption": "星海辽阔，仍装得下一颗固执的心。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-17.webp",
+      "taskId": 4183,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 17,
+      "sourceTime": 6.72,
+      "caption": "人间的橱窗亮起，她也只是路过寻常的一天。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-18.webp",
+      "taskId": 4181,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 18,
+      "sourceTime": 7.05,
+      "caption": "褪下盔甲以后，脚步仍知道归途。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-19.webp",
+      "taskId": 4184,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 19,
+      "sourceTime": 7.55,
+      "caption": "黄昏替她换上白裙，也替往事按下静音。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-20.webp",
+      "taskId": 4182,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 20,
+      "sourceTime": 8.1,
+      "caption": "她从光里走来，不问故事是否有人记得。",
+      "file": "public/assets/images/home/artoria-scroll-4k/frame-21.webp",
+      "taskId": 4185,
+      "status": { "kind": "generated" }
+    },
+    {
+      "index": 21,
+      "sourceTime": 8.65,
+      "caption": "原野没有挽留，风却一直跟随。",
+		"file": "public/assets/images/home/artoria-scroll-4k/frame-22.webp",
+		"operationId": "9623b512-1d21-4544-af2c-f5475e80b49e",
+		"taskId": 4195,
+		"status": { "kind": "generated" }
+    },
+    {
+      "index": 22,
+      "sourceTime": 9.2,
+      "caption": "直到身影走远，春天才慢慢合上眼睛。",
+		"file": "public/assets/images/home/artoria-scroll-4k/frame-23.webp",
+		"operationId": "99e4261a-4c17-44dc-a690-22e18f58be5c",
+		"taskId": 4196,
+		"status": { "kind": "generated" }
+    },
+    {
+      "index": 23,
+      "sourceTime": 9.82,
+      "caption": "最后留在画面里的，是她曾经来过的风。",
+		"file": "public/assets/images/home/artoria-scroll-4k/frame-24.webp",
+		"operationId": "42d97a66-78f4-4b22-964b-ae8a528c36fe",
+		"taskId": 4197,
+		"status": { "kind": "generated" }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+---
+import Icon from "@components/common/Icon.astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { RssRecentPost } from "../model/types";
+
+interface Props {
+	feedUrl: string;
+	recentPosts: RssRecentPost[];
+}
+
+const { feedUrl, recentPosts } = Astro.props;
+---
+
+<div class="rss-page onload-animation">
+	<header class="rss-page__header">
+		<PageTitle title={i18n(I18nKey.rss)} eyebrow="RSS" variant="stacked" />
+		<p>{i18n(I18nKey.rssSubtitle)}</p>
+	</header>
+
+	<rss-copy class="rss-feed-row">
+		<span class="rss-feed-row__icon" aria-hidden="true">
+			<Icon name="material-symbols:rss-feed-rounded" />
+		</span>
+		<div class="rss-feed-row__copy">
+			<h2>{i18n(I18nKey.rssLink)}</h2>
+			<p>{i18n(I18nKey.rssCopyToReader)}</p>
+			<code>{feedUrl}</code>
+		</div>
+		<button
+			type="button"
+			class="rss-feed-row__button"
+			data-rss-copy
+			data-url={feedUrl}
+			data-copied-text={i18n(I18nKey.rssCopied)}
+			data-failed-text={i18n(I18nKey.rssCopyFailed)}
+		>
+			{i18n(I18nKey.rssCopyLink)}
+		</button>
+	</rss-copy>
+
+	<section class="rss-section" aria-labelledby="rss-latest-heading">
+		<header class="rss-section__heading">
+			<Icon name="material-symbols:article-outline-rounded" />
+			<h2 id="rss-latest-heading">{i18n(I18nKey.rssLatestPosts)}</h2>
+		</header>
+		<div class="rss-post-list">
+			{recentPosts.map((post) => (
+				<article class="rss-post-card">
+					<a href={post.url}>
+						<div>
+							<h3>{post.title}</h3>
+							{post.description && <p>{post.description}</p>}
+						</div>
+						<time datetime={post.publishedIso}>{post.publishedText}</time>
+						<Icon name="material-symbols:arrow-outward-rounded" class="rss-post-card__arrow" />
+					</a>
+				</article>
+			))}
+		</div>
+	</section>
+
+	<section class="rss-section rss-section--about" aria-labelledby="rss-about-heading">
+		<header class="rss-section__heading">
+			<Icon name="material-symbols:help-outline-rounded" />
+			<h2 id="rss-about-heading">{i18n(I18nKey.rssWhatIsRSS)}</h2>
+		</header>
+		<p>{i18n(I18nKey.rssWhatIsRSSDescription)}</p>
+		<ul>
+			<li>{i18n(I18nKey.rssBenefit1)}</li>
+			<li>{i18n(I18nKey.rssBenefit2)}</li>
+			<li>{i18n(I18nKey.rssBenefit3)}</li>
+			<li>{i18n(I18nKey.rssBenefit4)}</li>
+		</ul>
+		<p>{i18n(I18nKey.rssHowToUse)}</p>
+	</section>
+</div>
+
+<script>
+	import "../client/rss-copy";
+</script>

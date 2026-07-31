@@ -45,6 +45,7 @@ html:has(.music-visualizer-page) .dropdown-content-wrapper .dropdown-item span {
 }
 
 html:has(.music-visualizer-page) #content-wrapper {
+	min-height: 100vh;
 	opacity: 1 !important;
 	transform: none !important;
 	animation: none !important;

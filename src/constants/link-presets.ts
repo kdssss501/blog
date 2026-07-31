@@ -20,7 +20,7 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 	},
 	[LinkPreset.PostList]: {
 		name: i18n(I18nKey.postList),
-		url: "/list/",
+		url: "/posts/",
 		icon: "material-symbols:list-alt-outline-rounded",
 	},
 	[LinkPreset.Friends]: {
@@ -92,7 +92,7 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 	},
 	[LinkPreset.NavPosts]: {
 		name: i18n(I18nKey.navPosts),
-		url: "/list/",
+		url: "/posts/",
 		icon: "material-symbols:article",
 	},
 	[LinkPreset.NavMy]: {
@@ -105,11 +105,6 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 		url: "/music/",
 		icon: "material-symbols:graphic-eq-rounded",
 	},
-	[LinkPreset.Treehole]: {
-		name: i18n(I18nKey.treehole),
-		url: "/treehole/",
-		icon: "material-symbols:forest-outline",
-	},
 	[LinkPreset.Notebook]: {
 		name: i18n(I18nKey.notebook),
 		url: "/notebook/",
@@ -117,12 +112,12 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 	},
 	[LinkPreset.Activity]: {
 		name: "动态",
-		url: "/activity/",
+		url: "/moments/",
 		icon: "material-symbols:update",
 	},
-        [LinkPreset.Xiao]: {
-                name: "小爱",
-                url: "/xiao/",
-                icon: "material-symbols:auto-awesome",
-        },
+	[LinkPreset.Xiao]: {
+		name: "小恶魔",
+		url: "/live2D/",
+		icon: "material-symbols:auto-awesome",
+	},
 };

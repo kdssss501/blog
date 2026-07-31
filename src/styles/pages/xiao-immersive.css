@@ -1,0 +1,533 @@
+.xiao-hub {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+	background: transparent;
+	letter-spacing: 0;
+}
+
+.xiao-return-intro {
+	position: fixed;
+	z-index: 100;
+	top: 12px;
+	left: 50%;
+	display: inline-flex;
+	height: 34px;
+	align-items: center;
+	gap: 6px;
+	padding: 0 12px 0 9px;
+	border: 1px solid rgb(255 87 123 / 56%);
+	border-radius: 6px;
+	background: rgb(13 5 11 / 86%);
+	box-shadow: 0 7px 26px rgb(0 0 0 / 36%), inset 0 0 16px rgb(186 21 67 / 16%);
+	color: rgb(255 230 238);
+	font-size: 12px;
+	letter-spacing: 0;
+	opacity: 0;
+	pointer-events: none;
+	transform: translate(-50%, -14px);
+	transition: opacity 180ms ease, transform 180ms ease, border-color 180ms ease;
+}
+
+.xiao-return-intro svg {
+	width: 19px;
+	height: 19px;
+	color: rgb(255 111 142);
+}
+
+.xiao-return-intro.is-visible,
+.xiao-return-intro:focus-visible {
+	opacity: 1;
+	pointer-events: auto;
+	transform: translate(-50%, 0);
+}
+
+.xiao-return-intro:hover {
+	border-color: rgb(255 181 198 / 90%);
+}
+
+.xiao-workspace {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+	background: transparent;
+}
+
+.xiao-fullscreen-shell__background {
+	transform: translate(
+		calc(var(--stage-mouse-x, 0) * 2px),
+		calc(var(--stage-mouse-y, 0) * 2px)
+	) scale(1.004);
+	transform-origin: center;
+	will-change: transform;
+}
+
+.xiao-workspace__scene,
+.xiao-workspace__scene.is-chat-hidden {
+	position: absolute;
+	inset: 0;
+	display: block;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	background: transparent;
+}
+
+.xiao-scene__backdrop {
+	z-index: 1;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.xiao-scene__effects {
+	z-index: 20;
+}
+
+.xiao-stage {
+	position: absolute;
+	z-index: 3;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.xiao-stage::before {
+	content: none;
+}
+
+.xiao-stage__live2d {
+	--xiao-emotion-color: 116 24 42;
+	position: absolute;
+	z-index: 4;
+	inset: 0;
+	min-width: 1px;
+	min-height: 1px;
+	transform: translate(
+		calc(var(--stage-mouse-x, 0) * 6px),
+		calc(var(--stage-mouse-y, 0) * 5px)
+	);
+	transform-origin: center;
+	will-change: transform;
+}
+
+.xiao-stage__live2d::before {
+	position: absolute;
+	z-index: 0;
+	top: 7%;
+	left: 11%;
+	width: 60%;
+	height: 82%;
+	border-radius: 50%;
+	background: radial-gradient(
+		ellipse at center,
+		rgb(var(--xiao-emotion-color) / 52%) 0,
+		rgb(var(--xiao-emotion-color) / 18%) 38%,
+		transparent 72%
+	);
+	content: "";
+	filter: blur(28px);
+	opacity: calc(0.05 + (var(--xiao-arousal, 0.5) * 0.18));
+	pointer-events: none;
+	transform: scale(calc(0.92 + (var(--xiao-valence, 0.5) * 0.12)));
+	transition: background-color 700ms ease, opacity 700ms ease, transform 700ms ease;
+}
+
+.xiao-stage__live2d[data-emotion="happy"],
+.xiao-stage__live2d[data-emotion="soft-happy"],
+.xiao-stage__live2d[data-emotion="soft-positive"],
+.xiao-stage__live2d[data-emotion="excited"],
+.xiao-stage__live2d[data-emotion="affectionate"],
+.xiao-stage__live2d[data-emotion="shy"] {
+	--xiao-emotion-color: 226 104 137;
+}
+
+.xiao-stage__live2d[data-emotion="anger"],
+.xiao-stage__live2d[data-emotion="angry"] {
+	--xiao-emotion-color: 155 18 31;
+}
+
+.xiao-stage__live2d[data-emotion="sad"],
+.xiao-stage__live2d[data-emotion="soft-sad"],
+.xiao-stage__live2d[data-emotion="concerned"],
+.xiao-stage__live2d[data-emotion="anxiety"] {
+	--xiao-emotion-color: 67 106 157;
+}
+
+.xiao-stage__live2d canvas {
+	position: relative;
+	z-index: 1;
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.xiao-workspace__toolbar {
+	position: absolute;
+	z-index: 60;
+	top: -44px;
+	right: 0;
+	left: 0;
+	display: grid;
+	height: 52px;
+	grid-template-columns: minmax(260px, 1fr) auto minmax(260px, 1fr);
+	align-items: center;
+	overflow: visible;
+	border: 0;
+	background: rgb(9 4 6 / 88%);
+	box-shadow: 0 12px 30px rgb(0 0 0 / 32%);
+	backdrop-filter: blur(16px) saturate(1.18);
+	transition: top 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.xiao-workspace__toolbar:hover,
+.xiao-workspace__toolbar:focus-within,
+.xiao-workspace__toolbar.is-intro {
+	top: 0;
+}
+
+.xiao-workspace__toolbar::after {
+	position: absolute;
+	z-index: -1;
+	right: 0;
+	bottom: -13px;
+	left: 0;
+	height: 16px;
+	background: #6f101f;
+	clip-path: polygon(
+		0 15%, 4% 72%, 9% 36%, 14% 85%, 20% 44%, 26% 80%,
+		32% 28%, 39% 72%, 46% 34%, 54% 88%, 61% 42%, 68% 76%,
+		75% 30%, 82% 82%, 89% 38%, 95% 74%, 100% 20%, 100% 0, 0 0
+	);
+	content: "";
+	filter: drop-shadow(0 4px 4px rgb(0 0 0 / 45%));
+	transform-origin: center top;
+	animation: xiao-blood-wave 12s ease-in-out infinite alternate;
+	pointer-events: none;
+}
+
+.xiao-workspace__brand {
+	height: 52px;
+	padding-inline: 14px;
+	transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.xiao-workspace__brand > span,
+.xiao-chat__identity > span,
+.xiao-message__mark {
+	border-radius: 50%;
+}
+
+.xiao-workspace__toolbar:not(:hover):not(:focus-within):not(.is-intro) .xiao-workspace__brand {
+	transform: translateY(44px);
+}
+
+.xiao-workspace__toolbar:not(:hover):not(:focus-within):not(.is-intro) .xiao-workspace__brand > div,
+.xiao-workspace__toolbar:not(:hover):not(:focus-within):not(.is-intro) .xiao-workspace__byline {
+	opacity: 0;
+}
+
+.xiao-workspace__byline {
+	bottom: -17px;
+	transition: opacity 180ms ease;
+}
+
+.xiao-chat {
+	position: absolute;
+	z-index: 32;
+	top: clamp(72px, 7vh, 86px);
+	right: clamp(24px, 2.4vw, 46px);
+	bottom: clamp(24px, 3vh, 38px);
+	display: flex;
+	width: clamp(460px, 30vw, 580px);
+	min-width: 0;
+	min-height: 0;
+	margin: 0;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid rgb(223 198 193 / 34%);
+	border-radius: 16px;
+	background: rgb(26 8 13 / 76%);
+	box-shadow:
+		0 28px 80px rgb(0 0 0 / 44%),
+		inset 0 1px 0 rgb(255 244 236 / 8%);
+	backdrop-filter: blur(18px) saturate(1.16);
+	opacity: 1;
+	transform: translateX(0);
+	transition:
+		opacity 320ms ease,
+		transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
+		visibility 0s linear;
+}
+
+.xiao-chat.is-chat-hidden {
+	display: flex;
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+	transform: translateX(calc(100% + 64px));
+	transition:
+		opacity 260ms ease,
+		transform 420ms cubic-bezier(0.4, 0, 1, 1),
+		visibility 0s linear 420ms;
+}
+
+.xiao-chat::before,
+.xiao-chat::after,
+.xiao-chat__header::after {
+	content: none;
+}
+
+.xiao-chat__ornament {
+	display: none;
+}
+
+.xiao-chat__header {
+	min-height: 64px;
+	padding: 10px 12px 10px 16px;
+	border-bottom: 1px solid rgb(232 212 203 / 18%);
+	background: rgb(19 6 10 / 70%);
+}
+
+.xiao-chat__identity > span {
+	background: #781527;
+	box-shadow: inset 0 0 0 4px rgb(21 5 9 / 48%);
+}
+
+.xiao-chat__header-actions button,
+.xiao-workspace__tools button,
+.xiao-chat__history header button,
+.xiao-chat__history li > button:last-child {
+	border-radius: 6px;
+}
+
+.xiao-chat__transcript {
+	padding: 18px 16px 14px;
+}
+
+.xiao-message {
+	gap: 9px;
+	margin-bottom: 16px;
+}
+
+.xiao-message > div {
+	max-width: min(80%, 470px);
+	gap: 5px;
+}
+
+.xiao-message p {
+	padding: 11px 13px;
+	border: 1px solid rgb(74 62 57 / 22%);
+	border-radius: 8px;
+	background: rgb(226 217 204 / 94%);
+	color: #271a19;
+	box-shadow: 0 8px 20px rgb(0 0 0 / 16%);
+	font-size: 12px;
+	line-height: 1.72;
+}
+
+.xiao-message.user p {
+	border-color: rgb(215 150 154 / 20%);
+	background: rgb(102 24 36 / 94%);
+	color: #f4e9df;
+}
+
+.xiao-message small {
+	padding-inline: 4px;
+	color: #aaa09a;
+}
+
+.xiao-chat__quick {
+	border-top: 1px solid rgb(232 212 203 / 14%);
+	background: rgb(14 5 8 / 56%);
+}
+
+.xiao-chat__quick button {
+	border-radius: 6px;
+	background: rgb(233 222 209 / 7%);
+}
+
+.xiao-chat__composer {
+	min-height: 66px;
+	border-top: 1px solid rgb(232 212 203 / 20%);
+	background: rgb(14 5 8 / 78%);
+}
+
+.xiao-chat__composer button {
+	border-radius: 8px;
+}
+
+.xiao-chat__composer textarea {
+	padding: 10px 12px;
+	border: 1px solid rgb(230 211 202 / 20%);
+	border-radius: 8px;
+	background: rgb(245 234 222 / 6%);
+}
+
+.xiao-chat__restore {
+	position: absolute;
+	z-index: 34;
+	top: 50%;
+	right: 16px;
+	display: grid;
+	width: 44px;
+	height: 52px;
+	place-items: center;
+	border: 1px solid rgb(226 207 198 / 32%);
+	border-radius: 8px;
+	background: rgb(32 8 14 / 84%);
+	box-shadow: 0 14px 30px rgb(0 0 0 / 32%);
+	backdrop-filter: blur(12px);
+	transform: translateY(-50%);
+}
+
+.xiao-stage__camera,
+.xiao-stage__expression-trigger,
+.xiao-stage__customize-trigger,
+.xiao-stage__expressions,
+.xiao-stage__customize,
+.xiao-stage__model-state,
+.xiao-stage__credit {
+	backdrop-filter: blur(12px);
+}
+
+.xiao-stage__camera,
+.xiao-stage__expression-trigger,
+.xiao-stage__customize-trigger {
+	border-radius: 8px;
+}
+
+.xiao-stage__camera {
+	bottom: 22px;
+	left: 24px;
+}
+
+.xiao-stage__expression-trigger {
+	right: auto;
+	bottom: 22px;
+	left: 206px;
+}
+
+.xiao-stage__customize-trigger {
+	bottom: 22px;
+	left: 352px;
+}
+
+.xiao-stage__expressions {
+	right: auto;
+	bottom: 76px;
+	left: 206px;
+	border-radius: 8px;
+}
+
+.xiao-stage__customize {
+	bottom: 76px;
+	left: 352px;
+	border-radius: 8px;
+}
+
+@keyframes xiao-blood-wave {
+	0% { transform: translateX(-0.7%) scaleY(0.92); }
+	100% { transform: translateX(0.7%) scaleY(1.08); }
+}
+
+@media (max-width: 900px) {
+	.xiao-fullscreen-shell__background {
+		object-fit: cover;
+	}
+
+	.xiao-workspace__toolbar {
+		top: 0;
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.xiao-workspace__toolbar:not(:hover):not(:focus-within):not(.is-intro) .xiao-workspace__brand {
+		transform: none;
+	}
+
+	.xiao-workspace__presence {
+		display: none;
+	}
+
+	.xiao-mobile-switch {
+		position: absolute;
+		z-index: 46;
+		top: 68px;
+		left: 50%;
+		display: grid;
+		width: min(190px, 50vw);
+		height: 38px;
+		grid-template-columns: 1fr 1fr;
+		border: 1px solid rgb(233 218 208 / 28%);
+		border-radius: 8px;
+		background: rgb(16 6 9 / 78%);
+		backdrop-filter: blur(12px);
+		transform: translateX(-50%);
+	}
+
+	.xiao-workspace__scene > .is-mobile-hidden {
+		display: none;
+	}
+
+	.xiao-chat {
+		top: 114px;
+		right: 12px;
+		bottom: 12px;
+		left: 12px;
+		width: auto;
+		height: auto;
+	}
+
+	.xiao-stage__live2d::before {
+		left: 4%;
+		width: 92%;
+	}
+
+	.xiao-stage__credit {
+		display: none;
+	}
+
+	.xiao-stage__camera {
+		bottom: 14px;
+		left: 14px;
+	}
+
+	.xiao-stage__expression-trigger {
+		right: 14px;
+		bottom: 14px;
+		left: auto;
+	}
+
+	.xiao-stage__customize-trigger {
+		display: none;
+	}
+
+	.xiao-stage__expressions {
+		right: 14px;
+		bottom: 68px;
+		left: 14px;
+		width: auto;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.xiao-fullscreen-shell__background,
+	.xiao-stage__live2d {
+		transform: none;
+	}
+
+	.xiao-return-intro {
+		transition: none;
+	}
+
+	.xiao-workspace__toolbar::after {
+		animation: none;
+	}
+
+}

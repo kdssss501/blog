@@ -1,0 +1,16 @@
+---
+import { NotebookDetail } from "@/features/notebook";
+import { getObsidianNotebookEntries } from "@/features/notebook/server";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+export const prerender = false;
+const name = decodeURIComponent(Astro.params.name || "").trim();
+if (!name) return Astro.redirect("/life/notebooks/", 301);
+const initialEntries = (await getObsidianNotebookEntries()).filter(
+	(entry) => entry.notebook === name,
+);
+---
+
+<MainGridLayout title={name} description="笔记本详情" showSidebar={true}>
+	<NotebookDetail {name} {initialEntries} />
+</MainGridLayout>

@@ -5,9 +5,9 @@
 /* ---------- 浮动外层（镜像右 TOC） ---------- */
 .article-catalog-wrapper {
 	position: absolute;
-	left: calc(50% - 30rem - 18rem);
+	left: max(2rem, calc(50% - 26.75rem - 15.5rem - 1rem));
 	top: 0;
-	width: 18rem;
+	width: 15.5rem;
 	pointer-events: none;
 	z-index: 10;
 	transition: transform 0.3s ease;
@@ -37,8 +37,9 @@
 
 .article-catalog-container {
 	position: sticky;
-	top: 6rem;
+	top: 7.5rem;
 	pointer-events: auto;
+	height: 30rem;
 	max-height: calc(100vh - 7rem);
 	background: var(--card-bg);
 	border: 1px solid var(--line-divider);
@@ -285,7 +286,7 @@
 }
 
 /* ---------- 响应式：<1280px 完全隐藏（与右 TOC 一致） ---------- */
-@media (max-width: 1280px) {
+@media (max-width: 1399px) {
 	.article-catalog-wrapper {
 		display: none !important;
 	}

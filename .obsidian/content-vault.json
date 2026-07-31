@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "contentRoots": {
+    "posts": "src/content/posts",
+    "moments": "src/content/moments",
+    "notebooks": "src/content/life/notebooks"
+  },
+  "templates": ".obsidian/templates",
+  "attachmentFolder": "public/uploads/content",
+  "writerApi": "/api/content"
+}

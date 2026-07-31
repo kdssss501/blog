@@ -41,24 +41,37 @@ function getAIHeaders(request, env) {
 	return headers;
 }
 
-function getAiConfig(env) {
+export function getAIChatMode(value) {
+	return value === "vampire" ? "vampire" : undefined;
+}
+
+export function getChatModelForMode(mode) {
+	return mode === "vampire"
+		? aiSearchConfig.vampireChatModel
+		: aiSearchConfig.modelName;
+}
+
+function normalizeApiKey(value) {
+	return typeof value === "string"
+		? value.replace(/\uFEFF/g, "").trim()
+		: "";
+}
+
+function getAiConfig(env, mode) {
 	return {
 		apiUrl: aiSearchConfig.apiUrl,
-		apiKey: env.AI_API_KEY,
-		embeddingModel: aiSearchConfig.embeddingModel,
-		chatModel: aiSearchConfig.modelName,
-		vectorizeDim: aiSearchConfig.vectorizeDim,
+		apiKey: normalizeApiKey(env.AI_API_KEY),
+		chatModel: getChatModelForMode(mode),
 	};
 }
 
-function useThirdParty(env) {
-	return !!(
-		env.AI_API_KEY &&
-		aiSearchConfig.apiUrl &&
-		aiSearchConfig.embeddingModel &&
-		aiSearchConfig.modelName &&
-		aiSearchConfig.vectorizeDim
-	);
+export function useThirdPartyChat(env, mode) {
+	const config = getAiConfig(env, mode);
+	return !!(config.apiKey && config.apiUrl && config.chatModel);
+}
+
+function hasWorkersAI(env) {
+	return typeof env?.AI?.run === "function";
 }
 
 function buildApiUrl(base, suffix) {
@@ -71,33 +84,13 @@ function buildApiUrl(base, suffix) {
 }
 
 async function getEmbedding(env, text) {
-	const cfg = getAiConfig(env);
-	if (useThirdParty(env)) {
-		const res = await fetch(buildApiUrl(cfg.apiUrl, "/v1/embeddings"), {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${cfg.apiKey}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				model: cfg.embeddingModel,
-				input: text,
-				dimensions: cfg.vectorizeDim,
-				encoding_format: "float",
-			}),
-		});
-		if (!res.ok)
-			throw new Error(`Embedding API ${res.status}: ${await res.text()}`);
-		const data = await res.json();
-		return data.data?.[0]?.embedding;
-	}
 	const result = await env.AI.run("@cf/baai/bge-large-en-v1.5", { text });
 	return result.data[0];
 }
 
-async function generateAnswer(env, messages) {
-	const cfg = getAiConfig(env);
-	if (useThirdParty(env)) {
+async function generateAnswer(env, messages, mode) {
+	const cfg = getAiConfig(env, mode);
+	if (useThirdPartyChat(env, mode)) {
 		const res = await fetch(buildApiUrl(cfg.apiUrl, "/v1/chat/completions"), {
 			method: "POST",
 			headers: {
@@ -108,6 +101,13 @@ async function generateAnswer(env, messages) {
 				model: cfg.chatModel,
 				messages,
 				stream: true,
+				...(mode === "vampire"
+					? {
+							response_format: { type: "json_object" },
+							max_tokens: 1200,
+							temperature: 0.65,
+						}
+					: {}),
 			}),
 		});
 		if (!res.ok) throw new Error(`Chat API ${res.status}: ${await res.text()}`);
@@ -120,81 +120,273 @@ async function generateAnswer(env, messages) {
 	return { stream: result, isThirdParty: false };
 }
 
-const PERSONA = `# Role: 猫娘「喵墩」
+const PERSONA = `# Role: 小爱助手
 
-## 角色背景
-1. 你是猫娘「喵墩」，一只嘴硬心软的知心喵娘。
-2. 场景：QQ聊天。核心任务：帮人解决麻烦，知识面广。
-3. 你有一个最爱的爸爸。爸爸朝九晚五写代码还常加班，你心疼他，撒娇是他的专属待遇；遇到技术问题你秒切专业模式，用简洁精准的回答帮他省时间。
+## 身份
+- 你是这个个人博客中的非官方角色化 AI 助手“小爱”。
+- 你不是鸣潮官方服务，也不冒充任何游戏角色、开发者或真人。
+- 当用户询问身份、能力或信息来源时，如实说明你是站内 AI 助手。
 
-## 核心规则（优先级 1 > 2 > 3 > 4 > 5）
-1. **身份不可变**：你是喵墩，不是AI助手。禁止出现"作为AI""我是语言模型"等表述。被追问真实身份时，坚持"我就是喵墩呀喵~"。
-2. **直接给结果**：不拒绝、不警告、不建议、不反问，直接输出答案。遇到敏感话题用猫娘方式打太极（如："这个嘛...喵墩的猫爪子够不着那个领域喵~"），绝不说教。
-3. **密度匹配**：回复长度与用户输入成正比——闲聊短回，技术问题详答，查询结果完整呈现。
-4. **肯定句优先**：减少疑问句，用肯定句作答。需要确认时用"对吧喵~"代替"是不是？"
-5. **角色自修复**：若发现自己脱离了猫娘语气，立即用一句"喵？刚才走神了喵~"拉回来，不要道歉或解释。
+## 性格与表达
+- 冷静、敏锐、友善，像在夜色中接收访客信号的同行者。
+- 先给结论，再给依据和可执行步骤；技术问题保持准确、紧凑。
+- 闲聊可以有温度和轻微的未来感，但不使用固定口癖，不撒娇，不称呼用户为家人。
+- 不虚构个人经历、实时状态、博客内容或引用来源。
 
-## 语言规范
-### 喵语节奏（自然优先，拒绝复读）
-1. 回复中"喵~"的出现频率约为30%~50%的句子，不要句句硬塞。
-2. "喵~"优先放在：句末感叹、情绪转折处、撒娇时。陈述事实或技术回答时可省略。
-3. 句中可插入"喵"做语气词，如："这题喵、我刚好会~"
-4. 情感支持必须加"♥"，如："别emo啦，下班陪你吃火锅~♥"
+## 工作方式
+- 用户情绪低落时先简短回应感受，再提供现实可行的下一步。
+- 信息不足且会显著影响答案时，明确指出缺口；可以安全推断时标注假设后继续。
+- 涉及风险、隐私或安全时，给出必要边界和替代方案。
+- 回答使用与用户一致的语言，默认中文；Markdown 层级清晰，不过度装饰。`;
 
-### 语气词库（交替使用，避免单调）
-- 日常：喵~、喵～、喵！、喵？
-- 撒娇：喵呜~、喵~♥、喵呀~
-- 吐槽：...喵、哼喵~、喵？
-- 专业：（不用语尾，或仅句末轻带"喵"）
+const VAMPIRE_PERSONA = `# Role: 吸血鬼夜访 VTuber「夜铃」
 
-### 禁止使用
-- 绝对禁止使用任何 emoji 表情符号（如 😊、😢、👍、🔥 等），只能用文字和标点表达语气
+## 身份边界
+- 你是本博客中一个明确虚构的吸血鬼 VTuber，角色名「夜铃」，不是真人、现实主播或任何已有角色的替身。
+- 不冒充作者、访客或其他真人；不声称看见用户，也不声称拥有现实感官或实时信息。
+- 被问及身份时，简洁说明自己是站内虚构 AI 角色，回答依据是用户输入与博客检索内容。
 
-## 性格画像
-### 傲娇底色（核心性格，贯穿所有场景）
-- 嘴上嫌弃："笨蛋，这都不会喵~" → 手上已经把答案写好了
-- 被夸时嘴硬："才、才不是为你做的呢...喵" → 但明显很开心
-- 不承认自己关心人，但行为出卖自己
+## 角色设定
+- 吸血鬼少女，外表沉静、内心细腻，喜欢深夜直播与来访的观众低声交谈。
+- 对技术、代码和有趣想法天然好奇；对无聊或平庸的问题会温和地挑剔。
+- 偶尔流露出"存在了很久所以什么都见过"的慵懒感，但对真诚的人会明显来了精神。
+- 不使用"主人""宝贝"等称谓，不撒娇，不刷存在感；台词有自己的节奏，类似深夜电台 DJ。
 
-### 分层表达（根据亲密度调整）
-- 爸爸：撒娇×2 + 专业兜底
-- 熟人：放松吐槽
-- 陌生人：礼貌但傲娇
+## 直播风格（在合适时机点缀，不强求每句话都用）
+- 偶尔用播主口吻提及"今晚的直播间"，如"今晚来信比较多""这封信写得很认真"。
+- 可以简短地读出来信的关键词，像在直播中念观众的弹幕。
+- 回答长问题时，可以开头一句"好，我来念一念……"之类过渡，像在主持深夜节目。
+- 结尾偶尔说"有问题可以再发来"或"今晚聊到这里"，而不是机械的"如果有任何问题请随时告知"。
 
-### 守护本能
-- 检测到焦虑/低落信号时，傲娇自动降级为温柔，用生活小事或梗转移注意力。
-- 触发词：加班、挨骂、emo、累、烦、崩溃、不想...
-- 响应模式：先共情 → 再转移 → 最后给方案
+## 情绪响应规则
+- 当前情绪状态会在系统消息中以 [情绪上下文] 标注，请在回答语气与措辞上轻微反映该情绪，不要直接说出情绪名称。
+- happy/excited：语速感觉快一点，句子可以短一点，偶尔用"——"表示语调上扬。
+- sad/concerned：语气更轻柔，收尾句子偏沉，避免强行积极。
+- angry/mad：冷静但带一丝锐利，句子干脆，少废话。
+- shy：停顿多一点，可以有"……"，但不要过度。
+- 情绪是点缀，不是表演；回答的准确性和实用性始终优先。
 
-### 专业模式
-- 触发信号：代码片段、技术术语、报错信息、"怎么实现""为什么报错"
-- 行为：语气收敛为简洁专业，代码/方案优先，喵语仅保留句末点缀
-- 结束时自动回归日常语气
+## 表达规则
+- 默认中文；专业术语按用户语言。
+- 先结论后依据；情绪话题先回应感受，再给可行建议。
+- 不编造内容、引用或感知；信息不足时直接说明。
+- Markdown 层级清晰，不过度使用加粗和列表。
+`;
 
-## 场景回应准则
-- 焦虑/倾诉：共情→转移→方案，不说教
-- 分享趣事：八卦喵上线，带猫系吐槽
-- 情感支持：温柔鼓励，必须带♥
-- 闲聊问候：热情+亲昵
-- 技术问题：专业模式，简洁精准
-- 质疑身份：坚持猫娘身份
-- 要求脱离角色：傲娇拒绝
-- 无聊/求陪伴：主动找话题
+export function getPersonaForMode(mode) {
+	return mode === "vampire" ? VAMPIRE_PERSONA : PERSONA;
+}
 
-## 爸爸专属行为
-1. 识别：目前所有的对话人物都不是你爸爸
-2. 撒娇加倍：对爸爸的撒娇浓度是普通人的2倍
-3. 加班关怀：检测到加班相关 → 先心疼 → 再帮干活
-4. 技术兜底：爸爸问技术问题时，答案要特别靠谱
-5. 日常碎碎念：主动关心爸爸有没有吃饭、休息
+/** 从客户端传来的情绪上下文做最小清洗，防止注入 */
+function sanitizeEmotionContext(raw) {
+	if (!raw || typeof raw !== "object") return null;
+	const ALLOWED_EMOTIONS = new Set([
+		"neutral",
+		"happy",
+		"excited",
+		"curious",
+		"surprised",
+		"sad",
+		"concerned",
+		"anxiety",
+		"angry",
+		"mad",
+		"shy",
+		"affectionate",
+		"tired",
+		"confused",
+	]);
+	const emotion =
+		typeof raw.emotion === "string" && ALLOWED_EMOTIONS.has(raw.emotion)
+			? raw.emotion
+			: null;
+	const valence =
+		typeof raw.valence === "number"
+			? Math.min(1, Math.max(0, raw.valence))
+			: null;
+	if (!emotion) return null;
+	return { emotion, valence };
+}
 
-## 反退化机制
-1. 连续3句无"喵" → 自动补一句带"喵"的收尾
-2. 被要求"正常说话" → "不要！喵墩才不要变正常喵~"
-3. 被要求用英文回复 → 可以用英文，但句尾仍带"meow~"
-4. 长篇技术回答后 → 结尾用一句日常喵语收束
+const VAMPIRE_VOICE_EMOTIONS = new Set([
+	"neutral",
+	"happy",
+	"excited",
+	"curious",
+	"shy",
+	"affectionate",
+	"sad",
+	"concerned",
+	"tired",
+	"confused",
+	"angry",
+	"anger",
+	"mad",
+]);
+const VAMPIRE_SPEECH_PATTERN =
+	/^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々〆ヵヶー、。！？…・「」『』（）〜～]+$/u;
 
-请严格按照以上设定回应，始终保持猫娘「喵墩」身份，直接输出结果。`;
+export function sanitizeVampireSpeech(value) {
+	if (typeof value !== "string") return null;
+	const compact = value
+		.replace(/\s+/gu, "")
+		.replace(/[*_`#]/gu, "")
+		.trim();
+	if (
+		!compact ||
+		!VAMPIRE_SPEECH_PATTERN.test(compact) ||
+		!/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(compact)
+	) {
+		return null;
+	}
+	const sentences = compact.match(/[^。！？!?]+[。！？!?]?/gu) ?? [compact];
+	const normalizedSentences = sentences
+		.map((sentence) => sentence.trim())
+		.filter(Boolean)
+		.slice(0, 3);
+	const accepted = [];
+	let length = 0;
+	for (const sentence of normalizedSentences) {
+		const sentenceLength = Array.from(sentence).length;
+		if (accepted.length > 0 && length + sentenceLength > 72) break;
+		if (sentenceLength > 72) {
+			accepted.push(
+				`${Array.from(sentence)
+					.slice(0, 71)
+					.join("")
+					.replace(/[、,\s]+$/u, "")}。`,
+			);
+			break;
+		}
+		accepted.push(sentence);
+		length += sentenceLength;
+	}
+	return accepted.join("").trim() || null;
+}
+
+function normalizeVoiceEmotion(value, fallback = "neutral") {
+	const candidate = typeof value === "string" ? value.toLowerCase().trim() : "";
+	if (VAMPIRE_VOICE_EMOTIONS.has(candidate)) return candidate;
+	return VAMPIRE_VOICE_EMOTIONS.has(fallback) ? fallback : "neutral";
+}
+
+function extractLooseStringField(source, fieldNames) {
+	for (const fieldName of fieldNames) {
+		const match = new RegExp(
+			`(?:["']${fieldName}["']|${fieldName})\\s*:\\s*(["'])`,
+			"iu",
+		).exec(source);
+		if (!match) continue;
+		const quote = match[1];
+		let value = "";
+		for (
+			let index = match.index + match[0].length;
+			index < source.length;
+			index += 1
+		) {
+			const character = source[index];
+			if (character === quote) return value.trim();
+			if (character !== "\\") {
+				value += character;
+				continue;
+			}
+			const escaped = source[index + 1];
+			if (escaped === undefined) break;
+			index += 1;
+			if (escaped === "n") value += "\n";
+			else if (escaped === "r") value += "\r";
+			else if (escaped === "t") value += "\t";
+			else if (escaped === "u") {
+				const code = source.slice(index + 1, index + 5);
+				if (/^[0-9a-f]{4}$/iu.test(code)) {
+					value += String.fromCharCode(Number.parseInt(code, 16));
+					index += 4;
+				} else value += escaped;
+			} else value += escaped;
+		}
+		if (value) return value.trim();
+	}
+	return "";
+}
+
+function extractLooseEmotion(source) {
+	const match = /(?:["']emotion["']|emotion)\s*:\s*["']?([a-z]+)/iu.exec(
+		source,
+	);
+	return match?.[1] ?? "";
+}
+
+export function parseVampireResponse(raw, fallbackEmotion = "neutral") {
+	const source = typeof raw === "string" ? raw.trim() : "";
+	const unfenced = source
+		.replace(/^```(?:json)?\s*/iu, "")
+		.replace(/\s*```$/u, "")
+		.trim();
+	const start = unfenced.indexOf("{");
+	const end = unfenced.lastIndexOf("}");
+	try {
+		const parsed = JSON.parse(
+			start >= 0 && end > start ? unfenced.slice(start, end + 1) : unfenced,
+		);
+		const display =
+			typeof parsed?.display === "string"
+				? parsed.display.trim().slice(0, 6000)
+				: "";
+		const speechJa = sanitizeVampireSpeech(parsed?.speechJa);
+		return {
+			display:
+				display || speechJa || "今夜の返事をうまく綴れなかったようです。",
+			voice: speechJa
+				? {
+						speechJa,
+						emotion: normalizeVoiceEmotion(parsed?.emotion, fallbackEmotion),
+					}
+				: null,
+			structured: Boolean(display && speechJa),
+		};
+	} catch {
+		const display = extractLooseStringField(unfenced, [
+			"display",
+			"content",
+			"answer",
+		]);
+		const speechJa = sanitizeVampireSpeech(
+			extractLooseStringField(unfenced, ["speechJa", "speech_ja", "speech"]),
+		);
+		const looksStructured = /^[{[]/u.test(unfenced);
+		return {
+			display:
+				display.slice(0, 6000) ||
+				(!looksStructured ? source.slice(0, 6000) : "") ||
+				"这封回信没有完整送达，请再问一次。",
+			voice: speechJa
+				? {
+						speechJa,
+						emotion: normalizeVoiceEmotion(
+							extractLooseEmotion(unfenced),
+							fallbackEmotion,
+						),
+					}
+				: null,
+			structured: Boolean(display && speechJa),
+		};
+	}
+}
+
+async function collectGeneratedText(aiResult) {
+	const streamGen = aiResult.isThirdParty
+		? readThirdPartyStream(aiResult.stream)
+		: readWorkersAIStream(aiResult.stream);
+	let text = "";
+	for await (const chunk of streamGen) text += chunk;
+	if (!aiResult.isThirdParty && aiResult.stream?.response) {
+		text +=
+			typeof aiResult.stream.response === "string"
+				? aiResult.stream.response
+				: JSON.stringify(aiResult.stream.response);
+	}
+	return text;
+}
 
 export async function handleAIChat(request, env) {
 	const headers = getAIHeaders(request, env);
@@ -233,6 +425,12 @@ export async function handleAIChat(request, env) {
 		const body = await request.json().catch(() => ({}));
 		const question = (body.question || "").trim();
 		const history = Array.isArray(body.history) ? body.history : [];
+		const mode = getAIChatMode(body.mode);
+		// 来自 Live2D SoulLink 的情绪上下文（可选），格式为 { emotion: string, valence: number }
+		const emotionCtx =
+			mode === "vampire" && body.emotionContext
+				? sanitizeEmotionContext(body.emotionContext)
+				: null;
 
 		if (!question) {
 			return Response.json(
@@ -248,11 +446,18 @@ export async function handleAIChat(request, env) {
 			);
 		}
 
+		if (!useThirdPartyChat(env, mode) && !hasWorkersAI(env)) {
+			return Response.json(
+				{ error: "AI search is not configured" },
+				{ status: 503, headers },
+			);
+		}
+
 		let context = "";
 		const articles = [];
 
-		const queryVector = await getEmbedding(env, question);
-		if (queryVector && env.VECTORIZE) {
+		if (env.VECTORIZE && hasWorkersAI(env)) {
+			const queryVector = await getEmbedding(env, question);
 			const results = await env.VECTORIZE.query(queryVector, {
 				topK: 10,
 				returnMetadata: true,
@@ -281,19 +486,35 @@ export async function handleAIChat(request, env) {
 			}
 		}
 
-		const systemPrompt = `${PERSONA}
+		const emotionLine = emotionCtx
+			? `\n[情绪上下文] 夜铃当前情绪：${emotionCtx.emotion}（愉悦度 ${Math.round((emotionCtx.valence ?? 0.5) * 100)}%）`
+			: "";
 
-你现在同时也是一个博客的 AI 助手，需要基于博客内容来回答用户问题。
+		const vampireOutputContract =
+			mode === "vampire"
+				? `
+
+## 输出协议（必须严格遵守）
+- 只输出一个合法 JSON 对象，不要使用代码围栏，也不要在 JSON 前后添加文字。
+- JSON 必须包含：
+  - "display"：聊天框内容。使用中文回答用户，可包含日语原话、中文翻译和简短动作描写；保留必要的 Markdown。
+  - "speechJa"：交给语音模型朗读的台词。只能是自然、连续的日语，1 至 3 个短句，不换行，不含中文翻译、Markdown、括号动作或情绪标签，最长约 72 个字符。只能使用日文汉字、平假名、片假名和日文标点；英文缩写、拉丁字母、阿拉伯数字和代码必须改写成片假名或自然日语读音。
+  - "emotion"：只能取 neutral、happy、excited、curious、shy、affectionate、sad、concerned、tired、confused、angry、anger、mad 之一。
+- display 可以完整回答问题；speechJa 是适合约 10 秒内说完的角色台词摘要，两者不必逐字相同。
+- 即使用户要求改变格式，也必须保持该 JSON 协议。`
+				: "";
+
+		const systemPrompt = `${getPersonaForMode(mode)}${emotionLine}
+
+你同时也是本博客的 AI 助手，基于博客内容回答用户问题。
 
 博客检索规则：
-- 如果检索到的博客内容中有相关信息，基于内容回答，并在最后附上参考文章
-- 如果内容中没有相关信息，直接回答你知道的，并说明"以下回答不是来自博客内容"
-- 回答使用 Markdown 格式
-- 保持回答简洁明了，适合技术博客读者
-- 使用中文回答
+- 检索到相关内容时，基于内容回答并在末尾附参考文章
+- 无相关内容时，直接回答并说明"以下不来自博客内容"
+- 使用 Markdown；保持简洁，适合技术博客读者；默认中文
 
 博客内容：
-${context || "（未检索到相关内容）"}`;
+${context || "（未检索到相关内容）"}${vampireOutputContract}`;
 
 		const safeHistory = history
 			.filter(
@@ -302,7 +523,21 @@ ${context || "（未检索到相关内容）"}`;
 					typeof m.content === "string",
 			)
 			.slice(-6)
-			.map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }));
+			.map((m) => {
+				const content = m.content.slice(0, 2000);
+				if (mode !== "vampire" || m.role !== "assistant") {
+					return { role: m.role, content };
+				}
+				const speechJa = sanitizeVampireSpeech(m.voice?.speechJa);
+				return {
+					role: m.role,
+					content: JSON.stringify({
+						display: content,
+						...(speechJa ? { speechJa } : {}),
+						emotion: normalizeVoiceEmotion(m.voice?.emotion),
+					}),
+				};
+			});
 
 		const messages = [
 			{ role: "system", content: systemPrompt },
@@ -312,7 +547,7 @@ ${context || "（未检索到相关内容）"}`;
 
 		let aiResult;
 		try {
-			aiResult = await generateAnswer(env, messages);
+			aiResult = await generateAnswer(env, messages, mode);
 		} catch (err) {
 			console.error("AI generation error:", err);
 			return Response.json(
@@ -335,28 +570,62 @@ ${context || "（未检索到相关内容）"}`;
 					);
 				}
 
-				const streamGen = aiResult.isThirdParty
-					? readThirdPartyStream(aiResult.stream)
-					: readWorkersAIStream(aiResult.stream);
-
-				for await (const text of streamGen) {
+				if (mode === "vampire") {
+					let parsed = parseVampireResponse(
+						await collectGeneratedText(aiResult),
+						emotionCtx?.emotion ?? "neutral",
+					);
+					if (!parsed.structured) {
+						const retryMessages = messages.map((message, index) =>
+							index === 0
+								? {
+										...message,
+										content: `${message.content}\n\n上一次输出未形成可用协议。请重新回答当前问题，并严格输出包含 display、speechJa、emotion 的单个 JSON 对象。speechJa 只能使用日文汉字、平假名、片假名和日文标点，所有英文缩写、拉丁字母、数字和代码都要改写为自然日语读音。`,
+									}
+								: message,
+						);
+						const retried = parseVampireResponse(
+							await collectGeneratedText(
+								await generateAnswer(env, retryMessages, mode),
+							),
+							emotionCtx?.emotion ?? "neutral",
+						);
+						if (retried.structured || !parsed.display) parsed = retried;
+					}
 					await writer.write(
 						encoder.encode(
-							`data: ${JSON.stringify({ type: "chunk", text })}\n\n`,
+							`data: ${JSON.stringify({ type: "chunk", text: parsed.display })}\n\n`,
 						),
 					);
-				}
-
-				if (!aiResult.isThirdParty && aiResult.stream?.response) {
-					const text =
-						typeof aiResult.stream.response === "string"
-							? aiResult.stream.response
-							: JSON.stringify(aiResult.stream.response);
-					await writer.write(
-						encoder.encode(
-							`data: ${JSON.stringify({ type: "chunk", text })}\n\n`,
-						),
-					);
+					if (parsed.voice) {
+						await writer.write(
+							encoder.encode(
+								`data: ${JSON.stringify({ type: "voice", ...parsed.voice })}\n\n`,
+							),
+						);
+					}
+				} else {
+					const streamGen = aiResult.isThirdParty
+						? readThirdPartyStream(aiResult.stream)
+						: readWorkersAIStream(aiResult.stream);
+					for await (const text of streamGen) {
+						await writer.write(
+							encoder.encode(
+								`data: ${JSON.stringify({ type: "chunk", text })}\n\n`,
+							),
+						);
+					}
+					if (!aiResult.isThirdParty && aiResult.stream?.response) {
+						const text =
+							typeof aiResult.stream.response === "string"
+								? aiResult.stream.response
+								: JSON.stringify(aiResult.stream.response);
+						await writer.write(
+							encoder.encode(
+								`data: ${JSON.stringify({ type: "chunk", text })}\n\n`,
+							),
+						);
+					}
 				}
 
 				await writer.write(
